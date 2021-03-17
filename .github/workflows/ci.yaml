@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+      - run: make fmt
+      - run: make tidy
+      - run: make vet
+      - run: make test
+      - name: Install Suricata and Zeek
+        run: |
+          set -x
+          case $(uname) in
+            Darwin)
+              brew install suricata zeek
+              ;;
+            Linux)
+              sudo add-apt-repository -y ppa:oisf/suricata-stable
+              zeek_repo_url=https://download.opensuse.org/repositories/security:zeek/xUbuntu_20.04/
+              curl -fsSL ${zeek_repo_url}Release.key | sudo apt-key add -
+              sudo add-apt-repository -y "deb $zeek_repo_url /"
+              sudo apt-get -y update
+              sudo apt-get -y --no-install-recommends install suricata zeek
+              sudo suricata-update
+              sudo chmod go+rx /var/lib/suricata/rules
+              echo "/opt/zeek/bin" >> $GITHUB_PATH
+              ;;
+            *)
+              echo "unknown OS: $(uname)" >&2
+              exit 1
+              ;;
+          esac
+      - run: make ztest
