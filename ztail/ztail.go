@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/brimsec/brimcap/tail"
+	"github.com/brimsec/zq/zbuf"
 	"github.com/brimsec/zq/zio"
 	"github.com/brimsec/zq/zio/detector"
 	"github.com/brimsec/zq/zng"
@@ -23,6 +24,7 @@ type Tailer struct {
 	opts       zio.ReaderOpts
 	readers    map[string]*tail.File
 	tailer     *tail.Dir
+	warner     zbuf.Warner
 	zctx       *resolver.Context
 
 	// synchronization primitives
@@ -111,10 +113,14 @@ func (d *Tailer) tailFile(file string) error {
 	d.readers[file] = f
 	d.wg.Add(1)
 	go func() {
-		zr, err := detector.OpenFromNamedReadCloser(d.zctx, f, file, d.opts)
+		var zr zbuf.Reader
+		zr, err = detector.OpenFromNamedReadCloser(d.zctx, f, file, d.opts)
 		if err != nil {
 			d.results <- result{err: err}
 			return
+		}
+		if d.warner != nil {
+			zr = zbuf.NewWarningReader(zr, d.warner)
 		}
 		var res result
 		for {
@@ -129,6 +135,10 @@ func (d *Tailer) tailFile(file string) error {
 		}
 	}()
 	return nil
+}
+
+func (d *Tailer) WarningHandler(warner zbuf.Warner) {
+	d.warner = warner
 }
 
 func (d *Tailer) Read() (*zng.Record, error) {

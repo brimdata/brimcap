@@ -42,10 +42,7 @@ func TestMultiAnalyzerEOS(t *testing.T) {
 	}
 
 	r := strings.NewReader("some test data")
-	reader, err := Multi(resolver.NewContext(), r, analyzer1, analyzer2)
-	if err != nil {
-		t.Fatalf("expected error to be nil, got %v", err)
-	}
+	reader := Multi(resolver.NewContext(), r, analyzer1, analyzer2)
 	defer reader.Close()
 
 	if rec, err := reader.Read(); rec != nil || err != nil {
@@ -83,17 +80,14 @@ func TestMultiAnalyzerError(t *testing.T) {
 	}
 
 	pr, _ := io.Pipe()
-	reader, err := Multi(resolver.NewContext(), pr, analyzer1, analyzer2)
-	if err != nil {
-		t.Fatalf("expected error to be nil, got %v", err)
-	}
+	reader := Multi(resolver.NewContext(), pr, analyzer1, analyzer2)
 
 	errCh <- expected
-	if _, err = reader.Read(); !errors.Is(err, expected) {
+	if _, err := reader.Read(); !errors.Is(err, expected) {
 		t.Errorf("expected error to equal %v, got %v", expected, err)
 	}
 
-	if err = reader.Close(); err != nil {
+	if err := reader.Close(); err != nil {
 		t.Errorf("expected error to be nil, got %v", err)
 	}
 }

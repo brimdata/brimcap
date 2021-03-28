@@ -13,52 +13,60 @@ type multiAnalyzer struct {
 	analyzers []zbuf.Reader
 	cancel    context.CancelFunc
 	combiner  *zbuf.Combiner
+	pipes     []*io.PipeWriter
 }
 
-func Multi(zctx *resolver.Context, pcap io.Reader, confs ...Config) (Analyzer, error) {
+func Multi(zctx *resolver.Context, pcap io.Reader, confs ...Config) Analyzer {
+	return MultiWithContext(context.Background(), zctx, pcap, confs...)
+}
+
+func MultiWithContext(ctx context.Context, zctx *resolver.Context, pcap io.Reader, confs ...Config) Analyzer {
 	if len(confs) == 1 {
-		return New(zctx, pcap, confs[0])
+		return NewWithContext(ctx, zctx, pcap, confs[0])
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 
+	pipes := make([]*io.PipeWriter, len(confs)-1)
 	readers := make([]zbuf.Reader, len(confs))
 	for i, conf := range confs {
 		r := pcap
 		// Do not pipe last analyzer. It will be responsible for pulling the
 		// stream along.
 		if i+1 < len(confs) {
-			var w *io.PipeWriter
-			r, w = io.Pipe()
+			r, pipes[i] = io.Pipe()
 			// Use a special variant io.TeeReader that ensures the pipe reader
 			// receives errors from the parent reader. Needed because otherwise
 			// some processes wouldn't receive and EOF and exit.
-			pcap = &tee{pcap, w}
+			pcap = &tee{pcap, pipes[i]}
 		}
 
-		var err error
-		readers[i], err = NewWithContext(ctx, zctx, r, conf)
-		if err != nil {
-			cancel()
-			return nil, err
-		}
+		readers[i] = NewWithContext(ctx, zctx, r, conf)
 	}
 
 	return &multiAnalyzer{
 		analyzers: readers,
 		cancel:    cancel,
 		combiner:  zbuf.NewCombiner(context.TODO(), readers),
-	}, nil
+		pipes:     pipes,
+	}
+}
+
+func (p *multiAnalyzer) WarningHandler(w zbuf.Warner) {
+	for _, a := range p.analyzers {
+		a.(Analyzer).WarningHandler(w)
+	}
 }
 
 func (m *multiAnalyzer) Read() (*zng.Record, error) {
-	rec, err := m.combiner.Read()
-	if err != nil {
-		// If an error is encountered, cancel the context so the other processes
-		// shutdown.
-		m.cancel()
+	return m.combiner.Read()
+}
+
+func (p *multiAnalyzer) RecordsRead() (count int64) {
+	for _, a := range p.analyzers {
+		count += a.(Analyzer).RecordsRead()
 	}
-	return rec, err
+	return
 }
 
 func (m *multiAnalyzer) BytesRead() int64 {
@@ -67,6 +75,9 @@ func (m *multiAnalyzer) BytesRead() int64 {
 }
 
 func (m *multiAnalyzer) Close() error {
+	for _, w := range m.pipes {
+		w.Close()
+	}
 	defer m.cancel()
 	return zbuf.CloseReaders(m.analyzers)
 }

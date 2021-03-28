@@ -8,10 +8,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/brimsec/brimcap/analyzer"
 	"github.com/brimsec/brimcap/cmd/brimcap/root"
 	"github.com/brimsec/zq/api"
 	"github.com/brimsec/zq/api/client"
+	"github.com/brimsec/zq/pkg/signalctx"
 	"github.com/brimsec/zq/zbuf"
 	"github.com/brimsec/zq/zio/zngio"
 	"github.com/mccanne/charm"
@@ -31,15 +31,15 @@ func init() {
 
 type Command struct {
 	*root.Command
-	analyze analyzer.Flags
-	conn    *client.Connection
-	space   string
-	spaceID api.SpaceID
+	analyzerflags root.AnalyzerFlags
+	conn          *client.Connection
+	space         string
+	spaceID       api.SpaceID
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.analyze.SetFlags(f)
+	c.analyzerflags.SetFlags(f)
 	f.StringVar(&c.space, "s", "", "name of zqd space")
 	return c, nil
 }
@@ -67,34 +67,34 @@ func (c *Command) Run(args []string) (err error) {
 		return errors.New("expected 1 pcapfile arg")
 	}
 
-	if err := c.Command.Init(c, &c.analyze); err != nil {
+	if err := c.Command.Init(c, &c.analyzerflags); err != nil {
 		return err
 	}
 	defer c.Cleanup()
 
-	pcapfile := os.Stdin
-	if args[0] != "-" {
-		if pcapfile, err = os.Open(args[0]); err != nil {
-			return fmt.Errorf("error loading pcap file: %w", err)
-		}
-	}
-	defer pcapfile.Close()
+	ctx, cancel := signalctx.New(os.Interrupt)
+	defer cancel()
 
-	zr, err := c.analyze.Open(pcapfile)
+	analyzer, err := c.analyzerflags.Open(ctx, args)
 	if err != nil {
 		return err
 	}
-	defer zr.Close()
+	analyzer.RunDisplay()
 
-	reader := toioreader(zr)
-	_, err = c.conn.LogPostReaders(context.TODO(), c.spaceID, nil, reader)
+	reader := toioreader(analyzer)
+	_, err = c.conn.LogPostReaders(ctx, c.spaceID, nil, reader)
 	reader.Close()
+
+	if aerr := analyzer.Close(); err == nil {
+		err = aerr
+	}
 	return err
 }
 
 type ioreader struct {
 	reader io.Reader
 	writer *io.PipeWriter
+	closer io.Closer
 }
 
 // toioreader transforms a zbuf.Reader into an io.Reader that emits zng bytes.

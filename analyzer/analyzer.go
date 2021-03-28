@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"sync"
 	"sync/atomic"
 
 	"github.com/brimsec/brimcap/ztail"
@@ -19,6 +20,8 @@ import (
 type Analyzer interface {
 	zbuf.ReadCloser
 	BytesRead() int64
+	RecordsRead() int64
+	WarningHandler(zbuf.Warner)
 }
 
 type Config struct {
@@ -40,36 +43,48 @@ func (c Config) GetLauncher() (Launcher, error) {
 type analyzer struct {
 	cancel   context.CancelFunc
 	config   Config
-	err      error
+	ctx      context.Context
 	logdir   string
-	reader   *readCounter
-	zreader  zbuf.Reader
+	once     sync.Once
+	procErr  error
 	procDone chan struct{}
+	reader   *readCounter
+	records  int64
 	tailer   *ztail.Tailer
-	warn     chan string
+	warner   zbuf.Warner
 	zctx     *resolver.Context
+	zreader  zbuf.Reader
 }
 
-func New(zctx *resolver.Context, r io.Reader, conf Config) (Analyzer, error) {
+func New(zctx *resolver.Context, r io.Reader, conf Config) Analyzer {
 	return NewWithContext(context.Background(), zctx, r, conf)
 }
 
-func NewWithContext(ctx context.Context, zctx *resolver.Context, r io.Reader, conf Config) (Analyzer, error) {
+func NewWithContext(ctx context.Context, zctx *resolver.Context, r io.Reader, conf Config) Analyzer {
 	ctx, cancel := context.WithCancel(ctx)
 	a := &analyzer{
 		cancel:   cancel,
 		config:   conf,
+		ctx:      ctx,
 		procDone: make(chan struct{}),
 		reader:   &readCounter{reader: r},
 		zctx:     zctx,
 	}
-	if err := a.run(ctx); err != nil {
-		return nil, err
-	}
-	return a, nil
+	return a
+}
+
+func (p *analyzer) WarningHandler(w zbuf.Warner) {
+	p.warner = w
 }
 
 func (p *analyzer) Read() (*zng.Record, error) {
+	var err error
+	p.once.Do(func() {
+		err = p.run()
+	})
+	if err != nil {
+		return nil, err
+	}
 	rec, err := p.zreader.Read()
 	if rec == nil && err == nil {
 		// If EOS received and done channel is closed, return the process error.
@@ -77,14 +92,17 @@ func (p *analyzer) Read() (*zng.Record, error) {
 		// error.
 		select {
 		case <-p.procDone:
-			err = p.err
+			err = p.procErr
 		default:
 		}
+	}
+	if rec != nil {
+		atomic.AddInt64(&p.records, 1)
 	}
 	return rec, err
 }
 
-func (p *analyzer) run(ctx context.Context) error {
+func (p *analyzer) run() error {
 	ln, err := p.config.GetLauncher()
 	if err != nil {
 		return err
@@ -95,7 +113,7 @@ func (p *analyzer) run(ctx context.Context) error {
 		return err
 	}
 
-	waiter, err := ln(ctx, logdir, p.reader)
+	waiter, err := ln(p.ctx, logdir, p.reader)
 	if err != nil {
 		os.RemoveAll(logdir)
 		return err
@@ -106,15 +124,16 @@ func (p *analyzer) run(ctx context.Context) error {
 		os.RemoveAll(logdir)
 		return err
 	}
+	tailer.WarningHandler(p.warner)
 
 	go func() {
-		p.err = waiter.Wait()
+		p.procErr = waiter.Wait()
 		close(p.procDone)
 
 		// Tell DirReader to stop tail files, which will in turn cause an EOF on
 		// zbuf.Read stream when remaining data has been read.
-		if err := p.tailer.Stop(); p.err == nil {
-			p.err = err
+		if err := p.tailer.Stop(); p.procErr == nil {
+			p.procErr = err
 		}
 	}()
 
@@ -122,14 +141,19 @@ func (p *analyzer) run(ctx context.Context) error {
 	p.tailer = tailer
 	p.logdir = logdir
 	if p.config.Shaper != nil {
-		p.zreader, err = driver.NewReader(ctx, p.config.Shaper, p.zctx, tailer)
+		p.zreader, err = driver.NewReader(p.ctx, p.config.Shaper, p.zctx, p.zreader)
 		if err != nil {
+			tailer.Close()
 			os.RemoveAll(logdir)
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (p *analyzer) RecordsRead() int64 {
+	return atomic.LoadInt64(&p.records)
 }
 
 func (p *analyzer) BytesRead() int64 {

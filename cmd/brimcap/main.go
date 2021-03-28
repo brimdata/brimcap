@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	_ "net/http/pprof"
+
 	_ "github.com/brimsec/brimcap/cmd/brimcap/analyze"
 	_ "github.com/brimsec/brimcap/cmd/brimcap/cut"
 	_ "github.com/brimsec/brimcap/cmd/brimcap/index"

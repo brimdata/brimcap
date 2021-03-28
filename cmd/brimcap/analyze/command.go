@@ -1,15 +1,14 @@
 package analyze
 
 import (
-	"context"
 	"errors"
 	"flag"
-	"fmt"
 	"os"
 
-	"github.com/brimsec/brimcap/analyzer"
 	"github.com/brimsec/brimcap/cmd/brimcap/root"
 	"github.com/brimsec/zq/cli/outputflags"
+	"github.com/brimsec/zq/emitter"
+	"github.com/brimsec/zq/pkg/signalctx"
 	"github.com/brimsec/zq/zbuf"
 	"github.com/mccanne/charm"
 )
@@ -28,13 +27,15 @@ func init() {
 
 type Command struct {
 	*root.Command
-	analyze analyzer.Flags
-	out     outputflags.Flags
+	analyzeflags root.AnalyzerFlags
+	analyzer     *root.AnalyzerCLI
+	emitter      emitter.Emitter
+	out          outputflags.Flags
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.analyze.SetFlags(f)
+	c.analyzeflags.SetFlags(f)
 	c.out.SetFlags(f)
 	return c, nil
 }
@@ -44,32 +45,32 @@ func (c *Command) Run(args []string) (err error) {
 		return errors.New("expected 1 pcapfile arg")
 	}
 
-	if err := c.Init(&c.out, &c.analyze); err != nil {
+	if err := c.Init(&c.out, &c.analyzeflags); err != nil {
 		return err
 	}
 	defer c.Cleanup()
 
-	zw, err := c.out.Open(context.Background())
+	ctx, cancel := signalctx.New(os.Interrupt)
+	defer cancel()
+
+	c.emitter, err = c.out.Open(ctx)
 	if err != nil {
 		return err
 	}
-	defer zw.Close()
+	defer c.emitter.Close()
 
-	pcapfile := os.Stdin
-	if args[0] != "-" {
-		if pcapfile, err = os.Open(args[0]); err != nil {
-			return fmt.Errorf("error loading pcap file: %w", err)
-		}
-	}
-	defer pcapfile.Close()
-
-	reader, err := c.analyze.Open(pcapfile)
+	c.analyzer, err = c.analyzeflags.Open(ctx, args)
 	if err != nil {
 		return err
 	}
 
-	err = zbuf.Copy(zw, reader)
-	if aerr := reader.Close(); err == nil {
+	// If not emitting to stdio write stats to stderr.
+	if !c.emitter.IsStdio() {
+		c.analyzer.RunDisplay()
+	}
+
+	err = zbuf.CopyWithContext(ctx, c.emitter, c.analyzer)
+	if aerr := c.analyzer.Close(); err == nil {
 		err = aerr
 	}
 	return err
