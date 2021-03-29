@@ -22,19 +22,16 @@ import (
 //go:embed suricata.zed
 var suricatashaper string
 
-var ZeekExecScriptDisableSomeLogs = `
+var zeekscript = `
+@load packages
 event zeek_init() {
-	Log::disable_stream(PacketFilter::LOG);
-	Log::disable_stream(LoadedScripts::LOG);
+    Log::disable_stream(PacketFilter::LOG);
+    Log::disable_stream(LoadedScripts::LOG);
 }`
 
-var ZeekExecScriptLoadPackages = `
-	@load packages
-`
-
 var (
-	DefaultZeek = analyzer.Config{
-		Args: []string{"-C", "-r", "-", "--exec", ZeekExecScriptLoadPackages, "--exec", ZeekExecScriptDisableSomeLogs, "local"},
+    DefaultZeek = analyzer.Config{
+        Args: []string{"-C", "-r", "-", "--exec", zeekscript, "local"},
 		Cmd:  "zeek",
 	}
 	DefaultSuricata = analyzer.Config{
