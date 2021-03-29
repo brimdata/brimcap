@@ -70,7 +70,7 @@ func (f *AnalyzerFlags) Init() error {
 }
 
 type AnalyzerCLI struct {
-	analyzer.Analyzer
+	analyzer.Interface
 	display       *display.Display
 	pcapfile      *os.File
 	pcapsize      int64
@@ -80,7 +80,7 @@ type AnalyzerCLI struct {
 }
 
 func (a *AnalyzerCLI) Close() error {
-	err := a.Analyzer.Close()
+	err := a.Interface.Close()
 	if perr := a.pcapfile.Close(); err == nil {
 		err = perr
 	}
@@ -97,8 +97,8 @@ func (a *AnalyzerCLI) RunDisplay() {
 }
 
 func (a *AnalyzerCLI) Display(w io.Writer) bool {
-	read := a.Analyzer.BytesRead()
-	fmt.Fprintf(w, "records_read=%d ", a.Analyzer.RecordsRead())
+	read := a.Interface.BytesRead()
+	fmt.Fprintf(w, "records_read=%d ", a.Interface.RecordsRead())
 
 	str := "pcap_bytes_read="
 	if total := a.Pcapsize(); total != 0 {
@@ -157,11 +157,11 @@ func (f *AnalyzerFlags) Open(ctx context.Context, args []string) (*AnalyzerCLI, 
 	}
 
 	cli := &AnalyzerCLI{
-		Analyzer: analyzer.MultiWithContext(ctx, resolver.NewContext(), pcapfile, f.configs...),
-		pcapfile: pcapfile,
-		pcapsize: pcapsize,
-		warnings: make(map[string]int64),
+		Interface: analyzer.CombinerWithContext(ctx, resolver.NewContext(), pcapfile, f.configs...),
+		pcapfile:  pcapfile,
+		pcapsize:  pcapsize,
+		warnings:  make(map[string]int64),
 	}
-	cli.Analyzer.WarningHandler(cli)
+	cli.Interface.WarningHandler(cli)
 	return cli, nil
 }

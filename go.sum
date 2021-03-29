@@ -78,8 +78,8 @@ github.com/bkaradzic/go-lz4 v1.0.0/go.mod h1:0YdlkowM3VswSROI7qDxhRvJ3sLhlFrRRwj
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
 github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b/go.mod h1:ac9efd0D1fsDb3EJvhqgXRbFx7bs2wqZ10HQPeU8U/Q=
-github.com/brimsec/zq v0.29.1-0.20210327224045-9b4a57857f02 h1:bHztcPxPytrLmqwphMcutFms2LKaOjCt0awuipXapZQ=
-github.com/brimsec/zq v0.29.1-0.20210327224045-9b4a57857f02/go.mod h1:IxRcUh105U5f3hCwwF9J2rA/1B17cNzIKPzCATjWjmI=
+github.com/brimsec/zq v0.29.1-0.20210329181834-29f782feb021 h1:oPV+IzWSMGaT4+J3Rxc73/jnCV+YTNUVwW7DSGqLAIo=
+github.com/brimsec/zq v0.29.1-0.20210329181834-29f782feb021/go.mod h1:IxRcUh105U5f3hCwwF9J2rA/1B17cNzIKPzCATjWjmI=
 github.com/bsm/sarama-cluster v2.1.15+incompatible/go.mod h1:r7ao+4tTNXvWm+VRpRJchr2kQhqxgmAp2iEX5W96gMM=
 github.com/buger/jsonparser v0.0.0-20191004114745-ee4c978eae7e h1:oJCXMss/3rg5F6Poy9wG3JQusc58Mzk5B9Z6wSnssNE=
 github.com/buger/jsonparser v0.0.0-20191004114745-ee4c978eae7e/go.mod h1:errmMKH8tTB49UR2A8C8DPYkyudelsYJwJFaZHQ6ik8=

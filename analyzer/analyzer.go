@@ -17,7 +17,7 @@ import (
 	"github.com/brimsec/zq/zng/resolver"
 )
 
-type Analyzer interface {
+type Interface interface {
 	zbuf.ReadCloser
 	BytesRead() int64
 	RecordsRead() int64
@@ -56,11 +56,11 @@ type analyzer struct {
 	zreader  zbuf.Reader
 }
 
-func New(zctx *resolver.Context, r io.Reader, conf Config) Analyzer {
+func New(zctx *resolver.Context, r io.Reader, conf Config) Interface {
 	return NewWithContext(context.Background(), zctx, r, conf)
 }
 
-func NewWithContext(ctx context.Context, zctx *resolver.Context, r io.Reader, conf Config) Analyzer {
+func NewWithContext(ctx context.Context, zctx *resolver.Context, r io.Reader, conf Config) Interface {
 	ctx, cancel := context.WithCancel(ctx)
 	a := &analyzer{
 		cancel:   cancel,

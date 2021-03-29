@@ -9,18 +9,18 @@ import (
 	"github.com/brimsec/zq/zng/resolver"
 )
 
-type multiAnalyzer struct {
+type combiner struct {
 	analyzers []zbuf.Reader
 	cancel    context.CancelFunc
 	combiner  *zbuf.Combiner
 	pipes     []*io.PipeWriter
 }
 
-func Multi(zctx *resolver.Context, pcap io.Reader, confs ...Config) Analyzer {
-	return MultiWithContext(context.Background(), zctx, pcap, confs...)
+func Combiner(zctx *resolver.Context, pcap io.Reader, confs ...Config) Interface {
+	return CombinerWithContext(context.Background(), zctx, pcap, confs...)
 }
 
-func MultiWithContext(ctx context.Context, zctx *resolver.Context, pcap io.Reader, confs ...Config) Analyzer {
+func CombinerWithContext(ctx context.Context, zctx *resolver.Context, pcap io.Reader, confs ...Config) Interface {
 	if len(confs) == 1 {
 		return NewWithContext(ctx, zctx, pcap, confs[0])
 	}
@@ -44,7 +44,7 @@ func MultiWithContext(ctx context.Context, zctx *resolver.Context, pcap io.Reade
 		readers[i] = NewWithContext(ctx, zctx, r, conf)
 	}
 
-	return &multiAnalyzer{
+	return &combiner{
 		analyzers: readers,
 		cancel:    cancel,
 		combiner:  zbuf.NewCombiner(context.TODO(), readers),
@@ -52,29 +52,29 @@ func MultiWithContext(ctx context.Context, zctx *resolver.Context, pcap io.Reade
 	}
 }
 
-func (p *multiAnalyzer) WarningHandler(w zbuf.Warner) {
+func (p *combiner) WarningHandler(w zbuf.Warner) {
 	for _, a := range p.analyzers {
-		a.(Analyzer).WarningHandler(w)
+		a.(Interface).WarningHandler(w)
 	}
 }
 
-func (m *multiAnalyzer) Read() (*zng.Record, error) {
+func (m *combiner) Read() (*zng.Record, error) {
 	return m.combiner.Read()
 }
 
-func (p *multiAnalyzer) RecordsRead() (count int64) {
+func (p *combiner) RecordsRead() (count int64) {
 	for _, a := range p.analyzers {
-		count += a.(Analyzer).RecordsRead()
+		count += a.(Interface).RecordsRead()
 	}
 	return
 }
 
-func (m *multiAnalyzer) BytesRead() int64 {
+func (m *combiner) BytesRead() int64 {
 	last := len(m.analyzers) - 1
-	return m.analyzers[last].(Analyzer).BytesRead()
+	return m.analyzers[last].(Interface).BytesRead()
 }
 
-func (m *multiAnalyzer) Close() error {
+func (m *combiner) Close() error {
 	for _, w := range m.pipes {
 		w.Close()
 	}

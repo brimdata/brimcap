@@ -65,7 +65,7 @@ func (c *Command) Run(args []string) (err error) {
 	}
 
 	// If not emitting to stdio write stats to stderr.
-	if !c.emitter.IsStdio() {
+	if !c.emitter.ToStdio() {
 		c.analyzer.RunDisplay()
 	}
 
