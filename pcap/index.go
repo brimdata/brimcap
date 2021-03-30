@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
+	"os"
 	"unsafe"
 
 	"github.com/brimsec/brimcap/pcap/pcapio"

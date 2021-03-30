@@ -2,7 +2,7 @@ package slicer_test
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/brimsec/zq/pkg/slicer"

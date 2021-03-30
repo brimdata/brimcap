@@ -3,7 +3,6 @@ package analyzer
 import (
 	"context"
 	"io"
-	"io/ioutil"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -108,7 +107,7 @@ func (p *analyzer) run() error {
 		return err
 	}
 
-	logdir, err := os.MkdirDir("", "brimcap-")
+	logdir, err := os.MkdirTemp("", "brimcap-")
 	if err != nil {
 		return err
 	}

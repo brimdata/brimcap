@@ -12,6 +12,7 @@ import (
 	"github.com/brimsec/zq/zio"
 	"github.com/brimsec/zq/zng/resolver"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAnalyzerErrorOnLaunch(t *testing.T) {
@@ -22,9 +23,8 @@ func TestAnalyzerErrorOnLaunch(t *testing.T) {
 		},
 	})
 
-	if _, err := analyzer.Read(); !errors.Is(err, expected) {
-		t.Errorf("expected error to equal %v, got %v", expected, err)
-	}
+	_, err := analyzer.Read()
+	assert.ErrorIs(t, err, expected)
 }
 
 func TestAnalyzerErrorOnRead(t *testing.T) {

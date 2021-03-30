@@ -1,7 +1,6 @@
 package pcap_test
 
 import (
-	"errors"
 	"strings"
 	"testing"
 

@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -15,9 +14,9 @@ import (
 )
 
 func TestTailFileWrite(t *testing.T) {
-    f, err := os.CreateTemp(t.TempDir(), "")
-    require.NoError(t, err)
-    defer f.Close()
+	f, err := os.CreateTemp(t.TempDir(), "")
+	require.NoError(t, err)
+	defer f.Close()
 	// Add timeout context lest TFail fails to get a write event. Don't wait
 	// around forever.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -64,7 +63,7 @@ line #9
 `
 	f, err := os.CreateTemp(t.TempDir(), "")
 	require.NoError(t, err)
-	defer f.Close()```
+	defer f.Close()
 	tf, err := TailFile(f.Name())
 	require.NoError(t, err)
 

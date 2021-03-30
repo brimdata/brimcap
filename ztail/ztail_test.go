@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -56,6 +55,7 @@ func TestLogTailer(t *testing.T) {
 func (s *logTailerTSuite) SetupTest() {
 	s.dir = s.T().TempDir()
 	s.zctx = resolver.NewContext()
+	var err error
 	s.dr, err = New(s.zctx, s.dir, zio.ReaderOpts{Format: "tzng"})
 	s.Require().NoError(err)
 }
@@ -113,7 +113,7 @@ func (s *logTailerTSuite) TestEmptyFile() {
 func (s *logTailerTSuite) createFile(name string) *os.File {
 	f, err := os.Create(filepath.Join(s.dir, name))
 	s.Require().NoError(err)
-	s.T().Cleanup(func() f.Close())
+	s.T().Cleanup(func() { f.Close() })
 	// Call sync to ensure fs events are sent in a timely matter.
 	s.Require().NoError(f.Sync())
 	return f
