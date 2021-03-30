@@ -7,7 +7,7 @@ utility](https://github.com/brimsec/zq).
 
 ## Install
 
-To build from source, go version 1.16 or later is required.
+To build from source, Go version 1.16 or later is required.
 
 To install the brimcap binary in `$GOPATH/bin`, clone this repo and execute
 `make install`:
@@ -28,4 +28,3 @@ brew install zeek suricata
 
 [ci-img]: https://github.com/brimsec/brimcap/actions/workflows/ci.yaml/badge.svg
 [ci]: https://github.com/brimsec/zq/actions/workflows/ci.yaml
-
