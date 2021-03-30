@@ -108,7 +108,7 @@ func (p *analyzer) run() error {
 		return err
 	}
 
-	logdir, err := ioutil.TempDir("", "zqd-pcap-ingest-")
+	logdir, err := os.MkdirDir("", "brimcap-")
 	if err != nil {
 		return err
 	}
