@@ -23,7 +23,6 @@ import (
 var suricatashaper string
 
 var zeekscript = `
-@load packages
 event zeek_init() {
     Log::disable_stream(PacketFilter::LOG);
     Log::disable_stream(LoadedScripts::LOG);
@@ -31,7 +30,7 @@ event zeek_init() {
 
 var (
 	DefaultZeek = analyzer.Config{
-		Args: []string{"-C", "-r", "-", "--exec", zeekscript, "local"},
+		Args: []string{"-C", "-r", "-", "--exec", "@load packages", "--exec", zeekscript, "local"},
 		Cmd:  "zeek",
 	}
 	DefaultSuricata = analyzer.Config{
