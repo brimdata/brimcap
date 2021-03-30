@@ -54,10 +54,7 @@ func TestLogTailer(t *testing.T) {
 }
 
 func (s *logTailerTSuite) SetupTest() {
-	dir, err := ioutil.TempDir("", "TestLogTailer")
-	s.Require().NoError(err)
-	s.dir = dir
-	s.T().Cleanup(func() { os.RemoveAll(s.dir) })
+	s.dir = s.T().TempDir()
 	s.zctx = resolver.NewContext()
 	s.dr, err = New(s.zctx, s.dir, zio.ReaderOpts{Format: "tzng"})
 	s.Require().NoError(err)
