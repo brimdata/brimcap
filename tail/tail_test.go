@@ -15,9 +15,9 @@ import (
 )
 
 func TestTailFileWrite(t *testing.T) {
-	f, err := ioutil.TempFile("", "tailfile.log")
-	require.NoError(t, err)
-	t.Cleanup(func() { os.Remove(f.Name()) })
+    f, err := os.CreateTemp(t.TempDir(), "")
+    require.NoError(t, err)
+    defer f.Close()
 	// Add timeout context lest TFail fails to get a write event. Don't wait
 	// around forever.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
