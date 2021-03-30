@@ -21,7 +21,7 @@ func TestSlicer(t *testing.T) {
 	expected := []byte("ababcdefghijklmnopqrstuvwxyzdefgzz")
 	reader, err := slicer.NewReader(bytes.NewReader(in), slices)
 	assert.NoError(t, err)
-	out, err := ioutil.ReadAll(reader)
+	out, err := io.ReadAll(reader)
 	assert.NoError(t, err)
 	assert.Exactly(t, expected, out)
 }
