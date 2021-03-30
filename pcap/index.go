@@ -138,7 +138,7 @@ func CreateIndexWithWarnings(r io.Reader, size int, c chan<- string) (Index, err
 }
 
 func LoadIndex(path string) (Index, error) {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
