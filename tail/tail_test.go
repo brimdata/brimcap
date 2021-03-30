@@ -62,9 +62,9 @@ line #7
 line #8
 line #9
 `
-	f, err := ioutil.TempFile("", "tailfile.log")
+	f, err := os.CreateTemp(t.TempDir(), "")
 	require.NoError(t, err)
-	defer os.Remove(f.Name())
+	defer f.Close()```
 	tf, err := TailFile(f.Name())
 	require.NoError(t, err)
 
