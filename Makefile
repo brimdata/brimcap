@@ -52,7 +52,6 @@ ztest: build zq exists-zeek exists-suricata
 	@zeek=$$(dirname $$(which zeek)) ; suricata=$$(dirname $$(which suricata)) ; \
 		ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$${zeek}:$${suricata}" go test .
 
-
 .PHONY: install
 install:
 	@go install -ldflags='$(LDFLAGS)' ./cmd/... 
