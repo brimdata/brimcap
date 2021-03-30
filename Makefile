@@ -56,4 +56,3 @@ ztest: build zq exists-zeek exists-suricata
 .PHONY: install
 install:
 	@go install -ldflags='$(LDFLAGS)' ./cmd/... 
-
