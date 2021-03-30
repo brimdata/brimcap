@@ -30,8 +30,8 @@ event zeek_init() {
 }`
 
 var (
-    DefaultZeek = analyzer.Config{
-        Args: []string{"-C", "-r", "-", "--exec", zeekscript, "local"},
+	DefaultZeek = analyzer.Config{
+		Args: []string{"-C", "-r", "-", "--exec", zeekscript, "local"},
 		Cmd:  "zeek",
 	}
 	DefaultSuricata = analyzer.Config{
