@@ -209,7 +209,7 @@ func (w *Dir) removeFile(name string) error {
 }
 
 func (w *Dir) poll() error {
-	infos, err := ioutil.ReadDir(w.dir)
+	infos, err := os.ReadDir(w.dir)
 	if err != nil {
 		return err
 	}
