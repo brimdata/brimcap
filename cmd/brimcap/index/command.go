@@ -91,5 +91,5 @@ func (c *Command) Run(args []string) (err error) {
 		fmt.Println(string(b))
 		return nil
 	}
-	return ioutil.WriteFile(c.outputFile, b, 0644)
+	return os.WriteFile(c.outputFile, b, 0644)
 }
