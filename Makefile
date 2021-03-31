@@ -26,7 +26,7 @@ zed:
 
 .PHONY: vet
 vet:
-	@go vet -composites=false -stdmethods=false ./...
+	@go vet ./...
 
 .PHONY: generate
 generate:
