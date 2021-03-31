@@ -7,13 +7,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/brimsec/brimcap/ztail"
-	"github.com/brimsec/zq/compiler/ast"
-	"github.com/brimsec/zq/driver"
-	"github.com/brimsec/zq/zbuf"
-	"github.com/brimsec/zq/zio"
-	"github.com/brimsec/zq/zng"
-	"github.com/brimsec/zq/zng/resolver"
+	"github.com/brimdata/brimcap/ztail"
+	"github.com/brimdata/zed/compiler/ast"
+	"github.com/brimdata/zed/driver"
+	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zio"
+	"github.com/brimdata/zed/zng"
+	"github.com/brimdata/zed/zng/resolver"
 )
 
 type Interface interface {

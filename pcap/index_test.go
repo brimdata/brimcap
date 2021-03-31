@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimsec/zq/pcap"
-	"github.com/brimsec/zq/pcap/pcapio"
+	"github.com/brimdata/brimcap/pcap"
+	"github.com/brimdata/brimcap/pcap/pcapio"
 	"github.com/stretchr/testify/require"
 )
 

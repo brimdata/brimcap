@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimsec/brimcap/recorder"
-	"github.com/brimsec/zq/pkg/nano"
+	"github.com/brimdata/brimcap/recorder"
+	"github.com/brimdata/zed/pkg/nano"
 	"github.com/google/gopacket/layers"
 	"go.uber.org/multierr"
 )

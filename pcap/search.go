@@ -7,8 +7,8 @@ import (
 	"io"
 	"net"
 
-	"github.com/brimsec/brimcap/pcap/pcapio"
-	"github.com/brimsec/zq/pkg/nano"
+	"github.com/brimdata/brimcap/pcap/pcapio"
+	"github.com/brimdata/zed/pkg/nano"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 )

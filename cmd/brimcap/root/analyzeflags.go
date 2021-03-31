@@ -12,11 +12,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/brimsec/brimcap/analyzer"
-	"github.com/brimsec/zq/cmd/zapi/format"
-	"github.com/brimsec/zq/compiler"
-	"github.com/brimsec/zq/pkg/display"
-	"github.com/brimsec/zq/zng/resolver"
+	"github.com/brimdata/brimcap/analyzer"
+	"github.com/brimdata/zed/cmd/zapi/format"
+	"github.com/brimdata/zed/compiler"
+	"github.com/brimdata/zed/pkg/display"
+	"github.com/brimdata/zed/zng/resolver"
 )
 
 //go:embed suricata.zed

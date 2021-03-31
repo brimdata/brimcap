@@ -1,4 +1,4 @@
-script: brimcap analyze alerts.pcap | zq -Z 'count()' -
+script: brimcap analyze alerts.pcap | zed q -Z 'count()' -
 
 inputs:
   - name: alerts.pcap

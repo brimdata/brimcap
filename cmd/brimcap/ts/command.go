@@ -7,9 +7,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/brimsec/brimcap/cmd/brimcap/root"
-	"github.com/brimsec/brimcap/pcap/pcapio"
-	"github.com/mccanne/charm"
+	"github.com/brimdata/brimcap/cmd/brimcap/root"
+	"github.com/brimdata/brimcap/pcap/pcapio"
+	"github.com/brimdata/zed/pkg/charm"
 )
 
 var Ts = &charm.Spec{

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	mockanalyzer "github.com/brimsec/brimcap/analyzer/mock"
-	"github.com/brimsec/zq/zng/resolver"
+	mockanalyzer "github.com/brimdata/brimcap/analyzer/mock"
+	"github.com/brimdata/zed/zng/resolver"
 	"github.com/golang/mock/gomock"
 )
 

@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/brimsec/zq/cli"
-	"github.com/mccanne/charm"
+	"github.com/brimdata/zed/cli"
+	"github.com/brimdata/zed/pkg/charm"
 	"golang.org/x/term"
 )
 

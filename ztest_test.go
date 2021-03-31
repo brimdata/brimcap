@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brimsec/zq/ztest"
+	"github.com/brimdata/zed/ztest"
 	"github.com/stretchr/testify/require"
 )
 

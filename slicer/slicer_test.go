@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/brimsec/zq/pkg/slicer"
+	"github.com/brimdata/brimcap/slicer"
 	"github.com/stretchr/testify/assert"
 )
 

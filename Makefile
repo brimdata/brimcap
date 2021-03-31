@@ -19,10 +19,10 @@ build:
 	@mkdir -p dist
 	@go build -ldflags='$(LDFLAGS)' -o dist ./cmd/...
 
-.PHONY: zq
-zq:
+.PHONY: zed
+zed:
 	@go mod download
-	@GOBIN="$(CURDIR)/bin" go install github.com/brimsec/zq/cmd/zq
+	@GOBIN="$(CURDIR)/bin" go install github.com/brimdata/zed/cmd/zed
 
 .PHONY: vet
 vet:
@@ -43,12 +43,12 @@ exists-%:
 		|| { echo >&2 "command '$*' required but is not installed" ; exit 1; }
 
 .PHONY: ztest-run
-ztest-run: build zq exists-zeek exists-suricata
+ztest-run: build zed exists-zeek exists-suricata
 	@zeek=$$(dirname $$(which zeek)) ; suricata=$$(dirname $$(which suricata)) ; \
 		ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$${zeek}:$${suricata}" go test . -run $(TEST)
 
 .PHONY: ztest
-ztest: build zq exists-zeek exists-suricata
+ztest: build zed exists-zeek exists-suricata
 	@zeek=$$(dirname $$(which zeek)) ; suricata=$$(dirname $$(which suricata)) ; \
 		ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$${zeek}:$${suricata}" go test .
 

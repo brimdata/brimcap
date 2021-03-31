@@ -8,13 +8,13 @@ import (
 	"io"
 	"os"
 
-	"github.com/brimsec/brimcap/cmd/brimcap/root"
-	"github.com/brimsec/zq/api"
-	"github.com/brimsec/zq/api/client"
-	"github.com/brimsec/zq/pkg/signalctx"
-	"github.com/brimsec/zq/zbuf"
-	"github.com/brimsec/zq/zio/zngio"
-	"github.com/mccanne/charm"
+	"github.com/brimdata/brimcap/cmd/brimcap/root"
+	"github.com/brimdata/zed/api"
+	"github.com/brimdata/zed/api/client"
+	"github.com/brimdata/zed/pkg/charm"
+	"github.com/brimdata/zed/pkg/signalctx"
+	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zio/zngio"
 )
 
 var Load = &charm.Spec{
@@ -40,7 +40,7 @@ type Command struct {
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
 	c.analyzerflags.SetFlags(f)
-	f.StringVar(&c.space, "s", "", "name of zqd space")
+	f.StringVar(&c.space, "s", "", "name of zedd space")
 	return c, nil
 }
 

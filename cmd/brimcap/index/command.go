@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/brimsec/brimcap/cmd/brimcap/root"
-	"github.com/brimsec/brimcap/pcap"
-	"github.com/mccanne/charm"
+	"github.com/brimdata/brimcap/cmd/brimcap/root"
+	"github.com/brimdata/brimcap/pcap"
+	"github.com/brimdata/zed/pkg/charm"
 )
 
 var Index = &charm.Spec{

@@ -5,12 +5,11 @@ import (
 	"flag"
 	"os"
 
-	"github.com/brimsec/brimcap/cmd/brimcap/root"
-	"github.com/brimsec/zq/cli/outputflags"
-	"github.com/brimsec/zq/emitter"
-	"github.com/brimsec/zq/pkg/signalctx"
-	"github.com/brimsec/zq/zbuf"
-	"github.com/mccanne/charm"
+	"github.com/brimdata/brimcap/cmd/brimcap/root"
+	"github.com/brimdata/zed/cli/outputflags"
+	"github.com/brimdata/zed/pkg/charm"
+	"github.com/brimdata/zed/pkg/signalctx"
+	"github.com/brimdata/zed/zbuf"
 )
 
 var Analyze = &charm.Spec{
@@ -29,7 +28,7 @@ type Command struct {
 	*root.Command
 	analyzeflags root.AnalyzerFlags
 	analyzer     *root.AnalyzerCLI
-	emitter      emitter.Emitter
+	emitter      zbuf.WriteCloser
 	out          outputflags.Flags
 }
 
@@ -53,11 +52,11 @@ func (c *Command) Run(args []string) (err error) {
 	ctx, cancel := signalctx.New(os.Interrupt)
 	defer cancel()
 
-	c.emitter, err = c.out.Open(ctx)
+	emitter, err := c.out.Open(ctx)
 	if err != nil {
 		return err
 	}
-	defer c.emitter.Close()
+	defer emitter.Close()
 
 	c.analyzer, err = c.analyzeflags.Open(ctx, args)
 	if err != nil {
@@ -65,11 +64,11 @@ func (c *Command) Run(args []string) (err error) {
 	}
 
 	// If not emitting to stdio write stats to stderr.
-	if !c.emitter.ToStdio() {
+	if c.out.FileName() != "" {
 		c.analyzer.RunDisplay()
 	}
 
-	err = zbuf.CopyWithContext(ctx, c.emitter, c.analyzer)
+	err = zbuf.CopyWithContext(ctx, emitter, c.analyzer)
 	if aerr := c.analyzer.Close(); err == nil {
 		err = aerr
 	}

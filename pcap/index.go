@@ -7,10 +7,10 @@ import (
 	"os"
 	"unsafe"
 
-	"github.com/brimsec/brimcap/pcap/pcapio"
-	"github.com/brimsec/brimcap/ranger"
-	"github.com/brimsec/brimcap/slicer"
-	"github.com/brimsec/zq/pkg/nano"
+	"github.com/brimdata/brimcap/pcap/pcapio"
+	"github.com/brimdata/brimcap/ranger"
+	"github.com/brimdata/brimcap/slicer"
+	"github.com/brimdata/zed/pkg/nano"
 )
 
 type Index []Section

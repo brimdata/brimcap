@@ -9,9 +9,9 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/brimsec/brimcap/cmd/brimcap/root"
-	"github.com/brimsec/brimcap/pcap/pcapio"
-	"github.com/mccanne/charm"
+	"github.com/brimdata/brimcap/cmd/brimcap/root"
+	"github.com/brimdata/brimcap/pcap/pcapio"
+	"github.com/brimdata/zed/pkg/charm"
 )
 
 var Info = &charm.Spec{
