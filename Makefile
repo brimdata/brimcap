@@ -44,8 +44,7 @@ exists-%:
 
 .PHONY: ztest-run
 ztest-run: build zed exists-zeek exists-suricata
-	@zeek=$$(dirname $$(which zeek)) ; suricata=$$(dirname $$(which suricata)) ; \
-		ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$${zeek}:$${suricata}" go test . -run $(TEST)
+	ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$(PATH)" go test . -run $(TEST)
 
 .PHONY: ztest
 ztest: build zed exists-zeek exists-suricata
