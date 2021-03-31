@@ -13,10 +13,8 @@ import (
 	"github.com/google/gopacket/layers"
 )
 
-var (
-	// ErrNoPcapsFound is an error indicating no packets have been found.
-	ErrNoPcapsFound = errors.New("no packets found")
-)
+// ErrNoPcapsFound is an error indicating no packets have been found.
+var ErrNoPcapsFound = errors.New("no packets found")
 
 type PacketFilter func(gopacket.Packet) bool
 
