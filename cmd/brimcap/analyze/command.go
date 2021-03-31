@@ -49,7 +49,7 @@ func (c *Command) Run(args []string) (err error) {
 	}
 	defer c.Cleanup()
 
-	ctx, cancel := signalctx.New(os.Interrupt)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	emitter, err := c.out.Open(ctx)
