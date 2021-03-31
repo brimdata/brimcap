@@ -1,0 +1,11 @@
+script: brimcap analyze -suricata=F alerts.pcap | zq -Z 'count()' -
+
+inputs:
+  - name: alerts.pcap
+
+outputs:
+  - name: stdout
+    data: |
+      {
+          count: 379 (uint64)
+      } (=0)

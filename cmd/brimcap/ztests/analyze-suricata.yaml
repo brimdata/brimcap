@@ -1,0 +1,11 @@
+script: brimcap analyze -zeek=F alerts.pcap | zq -Z 'count()' -
+
+inputs:
+  - name: alerts.pcap
+
+outputs:
+  - name: stdout
+    data: |
+      {
+          count: 15 (uint64)
+      } (=0)
