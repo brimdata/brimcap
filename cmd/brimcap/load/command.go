@@ -8,6 +8,9 @@ import (
 	"io"
 	"os"
 
+	"github.com/brimdata/brimcap/analyzer"
+	"github.com/brimdata/brimcap/cli"
+	"github.com/brimdata/brimcap/cli/analyzecli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
@@ -15,6 +18,7 @@ import (
 	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zio/zngio"
+	"github.com/brimdata/zed/zng/resolver"
 )
 
 var Load = &charm.Spec{
@@ -31,15 +35,16 @@ func init() {
 
 type Command struct {
 	*root.Command
-	analyzerflags root.AnalyzerFlags
-	conn          *client.Connection
-	space         string
-	spaceID       api.SpaceID
+	analyzeflags analyzecli.Flags
+	conn         *client.Connection
+	space        string
+	spaceID      api.SpaceID
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.analyzerflags.SetFlags(f)
+	c.Command.Child = c
+	c.analyzeflags.SetFlags(f)
 	f.StringVar(&c.space, "s", "", "name of zedd space")
 	return c, nil
 }
@@ -62,12 +67,12 @@ func (c *Command) Init() error {
 	return fmt.Errorf("space %q not found", c.space)
 }
 
-func (c *Command) Run(args []string) (err error) {
+func (c *Command) Exec(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	}
 
-	if err := c.Command.Init(c, &c.analyzerflags); err != nil {
+	if err := c.Command.Init(c, &c.analyzeflags); err != nil {
 		return err
 	}
 	defer c.Cleanup()
@@ -75,11 +80,16 @@ func (c *Command) Run(args []string) (err error) {
 	ctx, cancel := signalctx.New(os.Interrupt)
 	defer cancel()
 
-	analyzer, err := c.analyzerflags.Open(ctx, args)
+	pcapfile, pcapsize, err := cli.OpenFileArg(args[0])
 	if err != nil {
 		return err
 	}
-	analyzer.RunDisplay()
+	defer pcapfile.Close()
+
+	display := analyzecli.NewDisplay(c.JSON, pcapsize)
+	zctx := resolver.NewContext()
+	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
+	go display.Run(analyzer)
 
 	reader := toioreader(analyzer)
 	_, err = c.conn.LogPostReaders(ctx, c.spaceID, nil, reader)
@@ -88,6 +98,7 @@ func (c *Command) Run(args []string) (err error) {
 	if aerr := analyzer.Close(); err == nil {
 		err = aerr
 	}
+	display.Close()
 	return err
 }
 

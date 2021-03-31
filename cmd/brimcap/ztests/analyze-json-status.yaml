@@ -1,0 +1,15 @@
+script: |
+  brimcap -json analyze -o out.zng alerts.pcap 2> status.ndjson
+  zq -Z 'tail 1 | cut records_written, pcap_read_size, pcap_total_size' status.ndjson
+
+inputs:
+  - name: alerts.pcap
+
+outputs:
+  - name: stdout
+    data: |
+      {
+          records_written: 394,
+          pcap_read_size: 737694,
+          pcap_total_size: 737694
+      }

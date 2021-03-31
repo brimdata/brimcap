@@ -1,11 +1,12 @@
 package root
 
 import (
+	"encoding/json"
 	"flag"
-	"log"
+	"fmt"
 	"os"
 
-	"github.com/brimdata/zed/cli"
+	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/zed/pkg/charm"
 	"golang.org/x/term"
 )
@@ -20,8 +21,10 @@ var Brimcap = &charm.Spec{
 
 type Command struct {
 	charm.Command
-	cli     cli.Flags
-	NoFancy bool
+	cli cli.Flags
+	// Child is set by the select Child command.
+	Child ChildCmd
+	JSON  bool
 }
 
 func init() {
@@ -29,13 +32,15 @@ func init() {
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	c := &Command{
-		NoFancy: !term.IsTerminal(int(os.Stdout.Fd())),
-	}
-	f.BoolVar(&c.NoFancy, "nofancy", c.NoFancy, "disable fancy CLI output (true if stdout is not a tty)")
-	log.SetPrefix("brimcap") // XXX switch to zap
+	c := &Command{}
 	c.cli.SetFlags(f)
+	isterm := term.IsTerminal(int(os.Stdout.Fd()))
+	f.BoolVar(&c.JSON, "json", !isterm, "encode stderr in json")
 	return c, nil
+}
+
+type ChildCmd interface {
+	Exec([]string) error
 }
 
 func (c *Command) Cleanup() {
@@ -47,9 +52,29 @@ func (c *Command) Init(all ...cli.Initializer) error {
 }
 
 func (c *Command) Run(args []string) error {
+	if c.Child != nil {
+		return c.writeError(c.Child.Exec(args))
+	}
 	defer c.cli.Cleanup()
 	if err := c.cli.Init(); err != nil {
-		return err
+		return c.writeError(err)
 	}
 	return Brimcap.Exec(c, []string{"help"})
+}
+
+type MsgError struct {
+	Type  string `json:"type"`
+	Error string `json:"error"`
+}
+
+func (c *Command) writeError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if c.JSON {
+		json.NewEncoder(os.Stderr).Encode(MsgError{Type: "error", Error: err.Error()})
+	} else {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+	}
+	return err
 }

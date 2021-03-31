@@ -49,13 +49,14 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
+	c.Command.Child = c
 	f.StringVar(&c.inputFile, "r", "-", "input file to read from or stdin if -")
 	f.StringVar(&c.outputFile, "x", "-", "name of output file for the index or - for stdout")
 	f.IntVar(&c.limit, "n", 10000, "limit on index size")
 	return c, nil
 }
 
-func (c *Command) Run(args []string) (err error) {
+func (c *Command) Exec(args []string) (err error) {
 	defer c.Cleanup()
 	if err := c.Init(); err != nil {
 		return err
