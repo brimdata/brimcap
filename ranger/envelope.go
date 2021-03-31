@@ -181,7 +181,7 @@ func (c *combiner) maxlen() (l int) {
 // Merge squashes the two envelopes together returning a new Envelope the size
 // of the longest Envelope provided.
 func (e Envelope) Merge(u Envelope) Envelope {
-	c := &combiner{[]Envelope{e, u}}
+	c := combiner{[]Envelope{e, u}}
 	n := c.size()
 	nbin := c.maxlen()
 	stride := strideSize(n, nbin)
