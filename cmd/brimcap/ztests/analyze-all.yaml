@@ -2,7 +2,6 @@ script: brimcap analyze alerts.pcap | zq -Z 'count()' -
 
 inputs:
   - name: alerts.pcap
-    source: alerts.pcap
 
 outputs:
   - name: stdout

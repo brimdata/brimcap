@@ -14,12 +14,7 @@ import (
 	_ "github.com/brimdata/brimcap/cmd/brimcap/ts"
 )
 
-// Version is set via the Go linker.
-var version = "unknown"
-
 func main() {
-	//XXX
-	//root.Version = version
 	if _, err := root.Brimcap.ExecRoot(os.Args[1:]); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)

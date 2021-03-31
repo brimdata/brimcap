@@ -1,7 +1,5 @@
 package recorder
 
-const TrackSize = InitBufferSize
-
 type Track struct {
 	recorder *Recorder
 	off      int

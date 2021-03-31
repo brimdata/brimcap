@@ -128,6 +128,23 @@ func (e Envelope) FindSmallestDomain(r Range) Domain {
 	return Domain{x0, x1}
 }
 
+// Merge squashes the two envelopes together returning a new Envelope the size
+// of the longest Envelope provided.
+func (e Envelope) Merge(u Envelope) Envelope {
+	c := combiner{[]Envelope{e, u}}
+	n := c.size()
+	nbin := c.maxlen()
+	stride := strideSize(n, nbin)
+	nout := (n + stride - 1) / stride
+	out := make([]Bin, nout)
+	for k := 0; k < nout; k++ {
+		bins := c.nextN(stride)
+		out[k].X = bins[0].X
+		out[k].Range = rangeOfBins(bins)
+	}
+	return out
+}
+
 type combiner struct {
 	envelopes []Envelope
 }
@@ -176,21 +193,4 @@ func (c *combiner) maxlen() (l int) {
 		}
 	}
 	return
-}
-
-// Merge squashes the two envelopes together returning a new Envelope the size
-// of the longest Envelope provided.
-func (e Envelope) Merge(u Envelope) Envelope {
-	c := combiner{[]Envelope{e, u}}
-	n := c.size()
-	nbin := c.maxlen()
-	stride := strideSize(n, nbin)
-	nout := (n + stride - 1) / stride
-	out := make([]Bin, nout)
-	for k := 0; k < nout; k++ {
-		bins := c.nextN(stride)
-		out[k].X = bins[0].X
-		out[k].Range = rangeOfBins(bins)
-	}
-	return out
 }

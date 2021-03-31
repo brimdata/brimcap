@@ -64,7 +64,7 @@ line #9
 	f, err := os.CreateTemp(t.TempDir(), "")
 	require.NoError(t, err)
 	defer f.Close()
-	tf, err := TailFile(f.Name())
+	tf, err := NewFile(f.Name())
 	require.NoError(t, err)
 
 	for i := 0; i < 10; i++ {

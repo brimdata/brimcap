@@ -2,8 +2,8 @@
 
 A command line utility for converting pcap data into the flexible, searchable
 zng data format as seen in the [Brim desktop
-app](https://github.com/brimsec/brim) and the [zq command line
-utility](https://github.com/brimsec/zq).
+app](https://github.com/brimdata/brim) and the [zq command line
+utility](https://github.com/brimdata/zed).
 
 ## Quickstart
 
@@ -11,7 +11,7 @@ utility](https://github.com/brimsec/zq).
 2. Have a pcap handy (or download a sample pcap from
    https://wiki.wireshark.org/SampleCaptures).
 3. Run brimcap analyze: `brimcap analyze sample.pcap > sample.zng`
-4. Explore with [zq](https://github.com/brimdata/zq): `zq -z "zeek=count(has(_path)), alerts=count(has(event_type='alert'))" logs.zng`
+4. Explore with [zq](https://github.com/brimdata/zed): `zq -z "zeek=count(has(_path)), alerts=count(has(event_type='alert'))" logs.zng`
 
 ## Usage with Brim desktop app
 
@@ -34,7 +34,7 @@ To install the brimcap binary in `$GOPATH/bin`, clone this repo and execute
 `make install`:
 
 ```
-git clone https://github.com/brimsec/brimcap
+git clone https://github.com/brimdata/brimcap
 cd brimcap
 make install
 ```

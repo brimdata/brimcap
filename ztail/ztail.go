@@ -54,44 +54,44 @@ type result struct {
 	err error
 }
 
-func (d *Tailer) start() {
+func (t *Tailer) start() {
 	var err error
 	for {
-		ev, ok := <-d.tailer.Events
+		ev, ok := <-t.tailer.Events
 		// Watcher closed. Enstruct all go routines to stop tailing files so
 		// they read remaining data then exit.
 		if !ok {
-			forceClose := atomic.LoadUint32(&d.forceClose) == 1
-			d.stopReaders(forceClose)
+			forceClose := atomic.LoadUint32(&t.forceClose) == 1
+			t.stopReaders(forceClose)
 			break
 		}
 		if ev.Err != nil {
 			err = ev.Err
-			d.stopReaders(true)
+			t.stopReaders(true)
 			break
 		}
 		if ev.Op.Exists() {
-			if terr := d.tailFile(ev.Name); terr != nil {
+			if terr := t.tailFile(ev.Name); terr != nil {
 				err = terr
-				d.stopReaders(true)
+				t.stopReaders(true)
 				break
 			}
 		}
 	}
 	// Wait for all tail go routines to stop. We are about to close the results
 	// channel and do not want a write to closed channel panic.
-	d.wg.Wait()
+	t.wg.Wait()
 	// signfy EOS and close channel
-	d.results <- result{err: err}
-	close(d.results)
+	t.results <- result{err: err}
+	close(t.results)
 }
 
 // stopReaders instructs all open TFile to stop tailing their respective files.
 // If close is set to false, the readers will read through the remaining data
 // in their files before emitting EOF. If close is set to true, the file
 // descriptors will be closed and no further data will be read.
-func (d *Tailer) stopReaders(close bool) {
-	for _, r := range d.readers {
+func (t *Tailer) stopReaders(close bool) {
+	for _, r := range t.readers {
 		if close {
 			r.Close()
 		}
@@ -99,37 +99,37 @@ func (d *Tailer) stopReaders(close bool) {
 	}
 }
 
-func (d *Tailer) tailFile(file string) error {
-	if _, ok := d.readers[file]; ok {
+func (t *Tailer) tailFile(file string) error {
+	if _, ok := t.readers[file]; ok {
 		return nil
 	}
-	f, err := tail.TailFile(file)
+	f, err := tail.NewFile(file)
 	if err == tail.ErrIsDir {
 		return nil
 	}
 	if err != nil {
 		return err
 	}
-	d.readers[file] = f
-	d.wg.Add(1)
+	t.readers[file] = f
+	t.wg.Add(1)
 	go func() {
 		var zr zbuf.Reader
-		zr, err = detector.OpenFromNamedReadCloser(d.zctx, f, file, d.opts)
+		zr, err = detector.OpenFromNamedReadCloser(t.zctx, f, file, t.opts)
 		if err != nil {
-			d.results <- result{err: err}
+			t.results <- result{err: err}
 			return
 		}
-		if d.warner != nil {
-			zr = zbuf.NewWarningReader(zr, d.warner)
+		if t.warner != nil {
+			zr = zbuf.NewWarningReader(zr, t.warner)
 		}
 		var res result
 		for {
 			res.rec, res.err = zr.Read()
 			if res.rec != nil || res.err != nil {
-				d.results <- res
+				t.results <- res
 			}
 			if res.rec == nil || res.err != nil {
-				d.wg.Done()
+				t.wg.Done()
 				return
 			}
 		}
@@ -137,34 +137,34 @@ func (d *Tailer) tailFile(file string) error {
 	return nil
 }
 
-func (d *Tailer) WarningHandler(warner zbuf.Warner) {
-	d.warner = warner
+func (t *Tailer) WarningHandler(warner zbuf.Warner) {
+	t.warner = warner
 }
 
-func (d *Tailer) Read() (*zng.Record, error) {
-	d.once.Do(func() { go d.start() })
-	res, ok := <-d.results
+func (t *Tailer) Read() (*zng.Record, error) {
+	t.once.Do(func() { go t.start() })
+	res, ok := <-t.results
 	if !ok {
 		// already closed return EOS
 		return nil, nil
 	}
 	if res.err != nil {
-		d.tailer.Stop() // exits loop
+		t.tailer.Stop() // exits loop
 		// drain results
-		for range d.results {
+		for range t.results {
 		}
 	}
 	return res.rec, res.err
 }
 
 // Stop instructs the directory watcher and indiviual file watchers to stop
-// watching for changes. Read() will emit EOS when the remaining unread data
+// watching for changes. Read will emit EOS when the remaining unread data
 // in files has been read.
-func (d *Tailer) Stop() error {
-	return d.tailer.Stop()
+func (t *Tailer) Stop() error {
+	return t.tailer.Stop()
 }
 
-func (d *Tailer) Close() error {
-	atomic.StoreUint32(&d.forceClose, 1)
-	return d.tailer.Stop()
+func (t *Tailer) Close() error {
+	atomic.StoreUint32(&t.forceClose, 1)
+	return t.tailer.Stop()
 }

@@ -43,10 +43,10 @@ func FindPacketSlice(e ranger.Envelope, span nano.Span) (slicer.Slice, error) {
 	if len(e) == 0 {
 		return slicer.Slice{}, ErrNoPcapsFound
 	}
-	d := e.FindSmallestDomain(ranger.Range{uint64(span.Ts), uint64(span.End())})
+	d := e.FindSmallestDomain(ranger.Range{Y0: uint64(span.Ts), Y1: uint64(span.End())})
 	gap := d.X1 - d.X0
 	if gap == 0 {
 		return slicer.Slice{}, ErrNoPcapsFound
 	}
-	return slicer.Slice{d.X0, d.X1 - d.X0}, nil
+	return slicer.Slice{Offset: d.X0, Length: d.X1 - d.X0}, nil
 }

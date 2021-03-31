@@ -1,5 +1,8 @@
-# This enables a shortcut to run a single test from the ./ztests suite, e.g.:
-#  make TEST=TestZq/ztests/suite/cut/cut
+VERSION = $(shell git describe --tags --dirty --always)
+LDFLAGS = -s -X github.com/brimdata/zed/cli.Version=$(VERSION)
+
+# This enables a shortcut to run a single ztest e.g.:
+#  make TEST=TestBrimpcap/cmd/brimcap/ztests/analyze-all
 ifneq "$(TEST)" ""
 test-one: test-run
 endif
@@ -44,11 +47,12 @@ exists-%:
 
 .PHONY: ztest-run
 ztest-run: build zed exists-zeek exists-suricata
-	ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$(PATH)" go test . -run $(TEST)
+	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$(PATH)" go test . -run $(TEST)
 
 .PHONY: ztest
 ztest: build zed exists-zeek exists-suricata
-	ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$(PATH)" go test . -run $(TEST)
+	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$(PATH)" go test .
+
 .PHONY: install
 install:
 	@go install -ldflags='$(LDFLAGS)' ./cmd/... 

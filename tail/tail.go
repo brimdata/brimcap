@@ -18,7 +18,7 @@ type File struct {
 	watcher *fsnotify.Watcher
 }
 
-func TailFile(name string) (*File, error) {
+func NewFile(name string) (*File, error) {
 	return TailFileWithContext(context.Background(), name)
 }
 
@@ -47,14 +47,14 @@ func TailFileWithContext(ctx context.Context, name string) (*File, error) {
 	return &File{ctx: ctx, f: f, watcher: watcher}, nil
 }
 
-func (t *File) Read(b []byte) (int, error) {
+func (f *File) Read(b []byte) (int, error) {
 read:
-	n, err := t.f.Read(b)
+	n, err := f.f.Read(b)
 	if err == io.EOF {
 		if n > 0 {
 			return n, nil
 		}
-		if err := t.waitWrite(); err != nil {
+		if err := f.waitWrite(); err != nil {
 			return 0, err
 		}
 		goto read
@@ -65,30 +65,30 @@ read:
 	return n, err
 }
 
-func (t *File) waitWrite() error {
+func (f *File) waitWrite() error {
 	for {
 		select {
-		case ev, ok := <-t.watcher.Events:
+		case ev, ok := <-f.watcher.Events:
 			if !ok {
 				return io.EOF
 			}
 			if ev.Op == fsnotify.Write {
 				return nil
 			}
-		case err := <-t.watcher.Errors:
+		case err := <-f.watcher.Errors:
 			return err
-		case <-t.ctx.Done():
-			return t.ctx.Err()
+		case <-f.ctx.Done():
+			return f.ctx.Err()
 		}
 	}
 }
 
-func (t *File) Stop() error {
-	return t.watcher.Close()
+func (f *File) Stop() error {
+	return f.watcher.Close()
 }
 
-func (t *File) Close() error {
-	return t.f.Close()
+func (f *File) Close() error {
+	return f.f.Close()
 }
 
 type FileOp int
@@ -99,8 +99,8 @@ const (
 	FileOpRemoved
 )
 
-func (o FileOp) Exists() bool {
-	return o == FileOpCreated || o == FileOpExisting
+func (f FileOp) Exists() bool {
+	return f == FileOpCreated || f == FileOpExisting
 }
 
 type FileEvent struct {
@@ -156,59 +156,59 @@ func TailDir(dir string, globs ...string) (*Dir, error) {
 	return w, nil
 }
 
-func (w *Dir) run() error {
-	if err := w.poll(); err != nil {
+func (d *Dir) run() error {
+	if err := d.poll(); err != nil {
 		return err
 	}
-	for ev := range w.watcher.Events {
+	for ev := range d.watcher.Events {
 		switch {
 		case ev.Op&fsnotify.Create == fsnotify.Create:
-			if err := w.addFile(ev.Name); err != nil {
+			if err := d.addFile(ev.Name); err != nil {
 				return err
 			}
 		case ev.Op&fsnotify.Rename == fsnotify.Rename, ev.Op&fsnotify.Remove == fsnotify.Remove:
-			if err := w.removeFile(ev.Name); err != nil {
+			if err := d.removeFile(ev.Name); err != nil {
 				return err
 			}
 		}
 	}
 	// watcher has been closed, poll once more to make sure we haven't missed
 	// any files due to race.
-	return w.poll()
+	return d.poll()
 }
 
-func (w *Dir) addFile(name string) error {
+func (d *Dir) addFile(name string) error {
 	p, err := filepath.Abs(name)
 	if err != nil {
 		return err
 	}
 	base := filepath.Base(name)
-	for _, glob := range w.globs {
+	for _, glob := range d.globs {
 		if ok, err := filepath.Match(glob, base); !ok {
 			return err
 		}
 	}
-	if _, ok := w.watched[p]; !ok {
-		w.watched[p] = struct{}{}
-		w.Events <- FileEvent{Name: p, Op: FileOpCreated}
+	if _, ok := d.watched[p]; !ok {
+		d.watched[p] = struct{}{}
+		d.Events <- FileEvent{Name: p, Op: FileOpCreated}
 	}
 	return nil
 }
 
-func (w *Dir) removeFile(name string) error {
+func (d *Dir) removeFile(name string) error {
 	p, err := filepath.Abs(name)
 	if err != nil {
 		return err
 	}
-	if _, ok := w.watched[p]; ok {
-		delete(w.watched, p)
-		w.Events <- FileEvent{Name: p, Op: FileOpRemoved}
+	if _, ok := d.watched[p]; ok {
+		delete(d.watched, p)
+		d.Events <- FileEvent{Name: p, Op: FileOpRemoved}
 	}
 	return nil
 }
 
-func (w *Dir) poll() error {
-	infos, err := os.ReadDir(w.dir)
+func (d *Dir) poll() error {
+	infos, err := os.ReadDir(d.dir)
 	if err != nil {
 		return err
 	}
@@ -216,13 +216,13 @@ func (w *Dir) poll() error {
 		if info.IsDir() {
 			continue
 		}
-		if err := w.addFile(filepath.Join(w.dir, info.Name())); err != nil {
+		if err := d.addFile(filepath.Join(d.dir, info.Name())); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (w *Dir) Stop() error {
-	return w.watcher.Close()
+func (d *Dir) Stop() error {
+	return d.watcher.Close()
 }
