@@ -1,4 +1,6 @@
-# Brimcap [![Tests][tests-img]][tests]
+# brimcap [![CI][ci-img]][ci]
+
+![Image of brimcap analyze](https://github.com/brimdata/brimcap/raw/main/brimcap.gif)
 
 A command line utility for converting pcap data into the flexible, searchable
 zng data format as seen in the [Brim desktop
@@ -49,3 +51,4 @@ brew install zeek suricata
 
 [ci-img]: https://github.com/brimdata/brimcap/actions/workflows/ci.yaml/badge.svg
 [ci]: https://github.com/brimdata/brimcap/actions/workflows/ci.yaml
+
