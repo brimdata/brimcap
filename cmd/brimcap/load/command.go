@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/brimdata/brimcap/analyzer/analyzercli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
@@ -31,7 +32,7 @@ func init() {
 
 type Command struct {
 	*root.Command
-	analyzerflags root.AnalyzerFlags
+	analyzerflags analyzercli.Flags
 	conn          *client.Connection
 	space         string
 	spaceID       api.SpaceID

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"os"
 
+	"github.com/brimdata/brimcap/analyzer/analyzercli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/zed/cli/outputflags"
 	"github.com/brimdata/zed/pkg/charm"
@@ -26,8 +27,8 @@ func init() {
 
 type Command struct {
 	*root.Command
-	analyzeflags root.AnalyzerFlags
-	analyzer     *root.AnalyzerCLI
+	analyzeflags analyzercli.Flags
+	analyzer     *analyzercli.CLI
 	emitter      zbuf.WriteCloser
 	out          outputflags.Flags
 }
