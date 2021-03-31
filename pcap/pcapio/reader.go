@@ -14,7 +14,7 @@ import (
 type BlockType int
 
 const (
-	TypePacket = iota
+	TypePacket BlockType = iota
 	TypeSection
 	TypeInterface
 )
