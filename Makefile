@@ -19,10 +19,10 @@ build:
 	@mkdir -p dist
 	@go build -ldflags='$(LDFLAGS)' -o dist ./cmd/...
 
-.PHONY: zed
+.PHONY: zq 
 zed:
 	@go mod download
-	@GOBIN="$(CURDIR)/bin" go install github.com/brimdata/zed/cmd/zed
+	@GOBIN="$(CURDIR)/bin" go install github.com/brimdata/zed/cmd/zq
 
 .PHONY: vet
 vet:

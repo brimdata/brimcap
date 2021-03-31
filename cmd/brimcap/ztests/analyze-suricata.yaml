@@ -1,4 +1,4 @@
-script: brimcap analyze -zeek=F alerts.pcap | zed q -Z 'count()' -
+script: brimcap analyze -zeek=F alerts.pcap | zq -Z 'count()' -
 
 inputs:
   - name: alerts.pcap
