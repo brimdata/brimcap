@@ -71,15 +71,7 @@ func (c *Command) Exec(args []string) (err error) {
 		defer f.Close()
 	}
 
-	warn := make(chan string)
-	var index pcap.Index
-	go func() {
-		index, err = pcap.CreateIndexWithWarnings(f, c.limit, warn)
-		close(warn)
-	}()
-	for s := range warn {
-		fmt.Fprintf(os.Stderr, "warning: %s\n", s)
-	}
+	index, err := pcap.CreateIndexWithWarnings(f, c.limit, c)
 	if err != nil {
 		return err
 	}
@@ -92,4 +84,9 @@ func (c *Command) Exec(args []string) (err error) {
 		return nil
 	}
 	return os.WriteFile(c.outputFile, b, 0644)
+}
+
+func (c *Command) Warn(msg string) error {
+	fmt.Fprintf(os.Stderr, "warning: %s\n", msg)
+	return nil
 }

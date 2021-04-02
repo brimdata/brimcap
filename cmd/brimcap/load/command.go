@@ -7,14 +7,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/brimdata/brimcap/analyzer"
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cli/analyzecli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
+	"github.com/brimdata/brimcap/pcap"
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/pkg/charm"
+	"github.com/brimdata/zed/pkg/fs"
 	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zio/zngio"
@@ -37,6 +40,8 @@ type Command struct {
 	*root.Command
 	analyzeflags analyzecli.Flags
 	conn         *client.Connection
+	limit        int
+	rootflags    cli.RootFlags
 	space        string
 	spaceID      api.SpaceID
 }
@@ -45,14 +50,17 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
 	c.Command.Child = c
 	c.analyzeflags.SetFlags(f)
-	f.StringVar(&c.space, "s", "", "name of zedd space")
+	c.rootflags.SetFlags(f)
+	f.StringVar(&c.space, "s", "", "name of zqd space")
+	f.IntVar(&c.limit, "n", 10000, "limit in bytes on index size")
 	return c, nil
 }
 
 func (c *Command) Init() error {
 	if c.space == "" {
-		return errors.New("a space must be specified")
+		return errors.New("space (-s) must be specified")
 	}
+
 	c.conn = client.NewConnection()
 	list, err := c.conn.SpaceList(context.TODO())
 	if err != nil {
@@ -70,9 +78,11 @@ func (c *Command) Init() error {
 func (c *Command) Exec(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
+	} else if args[0] == "-" {
+		return errors.New("reading a pcap from stdin not supported")
 	}
 
-	if err := c.Command.Init(c, &c.analyzeflags); err != nil {
+	if err := c.Command.Init(c, &c.analyzeflags, &c.rootflags); err != nil {
 		return err
 	}
 	defer c.Cleanup()
@@ -87,6 +97,12 @@ func (c *Command) Exec(args []string) (err error) {
 	defer pcapfile.Close()
 
 	display := analyzecli.NewDisplay(c.JSON, pcapsize)
+
+	// write index pcap symlink to brimcap root
+	if err := c.writeBrimcapRoot(args[0], pcapfile, display); err != nil {
+		return fmt.Errorf("error writing brimcap root: %w", err)
+	}
+
 	zctx := resolver.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
 	go display.Run(analyzer)
@@ -99,6 +115,30 @@ func (c *Command) Exec(args []string) (err error) {
 		err = aerr
 	}
 	display.Close()
+	return err
+}
+
+func (c *Command) writeBrimcapRoot(path string, rs io.ReadSeeker, warner zbuf.Warner) error {
+	index, err := pcap.CreateIndexWithWarnings(rs, c.limit, warner)
+	if err != nil {
+		return err
+	}
+
+	linkPath := filepath.Join(c.rootflags.Root, filepath.Base(path))
+	if err := os.Symlink(path, linkPath); err != nil {
+		return err
+	}
+
+	indexPath := filepath.Join(c.rootflags.Root, filepath.Base(path)+".idx")
+	if err = fs.MarshalJSONFile(index, indexPath, 0644); err != nil {
+		os.Remove(linkPath)
+		return err
+	}
+
+	if _, err = rs.Seek(0, 0); err != nil {
+		os.Remove(linkPath)
+		os.Remove(indexPath)
+	}
 	return err
 }
 

@@ -4,6 +4,10 @@ import (
 	"fmt"
 )
 
+type Warner interface {
+	Warn(msg string) error
+}
+
 type ErrInvalidPcap struct {
 	err error
 }
