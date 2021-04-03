@@ -23,6 +23,7 @@ type Display struct {
 	}
 	pcapsize      int64
 	start         nano.Ts
+	span          nano.Span
 	json          bool
 	warningsCount int32
 
@@ -30,18 +31,19 @@ type Display struct {
 	warnings   map[string]int
 }
 
-func NewDisplay(json bool, pcapsize int64) *Display {
+func NewDisplay(json bool) *Display {
 	return &Display{
 		json:     json,
-		pcapsize: pcapsize,
 		start:    nano.Now(),
 		warnings: make(map[string]int),
 	}
 }
 
-func (a *Display) Run(analyzer analyzer.Interface) {
+func (a *Display) Run(analyzer analyzer.Interface, pcapsize int64, span nano.Span) {
 	analyzer.WarningHandler(a)
 	a.analyzer = analyzer
+	a.pcapsize = pcapsize
+	a.span = span
 	if a.json {
 		interval := time.Second
 		a.display = newJSONDisplayer(a, interval)
@@ -122,6 +124,10 @@ func (m MsgStatus) Completion() (float64, bool) {
 }
 
 func (a *Display) status() MsgStatus {
+	span := new(nano.Span)
+	if a.span.Dur > 0 {
+		span = &a.span
+	}
 	return MsgStatus{
 		Type:           "status",
 		StartTime:      a.start,
@@ -129,6 +135,7 @@ func (a *Display) status() MsgStatus {
 		PcapTotalSize:  a.pcapsize,
 		PcapReadSize:   a.analyzer.BytesRead(),
 		RecordsWritten: a.analyzer.RecordsRead(),
+		Span:           span,
 		WarningsCount:  atomic.LoadInt32(&a.warningsCount),
 	}
 }

@@ -7,17 +7,14 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/brimdata/brimcap/analyzer"
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cli/analyzecli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
-	"github.com/brimdata/brimcap/pcap"
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/pkg/charm"
-	"github.com/brimdata/zed/pkg/fs"
 	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zio/zngio"
@@ -90,22 +87,26 @@ func (c *Command) Exec(args []string) (err error) {
 	ctx, cancel := signalctx.New(os.Interrupt)
 	defer cancel()
 
-	pcapfile, pcapsize, err := cli.OpenFileArg(args[0])
+	display := analyzecli.NewDisplay(c.JSON)
+	pcappath := args[0]
+	root := c.rootflags.Root
+
+	// write index pcap symlink to brimcap root
+	span, err := root.AddPcap(pcappath, c.limit, display)
 	if err != nil {
+		return fmt.Errorf("error writing brimcap root: %w", err)
+	}
+
+	pcapfile, pcapsize, err := cli.OpenFileArg(pcappath)
+	if err != nil {
+		root.DeletePcap(pcappath)
 		return err
 	}
 	defer pcapfile.Close()
 
-	display := analyzecli.NewDisplay(c.JSON, pcapsize)
-
-	// write index pcap symlink to brimcap root
-	if err := c.writeBrimcapRoot(args[0], pcapfile, display); err != nil {
-		return fmt.Errorf("error writing brimcap root: %w", err)
-	}
-
 	zctx := resolver.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
-	go display.Run(analyzer)
+	go display.Run(analyzer, pcapsize, span)
 
 	reader := toioreader(analyzer)
 	_, err = c.conn.LogPostReaders(ctx, c.spaceID, nil, reader)
@@ -114,31 +115,10 @@ func (c *Command) Exec(args []string) (err error) {
 	if aerr := analyzer.Close(); err == nil {
 		err = aerr
 	}
-	display.Close()
-	return err
-}
-
-func (c *Command) writeBrimcapRoot(path string, rs io.ReadSeeker, warner zbuf.Warner) error {
-	index, err := pcap.CreateIndexWithWarnings(rs, c.limit, warner)
 	if err != nil {
-		return err
+		root.DeletePcap(pcappath)
 	}
-
-	linkPath := filepath.Join(c.rootflags.Root, filepath.Base(path))
-	if err := os.Symlink(path, linkPath); err != nil {
-		return err
-	}
-
-	indexPath := filepath.Join(c.rootflags.Root, filepath.Base(path)+".idx")
-	if err = fs.MarshalJSONFile(index, indexPath, 0644); err != nil {
-		os.Remove(linkPath)
-		return err
-	}
-
-	if _, err = rs.Seek(0, 0); err != nil {
-		os.Remove(linkPath)
-		os.Remove(indexPath)
-	}
+	display.Close()
 	return err
 }
 

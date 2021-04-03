@@ -4,27 +4,31 @@ import (
 	"errors"
 	"flag"
 	"os"
+
+	"github.com/brimdata/brimcap"
 )
 
 type RootFlags struct {
-	Root string
+	root string
+	Root brimcap.Root
 }
 
 func (f *RootFlags) SetFlags(fs *flag.FlagSet) {
-	fs.StringVar(&f.Root, "root", "", "location of brimcap root (where indices are saved)")
+	fs.StringVar(&f.root, "root", "", "location of brimcap root (where indices are saved)")
 }
 
 func (f *RootFlags) Init() error {
-	if f.Root == "" {
+	if f.root == "" {
 		return errors.New("brimcap root (-root) must be specified")
 	}
 
-	info, err := os.Stat(f.Root)
+	info, err := os.Stat(f.root)
 	if err != nil {
 		return err
 	}
 	if !info.IsDir() {
 		return errors.New("brimcap root must be a directory")
 	}
+	f.Root = brimcap.Root(f.root)
 	return nil
 }

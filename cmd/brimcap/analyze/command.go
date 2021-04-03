@@ -11,6 +11,7 @@ import (
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/zed/cli/outputflags"
 	"github.com/brimdata/zed/pkg/charm"
+	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zng/resolver"
@@ -68,14 +69,14 @@ func (c *Command) Exec(args []string) (err error) {
 	}
 	defer pcapfile.Close()
 
-	display := analyzecli.NewDisplay(c.JSON, pcapsize)
+	display := analyzecli.NewDisplay(c.JSON)
 	zctx := resolver.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
 
 	// If not emitting to stdio write stats to stderr.
 	if c.out.FileName() != "" {
-		display := analyzecli.NewDisplay(c.JSON, pcapsize)
-		display.Run(analyzer)
+		display := analyzecli.NewDisplay(c.JSON)
+		display.Run(analyzer, pcapsize, nano.Span{})
 		defer display.Close()
 	}
 
