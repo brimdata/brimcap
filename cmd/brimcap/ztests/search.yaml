@@ -1,0 +1,61 @@
+script: |
+  mkdir root
+  brimcap index -root root -r non-overlap.pcapng
+  brimcap index -root root -r alerts.pcap
+
+  brimcap search -root root \
+    -w result.pcap \
+    -ts 2015-03-05T15:04:31.278897Z \
+    -duration 15.536964s \
+    -proto tcp \
+    -src.ip 192.168.0.51 \
+    -src.port 47608 \
+    -dst.ip 85.12.30.227 \
+    -dst.port 80
+  brimcap ts -r result.pcap
+
+  echo ===
+  brimcap search -root root \
+    -w result.pcap \
+    -ts 2020-03-09T15:42:03.826851Z \
+    -duration 428us \
+    -proto tcp \
+    -src.ip 192.168.10.120 \
+    -src.port 62576 \
+    -dst.ip 104.123.204.164 \
+    -dst.port 443
+  brimcap ts -r result.pcap
+
+inputs:
+  - name: non-overlap.pcapng
+  - name: alerts.pcap
+
+outputs:
+  - name: stderr
+    data: ""
+  - name: stdout
+    data: |
+      1425567871.278897
+      1425567871.314453
+      1425567871.314461
+      1425567871.41141
+      1425567871.444042
+      1425567871.508086
+      1425567871.508095
+      1425567871.508097
+      1425567871.508099
+      1425567871.508101
+      1425567871.575635
+      1425567871.613603
+      1425567871.645149
+      1425567871.645158
+      1425567881.641794
+      1425567881.677738
+      1425567886.815577
+      1425567886.815861
+      ===
+      1583768523.826851
+      1583768523.826857
+      1583768523.826968
+      1583768523.826968
+      1583768523.827279

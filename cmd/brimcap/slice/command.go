@@ -157,7 +157,7 @@ func (c *Command) Exec(args []string) error {
 		}()
 		out = w
 	}
-	var search *pcap.Search
+	var search pcap.Search
 	if filter {
 		switch c.proto {
 		case "tcp":

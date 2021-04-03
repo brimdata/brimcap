@@ -1,0 +1,37 @@
+script: |
+  mkdir root
+  brimcap index -root root -r non-overlap1.pcapng
+  brimcap index -root root -r non-overlap2.pcapng
+
+  brimcap search -root root \
+    -w result.pcap \
+    -ts 2020-03-09T15:42:03.826851Z \
+    -duration 428us \
+    -proto tcp \
+    -src.ip 192.168.10.120 \
+    -src.port 62576 \
+    -dst.ip 104.123.204.164 \
+    -dst.port 443
+  brimcap ts -r result.pcap
+
+inputs:
+  - name: non-overlap1.pcapng
+    source: non-overlap.pcapng
+  - name: non-overlap2.pcapng
+    source: non-overlap.pcapng
+
+outputs:
+  - name: stdout
+    data: |
+      1583768523.826851
+      1583768523.826857
+      1583768523.826968
+      1583768523.826968
+      1583768523.827279
+      1583768523.826851
+      1583768523.826857
+      1583768523.826968
+      1583768523.826968
+      1583768523.827279
+  - name: stderr
+    data: ""

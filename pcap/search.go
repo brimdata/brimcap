@@ -25,36 +25,36 @@ type Search struct {
 	id     string
 }
 
-func NewTCPSearch(span nano.Span, flow Flow) *Search {
+func NewTCPSearch(span nano.Span, flow Flow) Search {
 	id := fmt.Sprintf("%s_tcp_%s", span.Ts.StringFloat(), flow)
-	return &Search{
+	return Search{
 		span:   span,
 		filter: genTCPFilter(flow),
 		id:     id,
 	}
 }
 
-func NewUDPSearch(span nano.Span, flow Flow) *Search {
+func NewUDPSearch(span nano.Span, flow Flow) Search {
 	id := fmt.Sprintf("%s_udp_%s", span.Ts.StringFloat(), flow)
-	return &Search{
+	return Search{
 		span:   span,
 		filter: genUDPFilter(flow),
 		id:     id,
 	}
 }
 
-func NewICMPSearch(span nano.Span, src, dst net.IP) *Search {
+func NewICMPSearch(span nano.Span, src, dst net.IP) Search {
 	id := fmt.Sprintf("icmp_%s_%s_%s", span.Ts.StringFloat(), src.String(), dst.String())
-	return &Search{
+	return Search{
 		span:   span,
 		filter: genICMPFilter(src, dst),
 		id:     id,
 	}
 }
 
-func NewRangeSearch(span nano.Span) *Search {
+func NewRangeSearch(span nano.Span) Search {
 	id := fmt.Sprintf("%s_%s_%s", span.Ts.StringFloat(), "none", "no-filter")
-	return &Search{
+	return Search{
 		span: span,
 		id:   id,
 	}
@@ -135,7 +135,7 @@ func genICMPFilter(src, dst net.IP) PacketFilter {
 }
 
 // XXX need to handle searching over multiple pcap files
-func (s *Search) Run(ctx context.Context, w io.Writer, r pcapio.Reader) error {
+func (s Search) Run(ctx context.Context, w io.Writer, r pcapio.Reader) error {
 	reader, err := s.Reader(ctx, r)
 	if err != nil {
 		return err
@@ -145,14 +145,14 @@ func (s *Search) Run(ctx context.Context, w io.Writer, r pcapio.Reader) error {
 }
 
 type SearchReader struct {
-	*Search
+	Search
 	reader pcapio.Reader
 	opts   gopacket.DecodeOptions
 	window []byte
 	buf    []byte
 }
 
-func (s *Search) Reader(ctx context.Context, r pcapio.Reader) (*SearchReader, error) {
+func (s Search) Reader(ctx context.Context, r pcapio.Reader) (*SearchReader, error) {
 	opts := gopacket.DecodeOptions{Lazy: true, NoCopy: true}
 	reader := &SearchReader{Search: s, reader: r, opts: opts}
 	if err := reader.fill(ctx); err != nil {
