@@ -52,7 +52,9 @@ func (c *Command) Exec(args []string) (err error) {
 		}
 	}
 
-	err = c.rootflags.Root.Search(context.TODO(), c.searchflags.Search, out)
+	ctx, cancel := signal.NotifyContext(context.Baackground(), os.Interrupt)
+	defer cancel()
+	err = c.rootflags.Root.Search(ctx, c.searchflags.Search, out)
 	if c.outfile != "-" {
 		out.Close()
 		if err != nil {
