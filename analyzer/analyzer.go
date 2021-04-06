@@ -104,22 +104,26 @@ func (p *analyzer) Read() (*zng.Record, error) {
 func (p *analyzer) run() error {
 	ln, err := p.config.GetLauncher()
 	if err != nil {
+		close(p.procDone)
 		return err
 	}
 
 	logdir, err := os.MkdirTemp("", "brimcap-")
 	if err != nil {
+		close(p.procDone)
 		return err
 	}
 
 	waiter, err := ln(p.ctx, logdir, p.reader)
 	if err != nil {
+		close(p.procDone)
 		os.RemoveAll(logdir)
 		return err
 	}
 
 	tailer, err := ztail.New(p.zctx, logdir, p.config.ReaderOpts, p.config.Globs...)
 	if err != nil {
+		close(p.procDone)
 		os.RemoveAll(logdir)
 		return err
 	}
@@ -142,6 +146,7 @@ func (p *analyzer) run() error {
 	if p.config.Shaper != nil {
 		p.zreader, err = driver.NewReader(p.ctx, p.config.Shaper, p.zctx, p.zreader)
 		if err != nil {
+			close(p.procDone)
 			tailer.Close()
 			os.RemoveAll(logdir)
 			return err
@@ -161,11 +166,13 @@ func (p *analyzer) BytesRead() int64 {
 
 // Close shutdowns the current process (if it is still active), shutdowns the
 // go-routine tailing for logs and removes the temporary log directory.
-func (p *analyzer) Close() error {
+func (p *analyzer) Close() (err error) {
 	p.cancel()
 	<-p.procDone
 
-	err := p.tailer.Close()
+	if p.tailer != nil {
+		err = p.tailer.Close()
+	}
 	if err2 := os.RemoveAll(p.logdir); err == nil {
 		err = err2
 	}
