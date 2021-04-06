@@ -99,8 +99,8 @@ func (a *Display) Warn(msg string) error {
 		a.warnings = make(map[string]int)
 	}
 	a.warnings[msg]++
-	atomic.AddInt32(&a.warningsCount, 1)
 	a.warningsMu.Unlock()
+	atomic.AddInt32(&a.warningsCount, 1)
 	return nil
 }
 
