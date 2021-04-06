@@ -2,10 +2,12 @@ package index
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 
+	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/brimcap/pcap"
 	"github.com/brimdata/zed/pkg/charm"
@@ -43,6 +45,7 @@ func init() {
 type Command struct {
 	*root.Command
 	limit      int
+	rootflags  cli.RootFlags
 	inputFile  string
 	outputFile string
 }
@@ -50,15 +53,29 @@ type Command struct {
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
 	c.Command.Child = c
+	c.rootflags.Optional = true
+	c.rootflags.SetFlags(f)
 	f.StringVar(&c.inputFile, "r", "-", "input file to read from or stdin if -")
 	f.StringVar(&c.outputFile, "x", "-", "name of output file for the index or - for stdout")
 	f.IntVar(&c.limit, "n", 10000, "limit on index size")
 	return c, nil
 }
 
+func (c *Command) Init() error {
+	if c.rootflags.IsSet {
+		if c.outputFile != "-" {
+			return errors.New("-root and -x cannot both be set")
+		}
+		if c.inputFile == "-" {
+			return errors.New("input cannot be stdin if writing to BRIMCAP_ROOT")
+		}
+	}
+	return nil
+}
+
 func (c *Command) Exec(args []string) (err error) {
 	defer c.Cleanup()
-	if err := c.Init(); err != nil {
+	if err := c.Command.Init(&c.rootflags); err != nil {
 		return err
 	}
 
@@ -75,10 +92,16 @@ func (c *Command) Exec(args []string) (err error) {
 	if err != nil {
 		return err
 	}
+
+	if c.rootflags.IsSet {
+		return c.rootflags.Root.AddPcapWithIndex(c.inputFile, index)
+	}
+
 	b, err := json.Marshal(index)
 	if err != nil {
 		return err
 	}
+
 	if c.outputFile == "-" {
 		fmt.Println(string(b))
 		return nil
@@ -86,6 +109,7 @@ func (c *Command) Exec(args []string) (err error) {
 	return os.WriteFile(c.outputFile, b, 0644)
 }
 
+// XXX this should log to json in root command -json flag is set
 func (c *Command) Warn(msg string) error {
 	fmt.Fprintf(os.Stderr, "warning: %s\n", msg)
 	return nil

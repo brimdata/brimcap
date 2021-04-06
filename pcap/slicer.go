@@ -13,6 +13,9 @@ func NewSlicer(seeker io.ReadSeeker, index Index, span nano.Span) (*slicer.Reade
 	if err != nil {
 		return nil, err
 	}
+	if len(slices) == 0 {
+		return nil, nil
+	}
 	return slicer.NewReader(seeker, slices)
 }
 
