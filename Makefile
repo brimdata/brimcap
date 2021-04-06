@@ -1,5 +1,5 @@
 VERSION = $(shell git describe --tags --dirty --always)
-LDFLAGS = -s -X github.com/brimdata/zed/cli.Version=$(VERSION)
+LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
 
 # This enables a shortcut to run a single ztest e.g.:
 #  make TEST=TestBrimpcap/cmd/brimcap/ztests/analyze-all

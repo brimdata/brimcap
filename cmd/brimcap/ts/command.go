@@ -35,12 +35,13 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
+	c.Command.Child = c
 	f.StringVar(&c.inputFile, "r", "-", "file to read from or stdin if -")
 	f.StringVar(&c.outputFile, "w", "-", "file to write to or stdout if -")
 	return c, nil
 }
 
-func (c *Command) Run(args []string) error {
+func (c *Command) Exec(args []string) error {
 	defer c.Cleanup()
 	if err := c.Init(); err != nil {
 		return err

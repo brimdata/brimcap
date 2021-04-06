@@ -5,11 +5,15 @@ import (
 	"flag"
 	"os"
 
+	"github.com/brimdata/brimcap/analyzer"
+	"github.com/brimdata/brimcap/cli"
+	"github.com/brimdata/brimcap/cli/analyzecli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/zed/cli/outputflags"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zng/resolver"
 )
 
 var Analyze = &charm.Spec{
@@ -26,20 +30,20 @@ func init() {
 
 type Command struct {
 	*root.Command
-	analyzeflags root.AnalyzerFlags
-	analyzer     *root.AnalyzerCLI
+	analyzeflags analyzecli.Flags
 	emitter      zbuf.WriteCloser
 	out          outputflags.Flags
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
+	c.Command.Child = c
 	c.analyzeflags.SetFlags(f)
 	c.out.SetFlags(f)
 	return c, nil
 }
 
-func (c *Command) Run(args []string) (err error) {
+func (c *Command) Exec(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	}
@@ -58,19 +62,27 @@ func (c *Command) Run(args []string) (err error) {
 	}
 	defer emitter.Close()
 
-	c.analyzer, err = c.analyzeflags.Open(ctx, args)
+	pcapfile, pcapsize, err := cli.OpenFileArg(args[0])
 	if err != nil {
 		return err
 	}
+	defer pcapfile.Close()
+
+	display := analyzecli.NewDisplay(c.JSON, pcapsize)
+	zctx := resolver.NewContext()
+	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
 
 	// If not emitting to stdio write stats to stderr.
 	if c.out.FileName() != "" {
-		c.analyzer.RunDisplay()
+		display := analyzecli.NewDisplay(c.JSON, pcapsize)
+		display.Run(analyzer)
+		defer display.Close()
 	}
 
-	err = zbuf.CopyWithContext(ctx, emitter, c.analyzer)
-	if aerr := c.analyzer.Close(); err == nil {
+	err = zbuf.CopyWithContext(ctx, emitter, analyzer)
+	if aerr := analyzer.Close(); err == nil {
 		err = aerr
 	}
+	display.Close()
 	return err
 }

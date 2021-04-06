@@ -49,6 +49,7 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
+	c.Command.Child = c
 	f.StringVar(&c.outputFile, "w", "-", "output file to create or stdout if -")
 	f.StringVar(&c.inputFile, "r", "-", "input file to read from or stdin if -")
 	return c, nil
@@ -95,7 +96,7 @@ func max(in []int) int {
 	return m
 }
 
-func (c *Command) Run(args []string) error {
+func (c *Command) Exec(args []string) error {
 	defer c.Cleanup()
 	if err := c.Init(); err != nil {
 		return err

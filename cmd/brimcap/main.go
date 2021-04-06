@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	_ "github.com/brimdata/brimcap/cmd/brimcap/analyze"
@@ -16,7 +15,6 @@ import (
 
 func main() {
 	if _, err := root.Brimcap.ExecRoot(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
 }
