@@ -53,7 +53,9 @@ func (c *Command) Exec(args []string) (err error) {
 		return err
 	}
 
-	err = c.rootflags.Root.Search(context.TODO(), c.searchflags.Search, f)
+	ctx, cancel := signal.NotifyContext(context.Baackground(), os.Interrupt)
+	defer cancel()
+	err = c.rootflags.Root.Search(ctx, c.searchflags.Search, f)
 	f.Close()
 	if err != nil {
 		return err
