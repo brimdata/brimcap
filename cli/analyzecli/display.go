@@ -24,9 +24,10 @@ type Display struct {
 	pcapsize      int64
 	start         nano.Ts
 	json          bool
-	warnings      map[string]int
 	warningsCount int32
+
 	warningsMu    sync.Mutex
+	warnings      map[string]int
 }
 
 func NewDisplay(json bool, pcapsize int64) *Display {
