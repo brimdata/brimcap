@@ -90,8 +90,6 @@ func (c *Command) Exec(args []string) (err error) {
 	display := analyzecli.NewDisplay(c.JSON)
 	pcappath := args[0]
 	root := c.rootflags.Root
-
-	// write index pcap symlink to brimcap root
 	span, err := root.AddPcap(pcappath, c.limit, display)
 	if err != nil {
 		return fmt.Errorf("error writing brimcap root: %w", err)
