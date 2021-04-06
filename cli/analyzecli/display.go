@@ -112,8 +112,8 @@ type MsgStatus struct {
 	Type           string     `json:"type"`
 	StartTime      nano.Ts    `json:"start_time"`
 	UpdateTime     nano.Ts    `json:"update_time"`
-	PcapSize       int64      `json:"pcap_total_size" unit:"bytes"`
-	PcapReadSize   int64      `json:"pcap_read_size" unit:"bytes"`
+	PcapSize       int64      `json:"pcap_total_size"`
+	PcapReadSize   int64      `json:"pcap_read_size"`
 	RecordsWritten int64      `json:"records_written"`
 	WarningsCount  int32      `json:"-"`
 	Span           *nano.Span `json:"span,omitempty"`
