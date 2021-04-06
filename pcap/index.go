@@ -54,8 +54,8 @@ func CreateIndex(r io.Reader, size int) (Index, error) {
 	return CreateIndexWithWarnings(r, size, nil)
 }
 
-func CreateIndexWithWarnings(r io.Reader, size int, c chan<- string) (Index, error) {
-	reader, err := pcapio.NewReaderWithWarnings(r, c)
+func CreateIndexWithWarnings(r io.Reader, size int, w pcapio.Warner) (Index, error) {
+	reader, err := pcapio.NewReaderWithWarnings(r, w)
 	if err != nil {
 		return nil, err
 	}

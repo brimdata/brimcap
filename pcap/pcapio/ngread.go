@@ -31,7 +31,7 @@ type NgReader struct {
 	first     []byte
 	bigEndian bool
 	offset    uint64
-	warningCh chan<- string
+	warner    Warner
 }
 
 // NewNgReader initializes a new writer, reads the first section header,
@@ -67,13 +67,13 @@ func NewNgReader(r io.Reader) (*NgReader, error) {
 	return ret, nil
 }
 
-func (r *NgReader) SetWarningChan(c chan<- string) {
-	r.warningCh = c
+func (r *NgReader) SetWarningHandler(warner Warner) {
+	r.warner = warner
 }
 
 func (r *NgReader) warn(format string, a ...interface{}) {
-	if c := r.warningCh; c != nil {
-		c <- fmt.Sprintf(format, a...)
+	if r.warner != nil {
+		r.warner.Warn(fmt.Sprintf(format, a...))
 	}
 }
 

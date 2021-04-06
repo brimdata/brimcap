@@ -37,6 +37,8 @@ type Command struct {
 	*root.Command
 	analyzeflags analyzecli.Flags
 	conn         *client.Connection
+	limit        int
+	rootflags    cli.RootFlags
 	space        string
 	spaceID      api.SpaceID
 }
@@ -45,14 +47,17 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
 	c.Command.Child = c
 	c.analyzeflags.SetFlags(f)
-	f.StringVar(&c.space, "s", "", "name of zedd space")
+	c.rootflags.SetFlags(f)
+	f.StringVar(&c.space, "s", "", "name of zqd space")
+	f.IntVar(&c.limit, "n", 10000, "limit in bytes on index size")
 	return c, nil
 }
 
 func (c *Command) Init() error {
 	if c.space == "" {
-		return errors.New("a space must be specified")
+		return errors.New("space (-s) must be specified")
 	}
+
 	c.conn = client.NewConnection()
 	list, err := c.conn.SpaceList(context.TODO())
 	if err != nil {
@@ -70,9 +75,11 @@ func (c *Command) Init() error {
 func (c *Command) Exec(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
+	} else if args[0] == "-" {
+		return errors.New("reading a pcap from stdin not supported")
 	}
 
-	if err := c.Command.Init(c, &c.analyzeflags); err != nil {
+	if err := c.Command.Init(c, &c.analyzeflags, &c.rootflags); err != nil {
 		return err
 	}
 	defer c.Cleanup()
@@ -80,16 +87,24 @@ func (c *Command) Exec(args []string) (err error) {
 	ctx, cancel := signalctx.New(os.Interrupt)
 	defer cancel()
 
-	pcapfile, pcapsize, err := cli.OpenFileArg(args[0])
+	display := analyzecli.NewDisplay(c.JSON)
+	pcappath := args[0]
+	root := c.rootflags.Root
+	span, err := root.AddPcap(pcappath, c.limit, display)
 	if err != nil {
+		return fmt.Errorf("error writing brimcap root: %w", err)
+	}
+
+	pcapfile, pcapsize, err := cli.OpenFileArg(pcappath)
+	if err != nil {
+		root.DeletePcap(pcappath)
 		return err
 	}
 	defer pcapfile.Close()
 
-	display := analyzecli.NewDisplay(c.JSON, pcapsize)
 	zctx := resolver.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
-	go display.Run(analyzer)
+	go display.Run(analyzer, pcapsize, span)
 
 	reader := toioreader(analyzer)
 	_, err = c.conn.LogPostReaders(ctx, c.spaceID, nil, reader)
@@ -97,6 +112,9 @@ func (c *Command) Exec(args []string) (err error) {
 
 	if aerr := analyzer.Close(); err == nil {
 		err = aerr
+	}
+	if err != nil {
+		root.DeletePcap(pcappath)
 	}
 	display.Close()
 	return err
