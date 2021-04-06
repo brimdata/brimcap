@@ -67,7 +67,7 @@ func (c *Command) Init() error {
 			return errors.New("-root and -x cannot both be set")
 		}
 		if c.inputFile == "-" {
-			return errors.New("input cannot be standard in if writing to BRIMCAP_ROOT")
+			return errors.New("input cannot be stdin if writing to BRIMCAP_ROOT")
 		}
 	}
 	return nil

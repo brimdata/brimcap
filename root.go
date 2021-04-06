@@ -129,9 +129,6 @@ func (r Root) Search(ctx context.Context, req Search, w io.Writer) error {
 	var count int
 	for pr := range readers {
 		count++
-		if err := ctx.Err(); err != nil {
-			return err
-		}
 		if _, err := io.Copy(w, pr); err != nil {
 			return err
 		}
