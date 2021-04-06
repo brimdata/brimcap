@@ -38,8 +38,8 @@ type Flags struct {
 }
 
 func (f *Flags) SetFlags(fs *flag.FlagSet) {
-	fs.BoolVar(&f.suricata, "suricata", true, "enables/disables suricata pcap analyzer")
-	fs.BoolVar(&f.zeek, "zeek", true, "enables/disables zeek pcap analyzer")
+	fs.BoolVar(&f.suricata, "suricata", true, "run suricata pcap analyzer")
+	fs.BoolVar(&f.zeek, "zeek", true, "run zeek pcap analyzer")
 }
 
 func (f *Flags) Init() error {
