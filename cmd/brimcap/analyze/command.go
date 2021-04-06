@@ -74,7 +74,9 @@ func (c *Command) Exec(args []string) (err error) {
 
 	// If not emitting to stdio write stats to stderr.
 	if c.out.FileName() != "" {
+		display := analyzecli.NewDisplay(c.JSON, pcapsize)
 		display.Run(analyzer)
+		defer display.Close()
 	}
 
 	err = zbuf.CopyWithContext(ctx, emitter, analyzer)
