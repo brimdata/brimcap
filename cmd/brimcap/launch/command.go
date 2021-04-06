@@ -5,6 +5,7 @@ import (
 	"flag"
 	"os"
 	"os/exec"
+	"os/signal"
 
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
@@ -53,7 +54,7 @@ func (c *Command) Exec(args []string) (err error) {
 		return err
 	}
 
-	ctx, cancel := signal.NotifyContext(context.Baackground(), os.Interrupt)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 	err = c.rootflags.Root.Search(ctx, c.searchflags.Search, f)
 	f.Close()

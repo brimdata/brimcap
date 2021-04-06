@@ -12,7 +12,7 @@ import (
 
 	"github.com/brimdata/brimcap/pcap"
 	"github.com/brimdata/brimcap/pcap/pcapio"
-	fse "github.com/brimdata/zed/pkg/fs"
+	pkgfs "github.com/brimdata/zed/pkg/fs"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/zbuf"
 	"golang.org/x/sync/errgroup"
@@ -57,7 +57,7 @@ func (r Root) AddPcapWithIndex(path string, index pcap.Index) (err error) {
 	}
 
 	// create pcap index
-	if err := fse.MarshalJSONFile(index, r.IndexPath(path), 0644); err != nil {
+	if err := pkgfs.MarshalJSONFile(index, r.IndexPath(path), 0644); err != nil {
 		r.DeletePcap(path)
 		return err
 	}
@@ -89,7 +89,7 @@ func (r Root) Search(ctx context.Context, req Search, w io.Writer) error {
 		return err
 	}
 
-	group, _ := errgroup.WithContext(ctx)
+	group, ctx := errgroup.WithContext(ctx)
 	readers := make(chan *pcap.SearchReader, len(files))
 	closers := make(chan io.Closer, len(files))
 	for _, file := range files {
