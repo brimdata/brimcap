@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/zed/pkg/charm"
@@ -60,6 +62,19 @@ func (c *Command) Run(args []string) error {
 		return c.writeError(err)
 	}
 	return Brimcap.Exec(c, []string{"help"})
+}
+
+func (c *Command) AddRunnersToPath() error {
+	execpath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	dir := filepath.Dir(execpath)
+	pathEnv := os.Getenv("PATH")
+	zeekPath := filepath.Join(dir, "zeek")
+	suricataPath := filepath.Join(dir, "suricata")
+	pathEnv = strings.Join([]string{pathEnv, zeekPath, suricataPath}, string(os.PathListSeparator))
+	return os.Setenv("PATH", pathEnv)
 }
 
 type MsgError struct {

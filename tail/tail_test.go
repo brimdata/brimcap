@@ -23,6 +23,7 @@ func TestTailFileWrite(t *testing.T) {
 	defer cancel()
 	tf, err := TailFileWithContext(ctx, f.Name())
 	require.NoError(t, err)
+	defer tf.Close()
 	buf := make([]byte, 100)
 	errCh := make(chan error)
 
@@ -66,6 +67,7 @@ line #9
 	defer f.Close()
 	tf, err := NewFile(f.Name())
 	require.NoError(t, err)
+	defer tf.Close()
 
 	for i := 0; i < 10; i++ {
 		str := fmt.Sprintf("line #%d\n", i)

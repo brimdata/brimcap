@@ -54,6 +54,10 @@ func (c *Command) Exec(args []string) (err error) {
 	}
 	defer c.Cleanup()
 
+	if err := c.AddRunnersToPath(); err != nil {
+		return err
+	}
+
 	ctx, cancel := signalctx.New(os.Interrupt)
 	defer cancel()
 

@@ -132,12 +132,12 @@ func (p *analyzer) run() error {
 	go func() {
 		p.procErr = waiter.Wait()
 		close(p.procDone)
-
 		// Tell DirReader to stop tail files, which will in turn cause an EOF on
 		// zbuf.Read stream when remaining data has been read.
 		if err := p.tailer.Stop(); p.procErr == nil {
 			p.procErr = err
 		}
+
 	}()
 
 	p.zreader = tailer
@@ -152,7 +152,6 @@ func (p *analyzer) run() error {
 			return err
 		}
 	}
-
 	return nil
 }
 
