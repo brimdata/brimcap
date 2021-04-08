@@ -1,6 +1,6 @@
 VERSION = $(shell git describe --tags --dirty --always)
-ZED_VERSION := $(shell go list -f '{{.Version}}' -m github.com/brimdata/zed)
 LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
+ZED_VERSION := $(shell go list -f {{.Version}} -m github.com/brimdata/zed)
 
 # This enables a shortcut to run a single ztest e.g.:
 #  make TEST=TestBrimpcap/cmd/brimcap/ztests/analyze-all
