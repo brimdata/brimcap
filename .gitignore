@@ -13,4 +13,4 @@
 
 # Dependency directories
 bin/
-dist/
+build/

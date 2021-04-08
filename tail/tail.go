@@ -88,7 +88,11 @@ func (f *File) Stop() error {
 }
 
 func (f *File) Close() error {
-	return f.f.Close()
+	err := f.watcher.Close()
+	if ferr := f.f.Close(); err == nil {
+		err = ferr
+	}
+	return err
 }
 
 type FileOp int

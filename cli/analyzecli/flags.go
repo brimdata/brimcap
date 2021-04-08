@@ -12,20 +12,12 @@ import (
 //go:embed suricata.zed
 var suricatashaper string
 
-var zeekscript = `
-event zeek_init() {
-	Log::disable_stream(PacketFilter::LOG);
-	Log::disable_stream(LoadedScripts::LOG);
-}`
-
 var (
 	DefaultZeek = analyzer.Config{
-		Args: []string{"-C", "-r", "-", "--exec", "@load packages", "--exec", zeekscript, "local"},
-		Cmd:  "zeek",
+		Cmd: "zeekrunner",
 	}
 	DefaultSuricata = analyzer.Config{
-		Args:   []string{"-r", "/dev/stdin"},
-		Cmd:    "suricata",
+		Cmd:    "suricatarunner",
 		Globs:  []string{"*.json"},
 		Shaper: compiler.MustParseProc(suricatashaper),
 	}

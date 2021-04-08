@@ -3,6 +3,7 @@
 package ztail
 
 import (
+	"errors"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
@@ -29,8 +30,8 @@ type Tailer struct {
 
 	// synchronization primitives
 	results chan result
-	once    sync.Once
-	wg      sync.WaitGroup
+	readWg  sync.WaitGroup
+	watchWg sync.WaitGroup
 }
 
 func New(zctx *resolver.Context, dir string, opts zio.ReaderOpts, globs ...string) (*Tailer, error) {
@@ -46,6 +47,7 @@ func New(zctx *resolver.Context, dir string, opts zio.ReaderOpts, globs ...strin
 		tailer:  tailer,
 		zctx:    zctx,
 	}
+	go r.start()
 	return r, nil
 }
 
@@ -56,6 +58,7 @@ type result struct {
 
 func (t *Tailer) start() {
 	var err error
+	t.watchWg.Add(1)
 	for {
 		ev, ok := <-t.tailer.Events
 		// Watcher closed. Enstruct all go routines to stop tailing files so
@@ -78,9 +81,10 @@ func (t *Tailer) start() {
 			}
 		}
 	}
+	t.watchWg.Done()
 	// Wait for all tail go routines to stop. We are about to close the results
 	// channel and do not want a write to closed channel panic.
-	t.wg.Wait()
+	t.readWg.Wait()
 	// signfy EOS and close channel
 	t.results <- result{err: err}
 	close(t.results)
@@ -94,8 +98,9 @@ func (t *Tailer) stopReaders(close bool) {
 	for _, r := range t.readers {
 		if close {
 			r.Close()
+		} else {
+			r.Stop()
 		}
-		r.Stop()
 	}
 }
 
@@ -104,24 +109,31 @@ func (t *Tailer) tailFile(file string) error {
 		return nil
 	}
 	f, err := tail.NewFile(file)
-	if err == tail.ErrIsDir {
+	if errors.Is(tail.ErrIsDir, err) {
 		return nil
 	}
 	if err != nil {
 		return err
 	}
+
 	t.readers[file] = f
-	t.wg.Add(1)
+	t.readWg.Add(1)
 	go func() {
-		var zr zbuf.Reader
-		zr, err = detector.OpenFromNamedReadCloser(t.zctx, f, file, t.opts)
+		defer t.readWg.Done()
+
+		zf, err := detector.OpenFromNamedReadCloser(t.zctx, f, file, t.opts)
 		if err != nil {
+			f.Close()
 			t.results <- result{err: err}
 			return
 		}
+		defer zf.Close()
+
+		var zr zbuf.Reader = zf
 		if t.warner != nil {
 			zr = zbuf.NewWarningReader(zr, t.warner)
 		}
+
 		var res result
 		for {
 			res.rec, res.err = zr.Read()
@@ -129,7 +141,6 @@ func (t *Tailer) tailFile(file string) error {
 				t.results <- res
 			}
 			if res.rec == nil || res.err != nil {
-				t.wg.Done()
 				return
 			}
 		}
@@ -142,7 +153,6 @@ func (t *Tailer) WarningHandler(warner zbuf.Warner) {
 }
 
 func (t *Tailer) Read() (*zng.Record, error) {
-	t.once.Do(func() { go t.start() })
 	res, ok := <-t.results
 	if !ok {
 		// already closed return EOS
@@ -161,10 +171,14 @@ func (t *Tailer) Read() (*zng.Record, error) {
 // watching for changes. Read will emit EOS when the remaining unread data
 // in files has been read.
 func (t *Tailer) Stop() error {
-	return t.tailer.Stop()
+	err := t.tailer.Stop()
+	t.watchWg.Wait()
+	return err
 }
 
 func (t *Tailer) Close() error {
 	atomic.StoreUint32(&t.forceClose, 1)
-	return t.tailer.Stop()
+	err := t.tailer.Stop()
+	t.readWg.Wait()
+	return err
 }

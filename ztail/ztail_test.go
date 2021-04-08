@@ -41,18 +41,18 @@ const expected = `#0:record[ts:time]
 0:[19;]
 `
 
-type logTailerTSuite struct {
+type tailerTSuite struct {
 	suite.Suite
 	dir  string
 	zctx *resolver.Context
 	dr   *Tailer
 }
 
-func TestLogTailer(t *testing.T) {
-	suite.Run(t, new(logTailerTSuite))
+func TestTailer(t *testing.T) {
+	suite.Run(t, new(tailerTSuite))
 }
 
-func (s *logTailerTSuite) SetupTest() {
+func (s *tailerTSuite) SetupTest() {
 	s.dir = s.T().TempDir()
 	s.zctx = resolver.NewContext()
 	var err error
@@ -60,7 +60,7 @@ func (s *logTailerTSuite) SetupTest() {
 	s.Require().NoError(err)
 }
 
-func (s *logTailerTSuite) TestCreatedFiles() {
+func (s *tailerTSuite) TestCreatedFiles() {
 	result, errCh := s.read()
 	f1 := s.createFile("test1.tzng")
 	f2 := s.createFile("test2.tzng")
@@ -69,7 +69,7 @@ func (s *logTailerTSuite) TestCreatedFiles() {
 	s.Equal(expected, <-result)
 }
 
-func (s *logTailerTSuite) TestIgnoreDir() {
+func (s *tailerTSuite) TestIgnoreDir() {
 	result, errCh := s.read()
 	f1 := s.createFile("test1.tzng")
 	f2 := s.createFile("test2.tzng")
@@ -80,7 +80,7 @@ func (s *logTailerTSuite) TestIgnoreDir() {
 	s.Equal(expected, <-result)
 }
 
-func (s *logTailerTSuite) TestExistingFiles() {
+func (s *tailerTSuite) TestExistingFiles() {
 	f1 := s.createFile("test1.tzng")
 	f2 := s.createFile("test2.tzng")
 	result, errCh := s.read()
@@ -89,7 +89,7 @@ func (s *logTailerTSuite) TestExistingFiles() {
 	s.Equal(expected, <-result)
 }
 
-func (s *logTailerTSuite) TestInvalidFile() {
+func (s *tailerTSuite) TestInvalidFile() {
 	_, errCh := s.read()
 	f1 := s.createFile("test1.tzng")
 	_, err := f1.WriteString("#0:record[ts:time]\n")
@@ -101,7 +101,7 @@ func (s *logTailerTSuite) TestInvalidFile() {
 	s.NoError(s.dr.Stop())
 }
 
-func (s *logTailerTSuite) TestEmptyFile() {
+func (s *tailerTSuite) TestEmptyFile() {
 	result, errCh := s.read()
 	f1 := s.createFile("test1.tzng")
 	_ = s.createFile("test2.tzng")
@@ -110,7 +110,7 @@ func (s *logTailerTSuite) TestEmptyFile() {
 	s.Equal(expected, <-result)
 }
 
-func (s *logTailerTSuite) createFile(name string) *os.File {
+func (s *tailerTSuite) createFile(name string) *os.File {
 	f, err := os.Create(filepath.Join(s.dir, name))
 	s.Require().NoError(err)
 	s.T().Cleanup(func() { f.Close() })
@@ -119,7 +119,7 @@ func (s *logTailerTSuite) createFile(name string) *os.File {
 	return f
 }
 
-func (s *logTailerTSuite) read() (<-chan string, <-chan error) {
+func (s *tailerTSuite) read() (<-chan string, <-chan error) {
 	result := make(chan string)
 	errCh := make(chan error)
 	buf := bytes.NewBuffer(nil)
@@ -137,7 +137,7 @@ func (s *logTailerTSuite) read() (<-chan string, <-chan error) {
 	return result, errCh
 }
 
-func (s *logTailerTSuite) write(files ...*os.File) {
+func (s *tailerTSuite) write(files ...*os.File) {
 	for _, f := range files {
 		_, err := f.WriteString("#0:record[ts:time]\n")
 		s.Require().NoError(err)

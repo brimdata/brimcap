@@ -1,6 +1,18 @@
+ARCH = amd64
 VERSION = $(shell git describe --tags --dirty --always)
 LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
 ZED_VERSION := $(shell go list -f {{.Version}} -m github.com/brimdata/zed)
+
+SURICATATAG := $(shell python -c 'import json; print(json.load(open("package.json"))["brimDependencies"]["suricataTag"])')
+SURICATAPATH = suricata-$(SURICATATAG)
+ZEEKTAG := $(shell python -c 'import json; print(json.load(open("package.json"))["brimDependencies"]["zeekTag"])')
+ZEEKPATH = zeek-$(ZEEKTAG)
+ZED_VERSION := $(shell go list -f '{{.Version}}' -m github.com/brimdata/zed)
+
+ZIP = zip -r
+ifeq ($(shell go env GOOS),windows)
+	ZIP=7z a
+endif
 
 # This enables a shortcut to run a single ztest e.g.:
 #  make TEST=TestBrimpcap/cmd/brimcap/ztests/analyze-all
@@ -18,10 +30,25 @@ tidy:
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum
 
-.PHONY: build
-build:
+build/$(ZEEKPATH).zip:
+	@mkdir -p build
+	@curl -L -o $@ \
+		https://github.com/brimdata/zeek/releases/download/$(ZEEKTAG)/zeek-$(ZEEKTAG).$$(go env GOOS)-$(ARCH).zip
+
+build/$(SURICATAPATH).zip:
+	@mkdir -p build
+	@curl -L -o $@ \
+		https://github.com/brimdata/build-suricata/releases/download/$(SURICATATAG)/suricata-$(SURICATATAG).$$(go env GOOS)-$(ARCH).zip
+
+build/dist/zeek: build/$(ZEEKPATH).zip
 	@mkdir -p dist
-	@go build -ldflags='$(LDFLAGS)' -o dist ./cmd/...
+	@unzip -q $^ -d build/dist
+	@touch $@
+
+build/dist/suricata: build/$(SURICATAPATH).zip
+	@mkdir -p dist
+	@unzip -q $^ -d build/dist
+	@touch $@
 
 bin/zed-$(ZED_VERSION):
 	@rm -rf $@*
@@ -35,6 +62,17 @@ bin/zed-$(ZED_VERSION):
 bin/zed: bin/zed-$(ZED_VERSION)
 	@ln -fs $(<F) $@
 
+.PHONY: build
+build: build/dist/zeek build/dist/suricata
+	@go build -ldflags='$(LDFLAGS)' -o build/dist ./cmd/...
+
+.PHONY: release
+release: build
+	@cd build \
+		&& mv dist brimcap \
+		&& $(ZIP) brimcap-$(VERSION).$$(go env GOOS)-$$(go env GOARCH).zip brimcap \
+		&& rm -rf brimcap
+
 .PHONY: vet
 vet:
 	@go vet ./...
@@ -46,21 +84,12 @@ generate:
 
 .PHONY: test
 test:
-	go test ./...
-
-.PHONY: exists-%
-exists-%:
-	@hash $* 2>/dev/null \
-		|| { echo >&2 "command '$*' required but is not installed" ; exit 1; }
+	@go test -timeout 1m ./...
 
 .PHONY: ztest-run
-ztest-run: build bin/zed exists-zeek exists-suricata
-	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$(PATH)" go test . -run $(TEST)
+ztest-run: build bin/zed
+	@ZTEST_PATH="$(CURDIR)/build/dist:$(CURDIR)/bin:$(PATH)" go test . -run $(TEST)
 
 .PHONY: ztest
-ztest: build bin/zed exists-zeek exists-suricata
-	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin:$(PATH)" go test .
-
-.PHONY: install
-install:
-	@go install -ldflags='$(LDFLAGS)' ./cmd/... 
+ztest: build bin/zed
+	@ZTEST_PATH="$(CURDIR)/build/dist:$(CURDIR)/bin:$(PATH)" go test .
