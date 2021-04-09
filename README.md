@@ -69,7 +69,7 @@ The executables will be located here:
 ```
 ./build/dist/brimcap
 ./build/dist/zeek/zeekrunner
-./build/dist/suricata/suricattarunner
+./build/dist/suricata/suricatarunner
 ```
 
 
