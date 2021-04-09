@@ -1,0 +1,38 @@
+script: |
+  export PATH=$(pwd):$PATH
+  chmod +x errorproc.sh
+
+  brimcap analyze -config=config1.yaml alerts.pcap 
+  >&2 echo === 
+  brimcap analyze -config=config2.yaml alerts.pcap
+  ls
+  cat stderr.out
+
+
+inputs:
+  - name: alerts.pcap
+  - name: config1.yaml
+    data: |
+      analyzers:
+        - cmd: errorproc.sh
+  - name: config2.yaml
+    data: |
+      analyzers:
+        - cmd: errorproc.sh
+          stderr: stderr.out
+  - name: errorproc.sh
+    data: |
+      #!/bin/bash
+      
+      >&2 echo "some error information in stderr"
+      exit 1
+
+outputs:
+  - name: stderr
+    data: |
+      {"type":"error","error":"errorproc.sh exited with code 1\nstdout: (no output)\nstderr:\nsome error information in stderr\n"}
+      ===
+      {"type":"error","error":"errorproc.sh exited with code 1\nstdout: (no output)\nstderr:\nsome error information in stderr\n"}
+  - name: stderr.out 
+    data: |
+      some error information in stderr

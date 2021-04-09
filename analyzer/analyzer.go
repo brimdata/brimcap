@@ -8,10 +8,10 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/brimcap/ztail"
+	"github.com/brimdata/zed/compiler"
 	"github.com/brimdata/zed/compiler/ast"
 	"github.com/brimdata/zed/driver"
 	"github.com/brimdata/zed/zbuf"
-	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zng"
 	"github.com/brimdata/zed/zng/resolver"
 )
@@ -21,22 +21,6 @@ type Interface interface {
 	BytesRead() int64
 	RecordsRead() int64
 	WarningHandler(zbuf.Warner)
-}
-
-type Config struct {
-	Args       []string
-	Cmd        string
-	Globs      []string
-	Launcher   Launcher
-	ReaderOpts zio.ReaderOpts
-	Shaper     ast.Proc
-}
-
-func (c Config) GetLauncher() (Launcher, error) {
-	if c.Cmd != "" {
-		return LauncherFromPath(c.Cmd, c.Args...)
-	}
-	return c.Launcher, nil
 }
 
 type analyzer struct {
@@ -101,11 +85,13 @@ func (p *analyzer) Read() (*zng.Record, error) {
 	return rec, err
 }
 
-func (p *analyzer) run() error {
-	ln, err := p.config.GetLauncher()
-	if err != nil {
-		close(p.procDone)
-		return err
+func (p *analyzer) run() (err error) {
+	var shaper ast.Proc
+	if p.config.Shaper != "" {
+		if shaper, err = compiler.ParseProc(p.config.Shaper); err != nil {
+			close(p.procDone)
+			return err
+		}
 	}
 
 	logdir, err := os.MkdirTemp("", "brimcap-")
@@ -114,7 +100,7 @@ func (p *analyzer) run() error {
 		return err
 	}
 
-	waiter, err := ln(p.ctx, logdir, p.reader)
+	process, err := newLauncher(p.config)(p.ctx, logdir, p.reader)
 	if err != nil {
 		close(p.procDone)
 		os.RemoveAll(logdir)
@@ -130,7 +116,7 @@ func (p *analyzer) run() error {
 	tailer.WarningHandler(p.warner)
 
 	go func() {
-		p.procErr = waiter.Wait()
+		p.procErr = process.Wait()
 		close(p.procDone)
 		// Tell DirReader to stop tail files, which will in turn cause an EOF on
 		// zbuf.Read stream when remaining data has been read.
@@ -143,8 +129,8 @@ func (p *analyzer) run() error {
 	p.zreader = tailer
 	p.tailer = tailer
 	p.logdir = logdir
-	if p.config.Shaper != nil {
-		p.zreader, err = driver.NewReader(p.ctx, p.config.Shaper, p.zctx, p.zreader)
+	if shaper != nil {
+		p.zreader, err = driver.NewReader(p.ctx, shaper, p.zctx, p.zreader)
 		if err != nil {
 			close(p.procDone)
 			tailer.Close()

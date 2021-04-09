@@ -12,17 +12,18 @@ import (
 // is an error starting the Process, that error is returned.
 type Launcher func(context.Context, string, io.Reader) (ProcessWaiter, error)
 
-// LauncherFromPath returns a Launcher instance that will execute a pcap
-// to zeek log transformation, using the provided path to the command.
-// zeekpath should point to an executable or script that:
-// - expects to receive a pcap file on stdin
-// - writes the resulting logs into its working directory
-func LauncherFromPath(path string, args ...string) (Launcher, error) {
+func newLauncher(conf Config) Launcher {
+	if conf.Launcher != nil {
+		return conf.Launcher
+	}
 	return func(ctx context.Context, dir string, r io.Reader) (ProcessWaiter, error) {
-		cmd := exec.CommandContext(ctx, path, args...)
+		cmd := exec.CommandContext(ctx, conf.Cmd, conf.Args...)
 		cmd.Stdin = r
 		cmd.Dir = dir
 		p := NewProcess(cmd)
+		if err := p.SetStdio(conf.StderrPath, conf.StdoutPath); err != nil {
+			return nil, err
+		}
 		return p, p.Start()
-	}, nil
+	}
 }
