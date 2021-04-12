@@ -5,6 +5,16 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: # triggered by advance zed workflow
+    inputs:
+      title:
+        required: true
+      user:
+        required: true
+      url:
+        required: true
+      number:
+        required: true
 
 jobs:
   test:
@@ -35,9 +45,43 @@ jobs:
           path: build/brimcap-*.zip
       - if: startsWith(github.event.ref, 'refs/tags/')
         uses: svenstaro/upload-release-action@1.1.0
+
+  advance-zed-success:
+    name: Advance Zed success
+    if: success() && github.event_name == 'workflow_dispatch'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        token: ${{ secrets.PAT_TOKEN }}
+      - run: git config --local user.email 'automation@brimsecurity.com'
+      - run: git config --local user.name 'Brim Automation'
+      - name: Commit and push change
+        run: |
+          git checkout main
+          git cherry-pick ${{ github.sha }}
+          git push
+
+  advance-zed-failure:
+    name: Advance Zed failure
+    if: failure() && github.event_name == 'workflow_dispatch'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: git config --local user.email 'automation@brimsecurity.com'
+      - run: git config --local user.name 'Brim Automation'
+      - name: Create Pull Request for Manual Inspection
+        uses: peter-evans/create-pull-request@v3.8.2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: builds/brimcap-*.zip
-          file_glob: true
-          overwrite: true
-          tag: ${{ github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Zed update through "${{ github.event.inputs.title }}" by ${{ github.event.inputs.user }}
+          title: Zed update through "${{ github.event.inputs.title }}" by ${{ github.event.inputs.user }}
+          body: |
+            This is an auto-generated PR with a Zed dependency update needing manual attention. brimdata/zed#${{ github.event.inputs.number }}, authored by @${{ github.event.inputs.user }}, has been merged, however Zed could not be updated automatically. Please see https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} for the original failing run. If a Brimcap update is needed, you may use the branch on this PR to do so.
+
+            ----
+            #### ${{ github.event.inputs.title }}
+            ${{ github.event.inputs.body }}
+          branch: ${{ github.ref }}
+          base: main

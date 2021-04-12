@@ -1,0 +1,121 @@
+name: Advance Zed
+
+# This type must match the event type from Zed.
+# https://help.github.com/en/actions/reference/events-that-trigger-workflows#external-events-repository_dispatch
+# These events only trigger on the GitHub default branch.
+on:
+  repository_dispatch:
+    types: [zed-pr-merged]
+jobs:
+  advance-zed:
+    name: Advance Zed
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      # Only one of these should run at a time, and the checkout of brimcap
+      # has to be in the "protected section". This will poll every 60s
+      # forever. It will be timed out based on any change to
+      # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idtimeout-minutes
+      # It is not possible to time out this step and fail. It's only
+      # possible to time out this step and continue.
+      - name: Turnstyle
+        uses: softprops/turnstyle@v0.1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Since we intend to push, we must have a a writable token and
+      # minimal git config settings to create commits.
+      - uses: actions/checkout@v2
+        with:
+          # ref defaults to github.sha, which is fixed at the time a run
+          # is triggered. Using github.ref ensures a run that waits in
+          # the turnstyle action will see any commits pushed by the runs
+          # that caused it to wait, reducing push failures down below.
+          ref: ${{ github.ref }}
+          token: ${{ secrets.PAT_TOKEN }}
+      - run: git config --local user.email 'automation@brimsecurity.com'
+      - run: git config --local user.name 'Brim Automation'
+
+      # This section gets event information.
+      - run: jq '.' "${GITHUB_EVENT_PATH}"
+      - name: process pull request event
+        id: zed_pr
+        # $GITHUB_EVENT_PATH is the JSON we posted from Zed.
+        # Variables for other steps get set as described here:
+        # https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-output-parameter
+        #
+        # body can be multiline and must be escaped as described here:
+        # https://github.community/t5/GitHub-Actions/set-output-Truncates-Multiline-Strings/m-p/37870
+        #
+        # Rewrite bare PR numbers as Zed PRs (https://github.com/brimdata/brim/issues/797)
+        run: |
+          sha="$(jq -r '.client_payload.merge_commit_sha' "${GITHUB_EVENT_PATH}")"
+          echo "::set-output name=sha::$sha"
+          branch="$(jq -r '.client_payload.branch' "${GITHUB_EVENT_PATH}")"
+          echo "::set-output name=branch::$branch"
+          number="$(jq -r '.client_payload.number' "${GITHUB_EVENT_PATH}")"
+          echo "::set-output name=number::$number"
+          title="$(jq -r '.client_payload.title' "${GITHUB_EVENT_PATH}")"
+          title="$(perl -pe 's,(\W+)(#\d+)(\W+),$1brimdata/zed$2$3,g; s,^(#\d+)(\W+),brimdata/zed$1$2,g; s,(\W+)(#\d+),$1brimdata/zed$2,g; s,^(#\d+)$,brimdata/zed$1,g;' <<< "${title}")"
+          echo "::set-output name=title::$title"
+          body="$(jq -r '.client_payload.body' "${GITHUB_EVENT_PATH}")"
+          body="$(perl -pe 's,(\W+)(#\d+)(\W+),$1brimdata/zed$2$3,g; s,^(#\d+)(\W+),brimdata/zed$1$2,g; s,(\W+)(#\d+),$1brimdata/zed$2,g; s,^(#\d+)$,brimdata/zed$1,g;' <<< "${body}")"
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}"
+          echo "::set-output name=body::$body"
+          url="$(jq -r '.client_payload.url' "${GITHUB_EVENT_PATH}")"
+          echo "::set-output name=url::$url"
+          user="$(jq -r '.client_payload.user' "${GITHUB_EVENT_PATH}")"
+          echo "::set-output name=user::$user"
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+
+      - name: Update Zed
+        run: |
+          go get -d github.com/brimdata/zed@${{ steps.zed_pr.outputs.sha }}
+          go mod tidy
+
+      - name: Create branch
+        id: createBranch
+        run: |
+          branch="upgrade-zed-${{ steps.zed_pr.outputs.number }}"
+          echo "::set-output name=branch::$branch"
+          git branch -m $branch
+          git add .
+          git diff
+          cat << 'EOF' | git commit -a -F-
+          Zed update through "${{ steps.zed_pr.outputs.title }}" by ${{ steps.zed_pr.outputs.user }}
+
+          This is an auto-generated commit with a Zed dependency update. The Zed PR
+          ${{ steps.zed_pr.outputs.url }}, authored by @${{ steps.zed_pr.outputs.user }},
+          has been merged.
+
+          ${{ steps.zed_pr.outputs.title }}
+
+          ${{ steps.zed_pr.outputs.body }}
+          EOF
+          git push -f -u origin $branch
+
+      - name: Dispatch CI workflow
+        run: |
+          cat <<EOF > payload.json
+          {
+            "ref": "${{ steps.createBranch.outputs.branch }}",
+            "inputs": {
+              "title": "${{ steps.zed_pr.outputs.title }}",
+              "user": "${{ steps.zed_pr.outputs.user }}",
+              "url": "${{ steps.zed_pr.outputs.url }}",
+              "number": "${{ steps.zed_pr.outputs.number }}"
+            }
+          }
+          EOF
+          curl -XPOST \
+            -u "${{ secrets.PAT_USERNAME }}:${{ secrets.PAT_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/json" \
+            --data @payload.json \
+            https://api.github.com/repos/looky-cloud/brimcap/actions/workflows/ci.yaml/dispatches 
+
