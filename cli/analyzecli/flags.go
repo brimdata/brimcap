@@ -34,7 +34,7 @@ type Flags struct {
 }
 
 func (f *Flags) SetFlags(fs *flag.FlagSet) {
-	fs.StringVar(&f.configPath, "config", "", "path to configuration yaml file")
+	fs.StringVar(&f.configPath, "config", "", "path to YAML configuration file")
 	fs.BoolVar(&f.suricata, "suricata", true, "run suricata pcap analyzer")
 	fs.StringVar(&DefaultSuricata.StderrPath, "suricata.stderr", "", "write suricata process stderr to path")
 	fs.StringVar(&DefaultSuricata.StdoutPath, "suricata.stdout", "", "write suricata process stderr to path")
