@@ -6,7 +6,6 @@ import (
 	"flag"
 
 	"github.com/brimdata/brimcap/analyzer"
-	"github.com/brimdata/zed/compiler"
 )
 
 //go:embed suricata.zed
@@ -19,22 +18,36 @@ var (
 	DefaultSuricata = analyzer.Config{
 		Cmd:    "suricatarunner",
 		Globs:  []string{"*.json"},
-		Shaper: compiler.MustParseProc(suricatashaper),
+		Shaper: suricatashaper,
 	}
 )
 
 type Flags struct {
-	Configs  []analyzer.Config
-	suricata bool
-	zeek     bool
+	Configs        []analyzer.Config
+	configPath     string
+	suricata       bool
+	suricataStderr string
+	suricataStdout string
+	zeek           bool
+	zeekStderr     string
+	zeekStdout     string
 }
 
 func (f *Flags) SetFlags(fs *flag.FlagSet) {
+	fs.StringVar(&f.configPath, "config", "", "path to YAML configuration file")
 	fs.BoolVar(&f.suricata, "suricata", true, "run suricata pcap analyzer")
+	fs.StringVar(&DefaultSuricata.StderrPath, "suricata.stderr", "", "write suricata process stderr to path")
+	fs.StringVar(&DefaultSuricata.StdoutPath, "suricata.stdout", "", "write suricata process stderr to path")
 	fs.BoolVar(&f.zeek, "zeek", true, "run zeek pcap analyzer")
+	fs.StringVar(&DefaultZeek.StderrPath, "zeek.stderr", "", "write zeek process stderr to path")
+	fs.StringVar(&DefaultZeek.StdoutPath, "zeek.stdout", "", "write zeek process stderr to path")
 }
 
-func (f *Flags) Init() error {
+func (f *Flags) Init() (err error) {
+	if f.configPath != "" {
+		f.Configs, err = analyzer.LoadYAMLConfigFile(f.configPath)
+		return err
+	}
 	if f.zeek {
 		f.Configs = append(f.Configs, DefaultZeek)
 	}
