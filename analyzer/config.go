@@ -18,7 +18,7 @@ type Config struct {
 	StderrPath string         `yaml:"stderr"`
 }
 
-func LoadYamlConfigFile(path string) ([]Config, error) {
+func LoadYAMLConfigFile(path string) ([]Config, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err

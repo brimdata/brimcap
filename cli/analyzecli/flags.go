@@ -45,7 +45,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet) {
 
 func (f *Flags) Init() (err error) {
 	if f.configPath != "" {
-		f.Configs, err = analyzer.LoadYamlConfigFile(f.configPath)
+		f.Configs, err = analyzer.LoadYAMLConfigFile(f.configPath)
 		return err
 	}
 	if f.zeek {
