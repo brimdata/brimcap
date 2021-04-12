@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/zed/driver"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/tzngio"
-	"github.com/brimdata/zed/zng/resolver"
+	"github.com/brimdata/zed/zson"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -44,7 +44,7 @@ const expected = `#0:record[ts:time]
 type tailerTSuite struct {
 	suite.Suite
 	dir  string
-	zctx *resolver.Context
+	zctx *zson.Context
 	dr   *Tailer
 }
 
@@ -54,7 +54,7 @@ func TestTailer(t *testing.T) {
 
 func (s *tailerTSuite) SetupTest() {
 	s.dir = s.T().TempDir()
-	s.zctx = resolver.NewContext()
+	s.zctx = zson.NewContext()
 	var err error
 	s.dr, err = New(s.zctx, s.dir, zio.ReaderOpts{Format: "tzng"})
 	s.Require().NoError(err)

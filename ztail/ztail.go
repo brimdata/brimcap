@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/detector"
 	"github.com/brimdata/zed/zng"
-	"github.com/brimdata/zed/zng/resolver"
+	"github.com/brimdata/zed/zson"
 )
 
 // Tailer is a zbuf.Reader that watches a specified directory and starts
@@ -26,7 +26,7 @@ type Tailer struct {
 	readers    map[string]*tail.File
 	tailer     *tail.Dir
 	warner     zbuf.Warner
-	zctx       *resolver.Context
+	zctx       *zson.Context
 
 	// synchronization primitives
 	results chan result
@@ -34,7 +34,7 @@ type Tailer struct {
 	watchWg sync.WaitGroup
 }
 
-func New(zctx *resolver.Context, dir string, opts zio.ReaderOpts, globs ...string) (*Tailer, error) {
+func New(zctx *zson.Context, dir string, opts zio.ReaderOpts, globs ...string) (*Tailer, error) {
 	dir = filepath.Clean(dir)
 	tailer, err := tail.TailDir(dir, globs...)
 	if err != nil {
