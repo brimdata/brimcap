@@ -135,7 +135,7 @@ func (p *ProcessExitError) Error() string {
 // prefixSuffixSaver is an io.Writer which retains the first N bytes
 // and the last N bytes written to it. The Bytes() methods reconstructs
 // it with a pretty error message.
-// Taken from github.com/golang/go/src/os/exec/exec.go
+// Taken from github.com/golang/go/blob/master/src/os/exec/exec.go.
 type prefixSuffixSaver struct {
 	N         int // max size of prefix or suffix
 	prefix    []byte
