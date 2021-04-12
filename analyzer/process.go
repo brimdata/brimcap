@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// ProcessWaiter is an interface for interacting running with a process.
+// ProcessWaiter is an interface for interacting with a running process.
 type ProcessWaiter interface {
 	// Wait waits for a running process to exit, returning any errors that
 	// occur.
