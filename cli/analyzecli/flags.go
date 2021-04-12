@@ -23,8 +23,8 @@ var (
 )
 
 type Flags struct {
-	configPath     string
 	Configs        []analyzer.Config
+	configPath     string
 	suricata       bool
 	suricataStderr string
 	suricataStdout string
