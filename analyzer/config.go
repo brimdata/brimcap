@@ -23,7 +23,7 @@ func LoadYamlConfigFile(path string) ([]Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	var file = struct {
+	file := struct {
 		Analyzers []Config `yaml:"analyzers"`
 	}{}
 	if err := yaml.Unmarshal(b, &file); err != nil {
