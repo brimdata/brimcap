@@ -27,7 +27,7 @@ type analyzer struct {
 	cancel   context.CancelFunc
 	config   Config
 	ctx      context.Context
-	logdir   string
+	wd       string
 	once     sync.Once
 	procErr  error
 	procDone chan struct{}
@@ -94,10 +94,12 @@ func (p *analyzer) run() (err error) {
 		}
 	}
 
-	logdir, err := os.MkdirTemp("", "brimcap-")
-	if err != nil {
-		close(p.procDone)
-		return err
+	logdir := p.config.WorkDir
+	if logdir == "" {
+		if logdir, err = os.MkdirTemp("", "brimcap-"); err != nil {
+			close(p.procDone)
+			return err
+		}
 	}
 
 	process, err := newLauncher(p.config)(p.ctx, logdir, p.reader)
@@ -128,7 +130,7 @@ func (p *analyzer) run() (err error) {
 
 	p.zreader = tailer
 	p.tailer = tailer
-	p.logdir = logdir
+	p.wd = logdir
 	if shaper != nil {
 		p.zreader, err = driver.NewReader(p.ctx, shaper, p.zctx, p.zreader)
 		if err != nil {
@@ -158,8 +160,11 @@ func (p *analyzer) Close() (err error) {
 	if p.tailer != nil {
 		err = p.tailer.Close()
 	}
-	if err2 := os.RemoveAll(p.logdir); err == nil {
-		err = err2
+
+	if p.config.WorkDir == "" {
+		if err2 := os.RemoveAll(p.wd); err == nil {
+			err = err2
+		}
 	}
 	return err
 }

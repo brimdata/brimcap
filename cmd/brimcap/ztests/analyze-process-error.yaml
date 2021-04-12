@@ -1,7 +1,5 @@
 script: |
-  export PATH=$(pwd):$PATH
-  chmod +x errorproc.sh
-
+  chmod +x errorproc.sh && mkdir wd && cp errorproc.sh wd
   brimcap analyze -config=config1.yaml alerts.pcap 
   >&2 echo === 
   brimcap analyze -config=config2.yaml alerts.pcap
@@ -11,12 +9,16 @@ inputs:
   - name: config1.yaml
     data: |
       analyzers:
-        - cmd: errorproc.sh
+        - cmd: ./errorproc.sh
+          globs: ["*.zson"] # so the ztail will not try to read errorproc.sh
+          workdir: wd
   - name: config2.yaml
     data: |
       analyzers:
-        - cmd: errorproc.sh
+        - cmd: ./errorproc.sh
+          globs: ["*.zson"] # so the ztail will not try to read errorproc.sh
           stderr: stderr.out
+          workdir: wd
   - name: errorproc.sh
     data: |
       #!/bin/bash
