@@ -10,13 +10,13 @@ inputs:
     data: |
       analyzers:
         - cmd: ./errorproc.sh
-          globs: ["*.zson"] # so the ztail will not try to read errorproc.sh
+          globs: ["*.zson"] # so ztail will not try to read errorproc.sh
           workdir: wd
   - name: config2.yaml
     data: |
       analyzers:
         - cmd: ./errorproc.sh
-          globs: ["*.zson"] # so the ztail will not try to read errorproc.sh
+          globs: ["*.zson"] # so ztail will not try to read errorproc.sh
           stderr: stderr.out
           workdir: wd
   - name: errorproc.sh
