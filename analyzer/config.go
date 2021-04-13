@@ -18,7 +18,7 @@ type Config struct {
 	StderrPath string         `yaml:"stderr"`
 	// WorkDir if set uses the provided directory as the working directory for
 	// the launched analyzer process. Normally a temporary directory is created
-	// then deleted when the process is complete, if WorkDir is set the working
+	// then deleted when the process is complete. If WorkDir is set the working
 	// directory will not be deleted.
 	WorkDir string `yaml:"workdir"`
 }
