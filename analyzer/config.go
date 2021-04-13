@@ -16,6 +16,11 @@ type Config struct {
 	Shaper     string         `yaml:"shaper"`
 	StdoutPath string         `yaml:"stdout"`
 	StderrPath string         `yaml:"stderr"`
+	// WorkDir if set uses the provided directory as the working directory for
+	// the launched analyzer process. Normally a temporary directory is created
+	// then deleted when the process is complete. If WorkDir is set the working
+	// directory will not be deleted.
+	WorkDir string `yaml:"workdir"`
 }
 
 func LoadYAMLConfigFile(path string) ([]Config, error) {

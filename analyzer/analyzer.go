@@ -27,7 +27,6 @@ type analyzer struct {
 	cancel   context.CancelFunc
 	config   Config
 	ctx      context.Context
-	logdir   string
 	once     sync.Once
 	procErr  error
 	procDone chan struct{}
@@ -35,6 +34,7 @@ type analyzer struct {
 	records  int64
 	tailer   *ztail.Tailer
 	warner   zbuf.Warner
+	workdir  string
 	zctx     *zson.Context
 	zreader  zbuf.Reader
 }
@@ -94,23 +94,25 @@ func (p *analyzer) run() (err error) {
 		}
 	}
 
-	logdir, err := os.MkdirTemp("", "brimcap-")
+	p.workdir = p.config.WorkDir
+	if p.workdir == "" {
+		if p.workdir, err = os.MkdirTemp("", "brimcap-"); err != nil {
+			close(p.procDone)
+			return err
+		}
+	}
+
+	process, err := newLauncher(p.config)(p.ctx, p.workdir, p.reader)
 	if err != nil {
 		close(p.procDone)
+		p.removeWorkDir()
 		return err
 	}
 
-	process, err := newLauncher(p.config)(p.ctx, logdir, p.reader)
+	tailer, err := ztail.New(p.zctx, p.workdir, p.config.ReaderOpts, p.config.Globs...)
 	if err != nil {
 		close(p.procDone)
-		os.RemoveAll(logdir)
-		return err
-	}
-
-	tailer, err := ztail.New(p.zctx, logdir, p.config.ReaderOpts, p.config.Globs...)
-	if err != nil {
-		close(p.procDone)
-		os.RemoveAll(logdir)
+		p.removeWorkDir()
 		return err
 	}
 	tailer.WarningHandler(p.warner)
@@ -128,13 +130,12 @@ func (p *analyzer) run() (err error) {
 
 	p.zreader = tailer
 	p.tailer = tailer
-	p.logdir = logdir
 	if shaper != nil {
 		p.zreader, err = driver.NewReader(p.ctx, shaper, p.zctx, p.zreader)
 		if err != nil {
 			close(p.procDone)
 			tailer.Close()
-			os.RemoveAll(logdir)
+			p.removeWorkDir()
 			return err
 		}
 	}
@@ -149,6 +150,13 @@ func (p *analyzer) BytesRead() int64 {
 	return p.reader.Bytes()
 }
 
+func (p *analyzer) removeWorkDir() error {
+	if p.config.WorkDir == "" {
+		return os.RemoveAll(p.workdir)
+	}
+	return nil
+}
+
 // Close shutdowns the current process (if it is still active), shutdowns the
 // go-routine tailing for logs and removes the temporary log directory.
 func (p *analyzer) Close() (err error) {
@@ -158,7 +166,8 @@ func (p *analyzer) Close() (err error) {
 	if p.tailer != nil {
 		err = p.tailer.Close()
 	}
-	if err2 := os.RemoveAll(p.logdir); err == nil {
+
+	if err2 := p.removeWorkDir(); err == nil {
 		err = err2
 	}
 	return err
