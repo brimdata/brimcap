@@ -1,5 +1,5 @@
 script: |
-  chmod +x errorproc.sh && mkdir wd && cp errorproc.sh wd
+  chmod +x errorproc.sh && mkdir wd && mv errorproc.sh wd
   brimcap analyze -config=config1.yaml alerts.pcap 
   >&2 echo === 
   brimcap analyze -config=config2.yaml alerts.pcap
