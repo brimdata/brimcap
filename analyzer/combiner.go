@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zng"
-	"github.com/brimdata/zed/zng/resolver"
+	"github.com/brimdata/zed/zson"
 )
 
 type combiner struct {
@@ -16,11 +16,11 @@ type combiner struct {
 	pipes     []*io.PipeWriter
 }
 
-func Combiner(zctx *resolver.Context, pcap io.Reader, confs ...Config) Interface {
+func Combiner(zctx *zson.Context, pcap io.Reader, confs ...Config) Interface {
 	return CombinerWithContext(context.Background(), zctx, pcap, confs...)
 }
 
-func CombinerWithContext(ctx context.Context, zctx *resolver.Context, pcap io.Reader, confs ...Config) Interface {
+func CombinerWithContext(ctx context.Context, zctx *zson.Context, pcap io.Reader, confs ...Config) Interface {
 	if len(confs) == 1 {
 		return NewWithContext(ctx, zctx, pcap, confs[0])
 	}

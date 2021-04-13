@@ -63,8 +63,8 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bitly/go-hostpool v0.0.0-20171023180738-a3a6125de932/go.mod h1:NOuUCSz6Q9T7+igc/hlvDOUdtWKryOrtFyIVABv/p7k=
 github.com/bkaradzic/go-lz4 v1.0.0/go.mod h1:0YdlkowM3VswSROI7qDxhRvJ3sLhlFrRRwjwegp5jy4=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
-github.com/brimdata/zed v0.29.1-0.20210406230806-96a308a5912b h1:P59cBjOEYNmcFnH6/UG4hXSv/zdhtbsmgxKqRHLsMSs=
-github.com/brimdata/zed v0.29.1-0.20210406230806-96a308a5912b/go.mod h1:dIr7HFlxlvz1QrSwo145MES1XAwdhYZokgxGh9ld7+0=
+github.com/brimdata/zed v0.29.1-0.20210411000450-223a175d1f97 h1:18+gTOeJ9niGyJka3j6ilPcoOK4jhCMSZfu8IMO+X9s=
+github.com/brimdata/zed v0.29.1-0.20210411000450-223a175d1f97/go.mod h1:dIr7HFlxlvz1QrSwo145MES1XAwdhYZokgxGh9ld7+0=
 github.com/buger/jsonparser v0.0.0-20191004114745-ee4c978eae7e h1:oJCXMss/3rg5F6Poy9wG3JQusc58Mzk5B9Z6wSnssNE=
 github.com/buger/jsonparser v0.0.0-20191004114745-ee4c978eae7e/go.mod h1:errmMKH8tTB49UR2A8C8DPYkyudelsYJwJFaZHQ6ik8=
 github.com/cenkalti/backoff/v4 v4.0.2/go.mod h1:eEew/i+1Q6OrCDZh3WiXYv3+nJwBASZ8Bog/87DQnVg=

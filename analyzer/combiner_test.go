@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	mockanalyzer "github.com/brimdata/brimcap/analyzer/mock"
-	"github.com/brimdata/zed/zng/resolver"
+	"github.com/brimdata/zed/zson"
 	"github.com/golang/mock/gomock"
 )
 
@@ -42,7 +42,7 @@ func TestCombinerEOS(t *testing.T) {
 	}
 
 	r := strings.NewReader("some test data")
-	reader := Combiner(resolver.NewContext(), r, analyzer1, analyzer2)
+	reader := Combiner(zson.NewContext(), r, analyzer1, analyzer2)
 	defer reader.Close()
 
 	if rec, err := reader.Read(); rec != nil || err != nil {
@@ -80,7 +80,7 @@ func TestCombinerError(t *testing.T) {
 	}
 
 	pr, _ := io.Pipe()
-	reader := Combiner(resolver.NewContext(), pr, analyzer1, analyzer2)
+	reader := Combiner(zson.NewContext(), pr, analyzer1, analyzer2)
 
 	errCh <- expected
 	if _, err := reader.Read(); !errors.Is(err, expected) {

@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/zbuf"
-	"github.com/brimdata/zed/zng/resolver"
+	"github.com/brimdata/zed/zson"
 )
 
 var Analyze = &charm.Spec{
@@ -74,7 +74,7 @@ func (c *Command) Exec(args []string) (err error) {
 	defer pcapfile.Close()
 
 	display := analyzecli.NewDisplay(c.JSON)
-	zctx := resolver.NewContext()
+	zctx := zson.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
 
 	// If not emitting to stdio write stats to stderr.

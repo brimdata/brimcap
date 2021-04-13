@@ -10,14 +10,14 @@ import (
 
 	mockanalyzer "github.com/brimdata/brimcap/analyzer/mock"
 	"github.com/brimdata/zed/zio"
-	"github.com/brimdata/zed/zng/resolver"
+	"github.com/brimdata/zed/zson"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAnalyzerErrorOnLaunch(t *testing.T) {
 	expected := errors.New("could not find process")
-	analyzer := New(resolver.NewContext(), nil, Config{
+	analyzer := New(zson.NewContext(), nil, Config{
 		Launcher: func(_ context.Context, _ string, _ io.Reader) (ProcessWaiter, error) {
 			return nil, expected
 		},
@@ -30,7 +30,7 @@ func TestAnalyzerErrorOnLaunch(t *testing.T) {
 func TestAnalyzerErrorOnRead(t *testing.T) {
 	expected := errors.New("process quit unexpectedly")
 
-	r := New(resolver.NewContext(), nil, Config{
+	r := New(zson.NewContext(), nil, Config{
 		Launcher: func(_ context.Context, _ string, _ io.Reader) (ProcessWaiter, error) {
 			ctrl := gomock.NewController(t)
 			waiter := mockanalyzer.NewMockProcessWaiter(ctrl)
@@ -52,7 +52,7 @@ func TestAnalyzerRemovesLogDir(t *testing.T) {
 	const expected = `{msg:"record1"}`
 	dirpath := make(chan string, 1)
 
-	r := New(resolver.NewContext(), nil, Config{
+	r := New(zson.NewContext(), nil, Config{
 		ReaderOpts: zio.ReaderOpts{Format: "zson"},
 		Launcher: func(_ context.Context, dir string, _ io.Reader) (ProcessWaiter, error) {
 			dirpath <- dir
@@ -99,7 +99,7 @@ func TestAnalyzerCloseCancelsCtx(t *testing.T) {
 {"msg": "record3"}
 {"msg": "record4"}`)
 	errChan := make(chan error, 1)
-	r := New(resolver.NewContext(), nil, Config{
+	r := New(zson.NewContext(), nil, Config{
 		ReaderOpts: zio.ReaderOpts{Format: "ndjson"},
 		Launcher: func(ctx context.Context, dir string, _ io.Reader) (ProcessWaiter, error) {
 			ctrl := gomock.NewController(t)

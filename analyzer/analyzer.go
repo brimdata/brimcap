@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/zed/driver"
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zng"
-	"github.com/brimdata/zed/zng/resolver"
+	"github.com/brimdata/zed/zson"
 )
 
 type Interface interface {
@@ -35,15 +35,15 @@ type analyzer struct {
 	records  int64
 	tailer   *ztail.Tailer
 	warner   zbuf.Warner
-	zctx     *resolver.Context
+	zctx     *zson.Context
 	zreader  zbuf.Reader
 }
 
-func New(zctx *resolver.Context, r io.Reader, conf Config) Interface {
+func New(zctx *zson.Context, r io.Reader, conf Config) Interface {
 	return NewWithContext(context.Background(), zctx, r, conf)
 }
 
-func NewWithContext(ctx context.Context, zctx *resolver.Context, r io.Reader, conf Config) Interface {
+func NewWithContext(ctx context.Context, zctx *zson.Context, r io.Reader, conf Config) Interface {
 	ctx, cancel := context.WithCancel(ctx)
 	a := &analyzer{
 		cancel:   cancel,

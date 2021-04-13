@@ -18,7 +18,7 @@ import (
 	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zio/zngio"
-	"github.com/brimdata/zed/zng/resolver"
+	"github.com/brimdata/zed/zson"
 )
 
 var Load = &charm.Spec{
@@ -106,7 +106,7 @@ func (c *Command) Exec(args []string) (err error) {
 	}
 	defer pcapfile.Close()
 
-	zctx := resolver.NewContext()
+	zctx := zson.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
 	go display.Run(analyzer, pcapsize, span)
 
