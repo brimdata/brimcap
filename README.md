@@ -2,7 +2,7 @@
 
 ![Image of brimcap analyze](https://github.com/brimdata/brimcap/raw/main/brimcap.gif)
 
-A command line utility for converting packet captures into the flexible, searchable
+A command line utility for converting pcaps into the flexible, searchable
 zng data format as seen in the [Brim desktop
 app](https://github.com/brimdata/brim) and the [zq command line
 utility](https://github.com/brimdata/zed).
@@ -75,4 +75,3 @@ The executables will be located here:
 
 [ci-img]: https://github.com/brimdata/brimcap/actions/workflows/ci.yaml/badge.svg
 [ci]: https://github.com/brimdata/brimcap/actions/workflows/ci.yaml
-
