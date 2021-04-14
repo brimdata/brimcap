@@ -59,7 +59,7 @@ jobs:
       - run: git config --local user.name 'Brim Automation'
       - name: Commit and push change
         run: |
-          git checkout main
+          git checkout --progress --force -B main refs/remotes/origin/main
           git cherry-pick ${{ github.sha }}
           git push
 
