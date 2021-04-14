@@ -15,9 +15,14 @@ import (
 var Launch = &charm.Spec{
 	Name:  "launch",
 	Usage: "launch [options]",
-	Short: "",
-	Long:  ``,
-	New:   New,
+	Short: "search for a connection and load results in wireshark",
+	Long: `
+The search command searches in parallel for a specific connection in a list of
+indexed pcap files (generated using brimcap index -root) and loads any results
+into wireshark. In order for brimcap launch to work wireshark
+(https://wireshark.org/#download) must be installed.
+`,
+	New: New,
 }
 
 func init() {

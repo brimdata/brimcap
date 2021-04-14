@@ -16,7 +16,7 @@ import (
 
 var Info = &charm.Spec{
 	Name:  "info",
-	Usage: "info <input_pcap>",
+	Usage: "info pcap",
 	Short: "prints info about a pcap",
 	Long: `
 The info command reads through the entire pcap file and prints useful

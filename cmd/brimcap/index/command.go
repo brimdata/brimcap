@@ -34,6 +34,10 @@ is less than or equal to the limit specified by -n).
 
 The output is written in json format to standard output or if -x is specified,
 to the indicate file.
+
+If the -root flag is specified the pcap index will be written to a common
+directory, then multiple pcaps can be searched in parallel using the brimcap
+search command.
 `,
 	New: New,
 }

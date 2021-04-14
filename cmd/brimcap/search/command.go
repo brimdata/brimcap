@@ -14,9 +14,13 @@ import (
 var Search = &charm.Spec{
 	Name:  "search",
 	Usage: "search [options]",
-	Short: "",
-	Long:  ``,
-	New:   New,
+	Short: "search for a connection in a list of pcaps",
+	Long: `
+The search command searches in parallel for a specific connection in a list of
+indexed pcap files (generated using brimcap index -root) and writes the results
+to a new pcap file or to standard out.
+`,
+	New: New,
 }
 
 func init() {
