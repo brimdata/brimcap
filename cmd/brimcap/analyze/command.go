@@ -23,7 +23,7 @@ var Analyze = &charm.Spec{
 	Short: "analyze a pcap and emit a stream of ZNG records",
 	Long: `
 The analyze command runs a pcap file or stream through multiple analyzer 
-processes (for now this is zeek and suricata) and emits the generated logs from
+processes (for now this is Zeek and Suricata) and emits the generated logs from
 these processes. Brimcap is built on top of the flexible zed library
 (https://github.com/brimdata/zed), so the logs can be written into a variety of
 structured log formats.
