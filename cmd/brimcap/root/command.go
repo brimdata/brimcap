@@ -26,7 +26,7 @@ is built on top of the flexible Zed system (https://github.com/brimdata/zed),
 so the logs can be written into a variety of structured log formats.
 
 For those familiar with zq (https://github.com/brimdata/zed/cmd/zq), logs can
-written as zng or zson, then use zq to performantly search through them.
+written as ZNG or ZSON, then use zq to efficiently search through them.
 Additionally logs can also be written as ndjson and then operated on using jq
 (https://stedolan.github.io/jq/).
 
