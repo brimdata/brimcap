@@ -20,7 +20,7 @@ import (
 var Analyze = &charm.Spec{
 	Name:  "analyze",
 	Usage: "analyze [options] pcap",
-	Short: "analyze a pcap and emit a stream of zng records",
+	Short: "analyze a pcap and emit a stream of ZNG records",
 	Long: `
 The analyze command runs a pcap file or stream through multiple analyzer 
 processes (for now this is zeek and suricata) and emits the generated logs from
