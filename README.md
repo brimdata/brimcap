@@ -49,6 +49,10 @@ variable.
 export PATH=$PATH:/Path/To/brimcap
 ```
 
+## Having a problem?
+
+Please browse the [wiki](https://github.com/brimdata/brimcap/wiki) to review common problems and helpful tips before [opening an issue](https://github.com/brimdata/brimcap/wiki/Troubleshooting#opening-an-issue).
+
 ## Build From Source
 
 To build from source, Go version 1.16 or later is required.
