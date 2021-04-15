@@ -18,7 +18,7 @@ var Search = &charm.Spec{
 	Long: `
 The search command searches in parallel for a specific connection in a list of
 indexed pcap files (generated using brimcap index -root) and writes the results
-to a new pcap file or to standard out.
+to a new pcap file or to standard output.
 `,
 	New: New,
 }
