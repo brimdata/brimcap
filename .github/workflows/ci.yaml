@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - v*
   workflow_dispatch: # triggered by advance zed workflow
     inputs:
       title:
@@ -45,6 +47,12 @@ jobs:
           path: build/brimcap-*.zip
       - if: startsWith(github.event.ref, 'refs/tags/')
         uses: svenstaro/upload-release-action@1.1.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file_glob: true
+          file: build/brimcap-*.zip
+          overwrite: true
 
   advance-zed-success:
     name: Advance Zed success
