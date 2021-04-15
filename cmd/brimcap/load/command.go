@@ -26,7 +26,7 @@ var Load = &charm.Spec{
 	Usage: "load [options] pcap",
 	Short: "analyze a pcap and send logs into the Brim desktop client",
 	Long: `
-The load command is the same as the analyze command expect the output stream of
+The load command is the same as the analyze command except the output stream of
 generated logs is written to a specified space in the Brim desktop client.
 
 brimcap load -s myspace file.pcap
