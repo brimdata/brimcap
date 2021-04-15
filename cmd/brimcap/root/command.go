@@ -31,7 +31,7 @@ Additionally logs can also be written as ndjson and then operated on using jq
 (https://stedolan.github.io/jq/).
 
 The brimcap load command can be used to write logs into the Brim desktop app 
-(https://github.com/brimdata/brim) for viewing logs in a rich ui environment.
+(https://github.com/brimdata/brim) for viewing logs in a rich GUI.
 
 The brimcap index can be used to index pcap files then efficiently searched
 through using brimcap search.
