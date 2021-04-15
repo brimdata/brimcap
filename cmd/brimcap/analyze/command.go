@@ -33,7 +33,7 @@ written as ZNG or ZSON, then use zq to efficiently search through them.
 Additionally logs can also be written as NDJSON and then operated on using jq
 (https://stedolan.github.io/jq/).
 
-To analyze a pcap file and write the data as zson records to stdout, simply run:
+To analyze a pcap file and write the data as ZSON records to stdout, simply run:
 
 brimcap analyze -z sample.pcap
 `,
