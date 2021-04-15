@@ -22,7 +22,7 @@ The Brimcap command provides utilties for searching, analyzing, and inspecting
 pcap files. Most users will be interested in the brimcap analyze command, which
 will read a pcap stream or file into multiple pcap analyzer processes (defaults
 to Zeek and Suricata) and emits the generated logs from these processes. Brimcap
-is built on top of the flexible zed library (https://github.com/brimdata/zed),
+is built on top of the flexible Zed system (https://github.com/brimdata/zed),
 so the logs can be written into a variety of structured log formats.
 
 For those familiar with zq (https://github.com/brimdata/zed/cmd/zq), logs can
