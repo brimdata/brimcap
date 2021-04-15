@@ -16,9 +16,27 @@ import (
 var Brimcap = &charm.Spec{
 	Name:  "brimcap",
 	Usage: "brimcap [global options] command [options] [arguments...]",
-	Short: "brimcap XXX",
-	Long:  ``,
-	New:   New,
+	Short: "search, analyze and inspect pcap files",
+	Long: `
+The Brimcap command provides utilties for searching, analyzing, and inspecting
+pcap files. Most users will be interested in the brimcap analyze command, which
+will read a pcap stream or file into multiple pcap analyzer processes (defaults
+to Zeek and Suricata) and emits the generated logs from these processes. Brimcap
+is built on top of the flexible Zed system (https://github.com/brimdata/zed),
+so the logs can be written into a variety of structured log formats.
+
+For those familiar with zq (https://github.com/brimdata/zed/cmd/zq), logs can
+written as ZNG or ZSON, then use zq to efficiently search through them.
+Additionally logs can also be written as ndjson and then operated on using jq
+(https://stedolan.github.io/jq/).
+
+The brimcap load command can be used to write logs into the Brim desktop app 
+(https://github.com/brimdata/brim) for viewing logs in a rich GUI.
+
+The brimcap index can be used to index pcap files then efficiently searched
+through using brimcap search.
+`,
+	New: New,
 }
 
 type Command struct {

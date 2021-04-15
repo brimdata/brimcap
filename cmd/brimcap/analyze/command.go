@@ -19,10 +19,25 @@ import (
 
 var Analyze = &charm.Spec{
 	Name:  "analyze",
-	Usage: "analyze [options] [ pcapfile ]",
-	Short: "",
-	Long:  ``,
-	New:   New,
+	Usage: "analyze [options] pcap",
+	Short: "analyze a pcap and emit a stream of ZNG records",
+	Long: `
+The analyze command runs a pcap file or stream through multiple analyzer 
+processes (for now this is Zeek and Suricata) and emits the generated logs from
+these processes. Brimcap is built on top of the Zed system
+(https://github.com/brimdata/zed), so the logs can be written into a variety of
+structured log formats.
+
+For those familiar with zq (https://github.com/brimdata/zed/cmd/zq), logs can
+written as ZNG or ZSON, then use zq to efficiently search through them.
+Additionally logs can also be written as NDJSON and then operated on using jq
+(https://stedolan.github.io/jq/).
+
+To analyze a pcap file and write the data as ZSON records to stdout, simply run:
+
+brimcap analyze -z sample.pcap
+`,
+	New: New,
 }
 
 func init() {
