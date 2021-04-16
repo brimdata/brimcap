@@ -85,7 +85,7 @@ func (c *Command) Exec(args []string) (err error) {
 
 	if c.rootflags.IsSet {
 		if c.inputFile == "-" {
-			return errors.New("cannot write pcap from stdin to BRIMCAP_ROOT")
+			return errors.New("cannot write pcap from stdin to brimcap root")
 		}
 		_, err := c.rootflags.Root.AddPcap(c.inputFile, c.limit, c)
 		return err
