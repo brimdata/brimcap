@@ -32,7 +32,7 @@ type Search struct {
 
 type Root string
 
-// AddPcap adds the pcap path to the BRIMCAP_ROOT, XXX
+// AddPcap adds the pcap path to the brimcap root.
 func (r Root) AddPcap(pcappath string, limit int, warner zbuf.Warner) (nano.Span, error) {
 	f, err := os.Open(pcappath)
 	if err != nil {
