@@ -71,6 +71,8 @@ jobs:
         run: |
           git cherry-pick ${{ github.sha }}
           git push
+      - name: Delete branch
+        run: git push origin --delete ${{ github.ref }}
 
   advance-zed-failure:
     name: Advance Zed failure
