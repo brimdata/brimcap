@@ -21,6 +21,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const indexPrefix = "idx-"
+
 type Search struct {
 	Span    nano.Span
 	Proto   string
@@ -57,7 +59,7 @@ func (r Root) AddPcap(pcappath string, limit int, warner zbuf.Warner) (nano.Span
 }
 
 func (r Root) filepath(hash hash.Hash) string {
-	name := "idx-" + base64.RawURLEncoding.EncodeToString(hash.Sum(nil)) + ".json"
+	name := indexPrefix + base64.RawURLEncoding.EncodeToString(hash.Sum(nil)) + ".json"
 	return r.join(name)
 }
 
@@ -195,7 +197,7 @@ func (r Root) Pcaps() ([]File, error) {
 
 	var files []File
 	for _, entry := range entries {
-		if strings.HasPrefix(entry.Name(), "idx-") {
+		if strings.HasPrefix(entry.Name(), indexPrefix) {
 			path := r.join(entry.Name())
 			b, err := os.ReadFile(path)
 			if err != nil {

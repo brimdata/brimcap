@@ -109,14 +109,14 @@ func (c *Command) Exec(args []string) (err error) {
 	}
 	defer pcapfile.Close()
 
-	ctx, cancel := signalctx.New(os.Interrupt)
-	defer cancel()
-
 	stat, err := pcapfile.Stat()
 	if err != nil {
 		root.DeletePcap(pcappath)
 		return err
 	}
+
+	ctx, cancel := signalctx.New(os.Interrupt)
+	defer cancel()
 
 	zctx := zson.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
