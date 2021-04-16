@@ -81,20 +81,15 @@ func runMemProfile(path string) {
 // OpenFileArg opens a file from an argument and returns the file as well as the
 // size of the file. If the argument is "-", this will return stdin (0 will be
 // returned as the size).
-func OpenFileArg(arg string) (*os.File, int64, error) {
-	var size int64
+func OpenFileArg(arg string) (*os.File, error) {
 	file := os.Stdin
 	if arg != "-" {
-		info, err := os.Stat(arg)
-		if err != nil {
-			return nil, 0, fmt.Errorf("error loading pcap file: %w", err)
-		}
-		size = info.Size()
+		var err error
 		if file, err = os.Open(arg); err != nil {
-			return nil, 0, fmt.Errorf("error loading pcap file: %w", err)
+			return nil, fmt.Errorf("error loading pcap file: %w", err)
 		}
 	}
-	return file, size, nil
+	return file, nil
 }
 
 func FileExists(path string) bool {

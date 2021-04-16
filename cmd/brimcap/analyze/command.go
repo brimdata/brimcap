@@ -82,7 +82,7 @@ func (c *Command) Exec(args []string) (err error) {
 	}
 	defer emitter.Close()
 
-	pcapfile, pcapsize, err := cli.OpenFileArg(args[0])
+	pcapfile, err := cli.OpenFileArg(args[0])
 	if err != nil {
 		return err
 	}
@@ -94,8 +94,12 @@ func (c *Command) Exec(args []string) (err error) {
 
 	// If not emitting to stdio write stats to stderr.
 	if c.out.FileName() != "" {
+		stat, err := pcapfile.Stat()
+		if err != nil {
+			return err
+		}
 		display := analyzecli.NewDisplay(c.JSON)
-		display.Run(analyzer, pcapsize, nano.Span{})
+		display.Run(analyzer, stat.Size(), nano.Span{})
 		defer display.Close()
 	}
 

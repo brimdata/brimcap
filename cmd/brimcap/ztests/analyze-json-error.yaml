@@ -6,6 +6,6 @@ script: |
 outputs:
   - name: stderr
     data: |
-      {"type":"error","error":"error loading pcap file: stat doesnotexist.pcap: no such file or directory"}
+      {"type":"error","error":"error loading pcap file: open doesnotexist.pcap: no such file or directory"}
       ===
-      {"type":"error","error":"error loading pcap file: stat doesnotexist.pcap: no such file or directory"}
+      {"type":"error","error":"error loading pcap file: open doesnotexist.pcap: no such file or directory"}

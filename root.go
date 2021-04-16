@@ -2,17 +2,20 @@ package brimcap
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
-	"io/fs"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/brimdata/brimcap/pcap"
 	"github.com/brimdata/brimcap/pcap/pcapio"
-	pkgfs "github.com/brimdata/zed/pkg/fs"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/zbuf"
 	"golang.org/x/sync/errgroup"
@@ -29,39 +32,33 @@ type Search struct {
 
 type Root string
 
-// AddPcap adds the pcap path to the BRIMCAP_ROOT, meaning a symlink for the pcap is
-// added to the root directory along with an index of the pcap.
-func (r Root) AddPcap(path string, limit int, warner zbuf.Warner) (nano.Span, error) {
-	f, err := os.Open(path)
+// AddPcap adds the pcap path to the BRIMCAP_ROOT, XXX
+func (r Root) AddPcap(pcappath string, limit int, warner zbuf.Warner) (nano.Span, error) {
+	f, err := os.Open(pcappath)
 	if err != nil {
-		return nano.Span{}, nil
+		return nano.Span{}, err
 	}
 	defer f.Close()
 
-	index, err := pcap.CreateIndexWithWarnings(f, limit, warner)
+	hash := sha256.New()
+	reader := io.TeeReader(f, hash)
+
+	index, err := pcap.CreateIndexWithWarnings(reader, limit, warner)
 	if err != nil {
 		return nano.Span{}, err
 	}
 
-	return index.Span(), r.AddPcapWithIndex(path, index)
+	b, err := json.Marshal(File{PcapPath: filepath.Clean(pcappath), Index: index})
+	if err != nil {
+		return nano.Span{}, err
+	}
+
+	return index.Span(), os.WriteFile(r.filepath(hash), b, 0600)
 }
 
-func (r Root) AddPcapWithIndex(path string, index pcap.Index) (err error) {
-	path, err = filepath.Abs(path)
-	if err != nil {
-		return err
-	}
-	// symlink path to root
-	if err := os.Symlink(path, r.SymlinkPath(path)); err != nil {
-		return err
-	}
-
-	// create pcap index
-	if err := pkgfs.MarshalJSONFile(index, r.IndexPath(path), 0644); err != nil {
-		r.DeletePcap(path)
-		return err
-	}
-	return nil
+func (r Root) filepath(hash hash.Hash) string {
+	name := "idx-" + base64.RawURLEncoding.EncodeToString(hash.Sum(nil)) + ".json"
+	return r.join(name)
 }
 
 func (r Root) Search(ctx context.Context, req Search, w io.Writer) error {
@@ -140,44 +137,38 @@ func (r Root) Search(ctx context.Context, req Search, w io.Writer) error {
 	return err
 }
 
-func (r Root) SymlinkPath(path string) string {
-	return r.join(filepath.Base(path))
-}
-
-func (r Root) IndexPath(path string) string {
-	return r.join(filepath.Base(path) + ".idx")
-}
-
 // DeletePcap removes all files associated with the pcap path (if they exist).
-func (r Root) DeletePcap(path string) error {
-	err1 := os.Remove(r.SymlinkPath(path))
-	err2 := os.Remove(r.IndexPath(path))
-	if err1 != nil && !os.IsNotExist(err1) {
-		return err1
+func (r Root) DeletePcap(pcappath string) error {
+	files, err := r.Pcaps()
+	if err != nil {
+		return err
 	}
-	if os.IsNotExist(err2) {
-		err2 = nil
+	pcappath = filepath.Clean(pcappath)
+	for _, file := range files {
+		if file.PcapPath == pcappath {
+			if err := os.Remove(file.path); err != nil {
+				return err
+			}
+		}
 	}
-	return err2
+
+	return nil
 }
 
 type File struct {
-	LinkPath  string
-	IndexPath string
+	Index    pcap.Index `json:"index"`
+	PcapPath string     `json:"pcap_path"`
+
+	path string
 }
 
 func (f File) PcapReader(span nano.Span) (pcapio.Reader, io.Closer, error) {
-	index, err := pcap.LoadIndex(f.IndexPath)
+	file, err := os.Open(f.PcapPath)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	file, err := os.Open(f.LinkPath)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	slicer, err := pcap.NewSlicer(file, index, span)
+	slicer, err := pcap.NewSlicer(file, f.Index, span)
 	if err != nil {
 		file.Close()
 		return nil, nil, err
@@ -201,13 +192,22 @@ func (r Root) Pcaps() ([]File, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var files []File
 	for _, entry := range entries {
-		if entry.Type()&fs.ModeSymlink != 0 {
-			files = append(files, File{
-				LinkPath:  r.SymlinkPath(entry.Name()),
-				IndexPath: r.IndexPath(entry.Name()),
-			})
+		if strings.HasPrefix(entry.Name(), "idx-") {
+			path := r.join(entry.Name())
+			b, err := os.ReadFile(path)
+			if err != nil {
+				return nil, err
+			}
+
+			file := File{path: path}
+			if err := json.Unmarshal(b, &file); err != nil {
+				return nil, err
+			}
+
+			files = append(files, file)
 		}
 	}
 	return files, nil

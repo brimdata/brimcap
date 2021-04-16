@@ -71,7 +71,7 @@ func (c *Command) Init() error {
 			return errors.New("-root and -x cannot both be set")
 		}
 		if c.inputFile == "-" {
-			return errors.New("input cannot be stdin if writing to BRIMCAP_ROOT")
+			return errors.New("input cannot be stdin if writing to brimcap root")
 		}
 	}
 	return nil
@@ -83,22 +83,23 @@ func (c *Command) Exec(args []string) (err error) {
 		return err
 	}
 
-	f := os.Stdin
-	if c.inputFile != "-" {
-		f, err = os.Open(c.inputFile)
-		if err != nil {
-			return err
+	if c.rootflags.IsSet {
+		if c.inputFile == "-" {
+			return errors.New("cannot write pcap from stdin to BRIMCAP_ROOT")
 		}
-		defer f.Close()
+		_, err := c.rootflags.Root.AddPcap(c.inputFile, c.limit, c)
+		return err
 	}
+
+	f, err := cli.OpenFileArg(c.inputFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
 
 	index, err := pcap.CreateIndexWithWarnings(f, c.limit, c)
 	if err != nil {
 		return err
-	}
-
-	if c.rootflags.IsSet {
-		return c.rootflags.Root.AddPcapWithIndex(c.inputFile, index)
 	}
 
 	b, err := json.Marshal(index)
