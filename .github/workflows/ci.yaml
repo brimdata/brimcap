@@ -63,11 +63,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
       - run: git config --local user.email 'automation@brimsecurity.com'
       - run: git config --local user.name 'Brim Automation'
       - name: Commit and push change
         run: |
-          git fetch origin main
           git checkout main
           git cherry-pick ${{ github.sha }}
           git push
