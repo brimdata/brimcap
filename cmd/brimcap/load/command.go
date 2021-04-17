@@ -93,27 +93,34 @@ func (c *Command) Exec(args []string) (err error) {
 		return err
 	}
 
-	ctx, cancel := signalctx.New(os.Interrupt)
-	defer cancel()
-
 	display := analyzecli.NewDisplay(c.JSON)
 	pcappath := args[0]
 	root := c.rootflags.Root
+
 	span, err := root.AddPcap(pcappath, c.limit, display)
 	if err != nil {
 		return fmt.Errorf("error writing brimcap root: %w", err)
 	}
 
-	pcapfile, pcapsize, err := cli.OpenFileArg(pcappath)
+	pcapfile, err := cli.OpenFileArg(pcappath)
 	if err != nil {
 		root.DeletePcap(pcappath)
 		return err
 	}
 	defer pcapfile.Close()
 
+	stat, err := pcapfile.Stat()
+	if err != nil {
+		root.DeletePcap(pcappath)
+		return err
+	}
+
+	ctx, cancel := signalctx.New(os.Interrupt)
+	defer cancel()
+
 	zctx := zson.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
-	go display.Run(analyzer, pcapsize, span)
+	go display.Run(analyzer, stat.Size(), span)
 
 	reader := toioreader(analyzer)
 	_, err = c.conn.LogPostReaders(ctx, c.spaceID, nil, reader)
