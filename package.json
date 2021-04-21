@@ -1,15 +1,10 @@
 {
   "name": "brimcap",
-  "version": "0.29.0-dev",
+  "files": [
+    "build/dist"
+  ],
   "scripts": {
-      "prepack": "node npm/build"
-  },
-  "directories": {
-      "bin": "build/dist"
-  },
-  "brimDependencies": {
-      "suricataTag": "v5.0.3-brim1",
-      "zeekTag": "v3.2.1-brim10"
+    "prepack": "make build"
   }
 }
 
