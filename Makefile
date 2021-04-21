@@ -3,9 +3,9 @@ VERSION = $(shell git describe --tags --dirty --always)
 LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
 ZED_VERSION := $(shell go list -f {{.Version}} -m github.com/brimdata/zed)
 
-SURICATATAG := $(shell python -c 'import json; print(json.load(open("package.json"))["brimDependencies"]["suricataTag"])')
+SURICATATAG = v5.0.3-brim1
 SURICATAPATH = suricata-$(SURICATATAG)
-ZEEKTAG := $(shell python -c 'import json; print(json.load(open("package.json"))["brimDependencies"]["zeekTag"])')
+ZEEKTAG = v3.2.1-brim10
 ZEEKPATH = zeek-$(ZEEKTAG)
 ZED_VERSION := $(shell go list -f '{{.Version}}' -m github.com/brimdata/zed)
 
