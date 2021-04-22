@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	if _, err := root.Brimcap.ExecRoot(os.Args[1:]); err != nil {
+	if err := root.Brimcap.ExecRoot(os.Args[1:]); err != nil {
 		os.Exit(1)
 	}
 }
