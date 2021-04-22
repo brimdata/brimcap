@@ -47,10 +47,6 @@ type Command struct {
 	JSON  bool
 }
 
-func init() {
-	Brimcap.Add(charm.Help)
-}
-
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{}
 	c.cli.SetFlags(f)
