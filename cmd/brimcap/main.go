@@ -7,7 +7,6 @@ import (
 	_ "github.com/brimdata/brimcap/cmd/brimcap/cut"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/index"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/info"
-	_ "github.com/brimdata/brimcap/cmd/brimcap/launch"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/load"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/search"
