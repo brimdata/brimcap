@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/brimcap/tail"
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zio"
-	"github.com/brimdata/zed/zio/detector"
+	"github.com/brimdata/zed/zio/anyio"
 	"github.com/brimdata/zed/zng"
 	"github.com/brimdata/zed/zson"
 )
@@ -121,7 +121,7 @@ func (t *Tailer) tailFile(file string) error {
 	go func() {
 		defer t.readWg.Done()
 
-		zf, err := detector.OpenFromNamedReadCloser(t.zctx, f, file, t.opts)
+		zf, err := anyio.OpenFromNamedReadCloser(t.zctx, f, file, t.opts)
 		if err != nil {
 			f.Close()
 			t.results <- result{err: err}
