@@ -63,8 +63,8 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bitly/go-hostpool v0.0.0-20171023180738-a3a6125de932/go.mod h1:NOuUCSz6Q9T7+igc/hlvDOUdtWKryOrtFyIVABv/p7k=
 github.com/bkaradzic/go-lz4 v1.0.0/go.mod h1:0YdlkowM3VswSROI7qDxhRvJ3sLhlFrRRwjwegp5jy4=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
-github.com/brimdata/zed v0.29.1-0.20210422165742-e8f6d09ba1f5 h1:8eGJO84h8kX85js0vQ3MT7aQbfzTebFky/YBPBbdgGU=
-github.com/brimdata/zed v0.29.1-0.20210422165742-e8f6d09ba1f5/go.mod h1:cSe6taW9kbTqLS52wUpxmf0fx0jSY6LRaHy/walBLCY=
+github.com/brimdata/zed v0.29.1-0.20210423154136-4fab043103bc h1:ylvdosmGcVfuag0v7qbqr0O/9LE6FcWwKo5ZNB1mh+8=
+github.com/brimdata/zed v0.29.1-0.20210423154136-4fab043103bc/go.mod h1:cSe6taW9kbTqLS52wUpxmf0fx0jSY6LRaHy/walBLCY=
 github.com/cenkalti/backoff/v4 v4.0.2/go.mod h1:eEew/i+1Q6OrCDZh3WiXYv3+nJwBASZ8Bog/87DQnVg=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
