@@ -11,6 +11,7 @@ import (
 	"github.com/brimdata/zed/compiler"
 	"github.com/brimdata/zed/driver"
 	"github.com/brimdata/zed/zio"
+	"github.com/brimdata/zed/zio/anyio"
 	"github.com/brimdata/zed/zio/tzngio"
 	"github.com/brimdata/zed/zson"
 	"github.com/stretchr/testify/suite"
@@ -56,7 +57,7 @@ func (s *tailerTSuite) SetupTest() {
 	s.dir = s.T().TempDir()
 	s.zctx = zson.NewContext()
 	var err error
-	s.dr, err = New(s.zctx, s.dir, zio.ReaderOpts{Format: "tzng"})
+	s.dr, err = New(s.zctx, s.dir, anyio.ReaderOpts{Format: "tzng"})
 	s.Require().NoError(err)
 }
 

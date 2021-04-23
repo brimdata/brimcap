@@ -10,7 +10,6 @@ import (
 
 	"github.com/brimdata/brimcap/tail"
 	"github.com/brimdata/zed/zbuf"
-	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/anyio"
 	"github.com/brimdata/zed/zng"
 	"github.com/brimdata/zed/zson"
@@ -22,7 +21,7 @@ import (
 // first-come-first serve basis.
 type Tailer struct {
 	forceClose uint32
-	opts       zio.ReaderOpts
+	opts       anyio.ReaderOpts
 	readers    map[string]*tail.File
 	tailer     *tail.Dir
 	warner     zbuf.Warner
@@ -34,7 +33,7 @@ type Tailer struct {
 	watchWg sync.WaitGroup
 }
 
-func New(zctx *zson.Context, dir string, opts zio.ReaderOpts, globs ...string) (*Tailer, error) {
+func New(zctx *zson.Context, dir string, opts anyio.ReaderOpts, globs ...string) (*Tailer, error) {
 	dir = filepath.Clean(dir)
 	tailer, err := tail.TailDir(dir, globs...)
 	if err != nil {

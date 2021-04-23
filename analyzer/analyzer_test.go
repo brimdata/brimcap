@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	mockanalyzer "github.com/brimdata/brimcap/analyzer/mock"
-	"github.com/brimdata/zed/zio"
+	"github.com/brimdata/zed/zio/anyio"
 	"github.com/brimdata/zed/zson"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -53,7 +53,7 @@ func TestAnalyzerRemovesLogDir(t *testing.T) {
 	dirpath := make(chan string, 1)
 
 	r := New(zson.NewContext(), nil, Config{
-		ReaderOpts: zio.ReaderOpts{Format: "zson"},
+		ReaderOpts: anyio.ReaderOpts{Format: "zson"},
 		Launcher: func(_ context.Context, dir string, _ io.Reader) (ProcessWaiter, error) {
 			dirpath <- dir
 			err := os.WriteFile(filepath.Join(dir, "test.log"), []byte(expected), 0600)
@@ -100,7 +100,7 @@ func TestAnalyzerCloseCancelsCtx(t *testing.T) {
 {"msg": "record4"}`)
 	errChan := make(chan error, 1)
 	r := New(zson.NewContext(), nil, Config{
-		ReaderOpts: zio.ReaderOpts{Format: "ndjson"},
+		ReaderOpts: anyio.ReaderOpts{Format: "ndjson"},
 		Launcher: func(ctx context.Context, dir string, _ io.Reader) (ProcessWaiter, error) {
 			ctrl := gomock.NewController(t)
 			waiter := mockanalyzer.NewMockProcessWaiter(ctrl)
