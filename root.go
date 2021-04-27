@@ -17,7 +17,7 @@ import (
 	"github.com/brimdata/brimcap/pcap"
 	"github.com/brimdata/brimcap/pcap/pcapio"
 	"github.com/brimdata/zed/pkg/nano"
-	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zio"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -35,7 +35,7 @@ type Search struct {
 type Root string
 
 // AddPcap adds the pcap path to the brimcap root.
-func (r Root) AddPcap(pcappath string, limit int, warner zbuf.Warner) (nano.Span, error) {
+func (r Root) AddPcap(pcappath string, limit int, warner zio.Warner) (nano.Span, error) {
 	f, err := os.Open(pcappath)
 	if err != nil {
 		return nano.Span{}, err

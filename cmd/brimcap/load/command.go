@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/signalctx"
-	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/zngio"
 	"github.com/brimdata/zed/zson"
 )
@@ -142,8 +142,8 @@ type ioreader struct {
 	closer io.Closer
 }
 
-// toioreader transforms a zbuf.Reader into an io.Reader that emits zng bytes.
-func toioreader(r zbuf.Reader) io.ReadCloser {
+// toioreader transforms a zio.Reader into an io.Reader that emits zng bytes.
+func toioreader(r zio.Reader) io.ReadCloser {
 	pr, pw := io.Pipe()
 	i := &ioreader{reader: pr, writer: pw}
 	w := zngio.NewWriter(pw, zngio.WriterOpts{})
@@ -151,8 +151,8 @@ func toioreader(r zbuf.Reader) io.ReadCloser {
 	return i
 }
 
-func (i *ioreader) run(r zbuf.Reader, w zbuf.Writer) {
-	err := zbuf.Copy(w, r)
+func (i *ioreader) run(r zio.Reader, w zio.Writer) {
+	err := zio.Copy(w, r)
 	if err != nil {
 		i.writer.CloseWithError(err)
 	}

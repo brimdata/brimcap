@@ -4,15 +4,15 @@ import (
 	"context"
 	"io"
 
-	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zng"
 	"github.com/brimdata/zed/zson"
 )
 
 type combiner struct {
-	analyzers []zbuf.Reader
+	analyzers []zio.Reader
 	cancel    context.CancelFunc
-	combiner  *zbuf.Combiner
+	combiner  *zio.Combiner
 	pipes     []*io.PipeWriter
 }
 
@@ -28,7 +28,7 @@ func CombinerWithContext(ctx context.Context, zctx *zson.Context, pcap io.Reader
 	ctx, cancel := context.WithCancel(ctx)
 
 	pipes := make([]*io.PipeWriter, len(confs)-1)
-	readers := make([]zbuf.Reader, len(confs))
+	readers := make([]zio.Reader, len(confs))
 	for i, conf := range confs {
 		r := pcap
 		// Do not pipe last analyzer. It will be responsible for pulling the
@@ -47,12 +47,12 @@ func CombinerWithContext(ctx context.Context, zctx *zson.Context, pcap io.Reader
 	return &combiner{
 		analyzers: readers,
 		cancel:    cancel,
-		combiner:  zbuf.NewCombiner(context.TODO(), readers),
+		combiner:  zio.NewCombiner(context.TODO(), readers),
 		pipes:     pipes,
 	}
 }
 
-func (p *combiner) WarningHandler(w zbuf.Warner) {
+func (p *combiner) WarningHandler(w zio.Warner) {
 	for _, a := range p.analyzers {
 		a.(Interface).WarningHandler(w)
 	}
@@ -79,7 +79,7 @@ func (m *combiner) Close() error {
 		w.Close()
 	}
 	defer m.cancel()
-	return zbuf.CloseReaders(m.analyzers)
+	return zio.CloseReaders(m.analyzers)
 }
 
 // tee is a version of io.TeeReader that takes an io.PipeWriter instead of a

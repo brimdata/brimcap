@@ -11,16 +11,16 @@ import (
 	"github.com/brimdata/zed/compiler"
 	"github.com/brimdata/zed/compiler/ast"
 	"github.com/brimdata/zed/driver"
-	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zng"
 	"github.com/brimdata/zed/zson"
 )
 
 type Interface interface {
-	zbuf.ReadCloser
+	zio.ReadCloser
 	BytesRead() int64
 	RecordsRead() int64
-	WarningHandler(zbuf.Warner)
+	WarningHandler(zio.Warner)
 }
 
 type analyzer struct {
@@ -33,10 +33,10 @@ type analyzer struct {
 	reader   *readCounter
 	records  int64
 	tailer   *ztail.Tailer
-	warner   zbuf.Warner
+	warner   zio.Warner
 	workdir  string
 	zctx     *zson.Context
-	zreader  zbuf.Reader
+	zreader  zio.Reader
 }
 
 func New(zctx *zson.Context, r io.Reader, conf Config) Interface {
@@ -56,7 +56,7 @@ func NewWithContext(ctx context.Context, zctx *zson.Context, r io.Reader, conf C
 	return a
 }
 
-func (p *analyzer) WarningHandler(w zbuf.Warner) {
+func (p *analyzer) WarningHandler(w zio.Warner) {
 	p.warner = w
 }
 
