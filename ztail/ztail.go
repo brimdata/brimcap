@@ -9,13 +9,13 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/brimcap/tail"
-	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/anyio"
 	"github.com/brimdata/zed/zng"
 	"github.com/brimdata/zed/zson"
 )
 
-// Tailer is a zbuf.Reader that watches a specified directory and starts
+// Tailer is a zio.Reader that watches a specified directory and starts
 // tailing existing and newly created files in the directory for new logs. Newly
 // written log data are transformed into *zng.Records and returned on a
 // first-come-first serve basis.
@@ -24,7 +24,7 @@ type Tailer struct {
 	opts       anyio.ReaderOpts
 	readers    map[string]*tail.File
 	tailer     *tail.Dir
-	warner     zbuf.Warner
+	warner     zio.Warner
 	zctx       *zson.Context
 
 	// synchronization primitives
@@ -128,9 +128,9 @@ func (t *Tailer) tailFile(file string) error {
 		}
 		defer zf.Close()
 
-		var zr zbuf.Reader = zf
+		var zr zio.Reader = zf
 		if t.warner != nil {
-			zr = zbuf.NewWarningReader(zr, t.warner)
+			zr = zio.NewWarningReader(zr, t.warner)
 		}
 
 		var res result
@@ -147,7 +147,7 @@ func (t *Tailer) tailFile(file string) error {
 	return nil
 }
 
-func (t *Tailer) WarningHandler(warner zbuf.Warner) {
+func (t *Tailer) WarningHandler(warner zio.Warner) {
 	t.warner = warner
 }
 

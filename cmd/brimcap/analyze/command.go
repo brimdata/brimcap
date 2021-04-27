@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/signalctx"
-	"github.com/brimdata/zed/zbuf"
+	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zson"
 )
 
@@ -47,7 +47,7 @@ func init() {
 type Command struct {
 	*root.Command
 	analyzeflags analyzecli.Flags
-	emitter      zbuf.WriteCloser
+	emitter      zio.WriteCloser
 	out          outputflags.Flags
 }
 
@@ -103,7 +103,7 @@ func (c *Command) Exec(args []string) (err error) {
 		defer display.Close()
 	}
 
-	err = zbuf.CopyWithContext(ctx, emitter, analyzer)
+	err = zio.CopyWithContext(ctx, emitter, analyzer)
 	if aerr := analyzer.Close(); err == nil {
 		err = aerr
 	}
