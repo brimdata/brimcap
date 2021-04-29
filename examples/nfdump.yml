@@ -1,0 +1,60 @@
+analyzers:
+  - cmd: nfdump-wrapper.sh
+    # The globs being set to "*.ndjson" is a workaround for the fact that our
+    # current JSON reader won't accept much data and we can't tell
+    # brimcap load to expect CSV input, so we're postprocessing in the
+    # nfdump-wrapper.sh script with zq to turn the CSV back into NDJSON.
+    globs: ["*.ndjson"]
+    shaper: |
+      type netflow = {
+        ts: time,
+        te: time,
+        td: duration,
+        sa: ip,
+        da: ip,
+        sp: uint16,
+        dp: uint16,
+        pr: string,
+        flg: string,
+        fwd: bytes,
+        stos: bytes,
+        ipkt: uint64,
+        ibyt: uint64,
+        opkt: uint64,
+        obyt: uint64,
+        \in: uint64,
+        out: uint64,
+        sas: uint64,
+        das: uint64,
+        smk: uint8,
+        dmk: uint8,
+        dtos: bytes,
+        dir: uint8,
+        nh: ip,
+        nhb: ip,
+        svln: uint16,
+        dvln: uint16,
+        ismc: string,
+        odmc: string,
+        idmc: string,
+        osmc: string,
+        mpls1: string,
+        mpls2: string,
+        mpls3: string,
+        mpls4: string,
+        mpls5: string,
+        mpls6: string,
+        mpls7: string,
+        mpls8: string,
+        mpls9: string,
+        mpls10: string,
+        cl: float64,
+        sl: float64,
+        al: float64,
+        ra: ip,
+        eng: string,
+        exid: bytes,
+        tr: time
+      }
+      // The leading "put tr=time(tr)" is a workaround to zed/2670
+      put tr=time(tr) | put . = shape(netflow)
