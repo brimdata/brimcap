@@ -54,10 +54,10 @@ func (r Root) AddPcap(pcappath string, limit int, warner zio.Warner) (nano.Span,
 	if err != nil {
 		return nano.Span{}, err
 	}
-	return index.Span(), os.WriteFile(r.filepath(hash), b, 0600)
+	return index.Span(), os.WriteFile(r.Filepath(hash), b, 0600)
 }
 
-func (r Root) filepath(hash hash.Hash) string {
+func (r Root) Filepath(hash hash.Hash) string {
 	name := indexPrefix + base64.RawURLEncoding.EncodeToString(hash.Sum(nil)) + ".json"
 	return r.join(name)
 }

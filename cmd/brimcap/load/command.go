@@ -50,7 +50,6 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.Command.Child = c
 	c.analyzeflags.SetFlags(f)
 	c.rootflags.SetFlags(f)
 	f.StringVar(&c.poolName, "p", "", "name of Zed lake pool")
@@ -77,7 +76,7 @@ func (c *Command) Init() error {
 	return fmt.Errorf("pool %q not found", c.poolName)
 }
 
-func (c *Command) Exec(args []string) (err error) {
+func (c *Command) Run(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	} else if args[0] == "-" {
@@ -93,7 +92,7 @@ func (c *Command) Exec(args []string) (err error) {
 		return err
 	}
 
-	display := analyzecli.NewDisplay(c.JSON)
+	display := analyzecli.NewDisplay(root.LogJSON)
 	pcappath := args[0]
 	root := c.rootflags.Root
 
