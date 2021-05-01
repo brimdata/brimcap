@@ -1,5 +1,6 @@
 {
   "name": "brimcap",
+  "version": "0.0.2-dev",
   "files": [
     "build/dist"
   ],
