@@ -35,11 +35,10 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.Command.Child = c
 	return c, nil
 }
 
-func (c *Command) Exec(args []string) error {
+func (c *Command) Run(args []string) error {
 	defer c.Cleanup()
 	if err := c.Init(); err != nil {
 		return err

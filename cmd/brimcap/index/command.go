@@ -56,7 +56,6 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.Command.Child = c
 	c.rootflags.Optional = true
 	c.rootflags.SetFlags(f)
 	f.StringVar(&c.inputFile, "r", "-", "input file to read from or stdin if -")
@@ -77,7 +76,7 @@ func (c *Command) Init() error {
 	return nil
 }
 
-func (c *Command) Exec(args []string) (err error) {
+func (c *Command) Run(args []string) (err error) {
 	defer c.Cleanup()
 	if err := c.Command.Init(&c.rootflags); err != nil {
 		return err

@@ -53,13 +53,12 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.Command.Child = c
 	c.analyzeflags.SetFlags(f)
 	c.out.SetFlags(f)
 	return c, nil
 }
 
-func (c *Command) Exec(args []string) (err error) {
+func (c *Command) Run(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	}
@@ -88,7 +87,7 @@ func (c *Command) Exec(args []string) (err error) {
 	}
 	defer pcapfile.Close()
 
-	display := analyzecli.NewDisplay(c.JSON)
+	display := analyzecli.NewDisplay(root.LogJSON)
 	zctx := zson.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
 
@@ -98,7 +97,7 @@ func (c *Command) Exec(args []string) (err error) {
 		if err != nil {
 			return err
 		}
-		display := analyzecli.NewDisplay(c.JSON)
+		display := analyzecli.NewDisplay(root.LogJSON)
 		display.Run(analyzer, stat.Size(), nano.Span{})
 		defer display.Close()
 	}

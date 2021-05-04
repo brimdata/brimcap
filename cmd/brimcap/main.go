@@ -8,6 +8,7 @@ import (
 	_ "github.com/brimdata/brimcap/cmd/brimcap/index"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/info"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/load"
+	_ "github.com/brimdata/brimcap/cmd/brimcap/migrate"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/search"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/slice"
@@ -15,7 +16,8 @@ import (
 )
 
 func main() {
-	if root.Brimcap.ExecRoot(os.Args[1:]) != nil {
+	if err := root.Brimcap.ExecRoot(os.Args[1:]); err != nil {
+		root.LogError(err)
 		os.Exit(1)
 	}
 }
