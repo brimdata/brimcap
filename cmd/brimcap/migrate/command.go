@@ -113,6 +113,14 @@ func (c *Command) Run(args []string) error {
 			return err
 		}
 	}
+	config, err = c.loadZqdConfig()
+	if err != nil {
+		return err
+	}
+	if len(config.SpaceRows) == 0 {
+		c.logMsg("", "all spaces migrated, removing old zqd directory")
+		return os.RemoveAll(c.zqdroot)
+	}
 	return nil
 }
 
