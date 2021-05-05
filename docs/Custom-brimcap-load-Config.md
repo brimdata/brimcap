@@ -423,6 +423,7 @@ $ /opt/Brim/resources/app.asar.unpacked/zdeps/brimcap load -root "$HOME/.config/
 Our pool is now ready to be queried in Brim.
 
 ![NetFlow Pool](media/NetFlow-Pool.png)
+
 # Contact us!
 
 If you're running custom Brimcap configurations, we'd like to hear from you!
