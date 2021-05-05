@@ -178,7 +178,7 @@ steps to work around a known Suricata bug [#4106](https://redmine.openinfosecfou
 This bug causes EVE JSON events to be output that contain duplicate keys, which
 Zed is not currently equipped to tolerate ([zed/2523](https://github.com/brimdata/zed/issues/2523)). We therefore pipe the EVE JSON data through [`jq`](https://stedolan.github.io/jq/),
 which has the effect of deduplicating these references. Shell pipeline
-additions such that this illustrate the kinds of processing you may want to
+additions such as this illustrate the kinds of processing you may want to
 invoke in your Brimcap customizations, as this may prove useful not just for
 working around bugs but also for providing enhanced functionality.
 
