@@ -1,4 +1,6 @@
 script: |
+  # Undo -e since we expect all subsequent commands to fail.
+  set +e
   mkdir root
   brimcap index -root root -r non-overlap.pcapng
 
