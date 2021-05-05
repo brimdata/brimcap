@@ -18,10 +18,10 @@ import (
 	"github.com/brimdata/brimcap/pcap"
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
+	"github.com/brimdata/zed/order"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/iosrc"
 	"github.com/brimdata/zed/pkg/nano"
-	"github.com/brimdata/zed/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
@@ -187,7 +187,7 @@ func (m *migration) run(ctx context.Context) error {
 	}
 	pool, err := m.conn.PoolPost(ctx, api.PoolPostRequest{
 		Name:  m.space.Name,
-		Order: zbuf.OrderDesc,
+		Order: order.Desc,
 	})
 	if err != nil {
 		if errors.Is(err, client.ErrPoolExists) {
