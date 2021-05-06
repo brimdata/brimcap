@@ -1,3 +1,3 @@
 #!/bin/bash
 suricata -r /dev/stdin
-cat eve.json | jq -c . > deduped-eve.json
+exec jq -c . eve.json > deduped-eve.json
