@@ -9,6 +9,7 @@
   * [Background](#background-1)
   * [Base nfdump Installation](#base-nfdump-installation)
   * [Example Configuration](#example-configuration-1)
+- [Debug](#debug)
 - [Contact us!](#contact-us)
 
 # Summary
@@ -21,11 +22,13 @@ generate logs from pcaps. These analyzers could be alternate Zeek or Suricata
 installations that you've customized or other pcap-processing tools of your
 choosing.
 
-This article describes such example custom configurations. The first section
-focuses on recreating Brimcap configurations equivalent to those created with
-the customization options in Brim app release `v0.24.0` and older. The second
-section builds on the approach to create a custom Brimcap configuration that
-generates NetFlow records from pcaps.
+This article describes such example custom configurations. The section on
+[Custom Zeek/Suricata Analyzers](#custom-zeeksuricata-analyzers) focuses on
+recreating Brimcap configurations equivalent to those created with the
+customization options in Brim app release `v0.24.0` and older. The
+[Custom NetFlow Analyzer](#custom-netflow-analyzer) section builds on the
+approach to create a custom Brimcap configuration that generates NetFlow
+records from pcaps. The article then closes with some [Debug](#debug) tips.
 
 # Custom Zeek/Suricata Analyzers
 
@@ -158,7 +161,10 @@ A Brimcap analyzer has the following characteristics:
 1. It expects pcap input to be streamed to it via standard input (stdin)
 2. It's expected to output log files that can be further processed as soon as
 lines are appended to them (i.e. `tail` could process them)
-3. Additional per-analyzer options can be used to affect which generated logs
+3. By default, an analyzer's log outputs accumulate in a temporary directory
+that's automatically deleted when Brimcap exits (see the [Debug](#debug)
+section for more details).
+4. Additional per-analyzer options can be used to affect which generated logs
 are loaded and what additional processing is performed on them
 
 The analyzer invoked by Brimcap is a wrapper script as referenced in the YAML.
@@ -424,6 +430,69 @@ $ /opt/Brim/resources/app.asar.unpacked/zdeps/brimcap load -root "$HOME/.config/
 Our pool is now ready to be queried in Brim.
 
 ![NetFlow Pool](media/NetFlow-Pool.png)
+
+# Debug
+
+By default, an analyzer's log outputs accumulate in a temporary directory
+that's automatically deleted when Brimcap exits. If you experience problems
+with your custom configuration, a handy debug technique is to have the
+analyzer's outputs sent to a specific directory instead. This will allow you to
+check if log outputs are being created at the expected filenames, confirm
+whether the logs can be parsed manually as you expect, and so forth.
+
+This option is configured via the `workdir:` setting for an analyzer. For
+instance, we can enhance our Brimcap YAML config for launching custom
+Zeek/Suricata like this:
+
+```
+analyzers:
+  - cmd: zeek-wrapper.sh
+    workdir: zeek-wd
+  - cmd: suricata-wrapper.sh
+    workdir: suricata-wd
+...
+```
+
+Some tips on the effective use of this setting:
+
+1. The specified directory must already exist before Brimcap is run.
+2. Contents of the directory (such as left over from prior runs) are _not_
+removed by Brimcap. If your analyzer appends to its log outputs, you'll likely
+want to delete the contents of the working directory between Brimcap runs to
+avoid accumulating redundant logs.
+
+Repeating our `brimcap load` now with this enhanced YAML, we see after the run
+that the logs have been left behind for further examination.
+
+```
+$ ls -l suricata-wd/ zeek-wd/
+suricata-wd/:
+total 1743088
+-rw-r--r--  1 phil  staff  407681197 May  6 11:06 deduped-eve.json
+-rw-r--r--  1 phil  staff  407682820 May  6 11:06 eve.json
+-rw-r--r--  1 phil  staff   53312039 May  6 11:05 fast.log
+-rw-r--r--  1 phil  staff      30739 May  6 11:06 stats.log
+-rw-r--r--  1 phil  staff       1557 May  6 11:06 suricata.log
+
+zeek-wd/:
+total 97912
+-rw-r--r--  1 phil  staff       332 May  6 11:06 capture_loss.log
+-rw-r--r--  1 phil  staff  45760984 May  6 11:06 conn.log
+-rw-r--r--  1 phil  staff    609561 May  6 11:06 dns.log
+-rw-r--r--  1 phil  staff       379 May  6 11:06 dpd.log
+-rw-r--r--  1 phil  staff    922381 May  6 11:06 files.log
+-rw-r--r--  1 phil  staff   1199754 May  6 11:06 http.log
+-rw-r--r--  1 phil  staff      1775 May  6 11:06 notice.log
+-rw-r--r--  1 phil  staff      1820 May  6 11:06 ntlm.log
+-rw-r--r--  1 phil  staff     12892 May  6 11:06 ntp.log
+-rw-r--r--  1 phil  staff       591 May  6 11:06 pe.log
+-rw-r--r--  1 phil  staff       619 May  6 11:06 smb_mapping.log
+-rw-r--r--  1 phil  staff      1300 May  6 11:06 ssh.log
+-rw-r--r--  1 phil  staff    103501 May  6 11:06 ssl.log
+-rw-r--r--  1 phil  staff       841 May  6 11:06 stats.log
+-rw-r--r--  1 phil  staff       625 May  6 11:06 weird.log
+-rw-r--r--  1 phil  staff     61671 May  6 11:06 x509.log
+```
 
 # Contact us!
 
