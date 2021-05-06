@@ -176,7 +176,7 @@ was included with Brim `v0.24.0`.
 ```
 $ cat zeek-wrapper.sh 
 #!/bin/bash
-zeek -C -r - --exec "event zeek_init() { Log::disable_stream(PacketFilter::LOG); Log::disable_stream(LoadedScripts::LOG); }" local
+exec zeek -C -r - --exec "event zeek_init() { Log::disable_stream(PacketFilter::LOG); Log::disable_stream(LoadedScripts::LOG); }" local
 ```
 
 We use a similar wrapper for Suricata, but here we perform some additional
@@ -190,9 +190,9 @@ working around bugs but also for providing enhanced functionality.
 
 ```
 $ cat suricata-wrapper.sh 
-#!/bin/bash
+#!/bin/bash -e
 suricata -r /dev/stdin
-cat eve.json | jq -c . > deduped-eve.json
+exec jq -c . eve.json > deduped-eve.json
 ```
 
 Revisiting our Brimcap YAML configuration, we see this output file is
