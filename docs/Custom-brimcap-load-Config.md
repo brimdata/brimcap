@@ -215,13 +215,14 @@ Here it's broken out and made part of the configuration YAML such that you can
 further modify it to suit your needs.
 ```
     shaper: |
+      type port=uint16;
       type alert = {
         timestamp: time,
         event_type: bstring,
         src_ip: ip,
-        src_port: port=(uint16),
+        src_port: port,
         dest_ip: ip,
-        dest_port: port=(uint16),
+        dest_port: port,
         vlan: [uint16],
         proto: bstring,
         app_proto: bstring,
@@ -253,9 +254,9 @@ further modify it to suit your needs.
         icmp_type: uint64,
         tunnel: {
           src_ip: ip,
-          src_port: port=(uint16),
+          src_port: port,
           dest_ip: ip,
-          dest_port: port=(uint16),
+          dest_port: port,
           proto: bstring,
           depth: uint64
         },
