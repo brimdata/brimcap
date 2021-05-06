@@ -27,8 +27,8 @@ This article describes such example custom configurations. The section on
 recreating Brimcap configurations equivalent to those created with the
 customization options in Brim app release `v0.24.0` and older. The
 [Custom NetFlow Analyzer](#custom-netflow-analyzer) section builds on the
-approach to create a custom Brimcap configuration that generates NetFlow
-records from pcaps. The article then closes with some [Debug](#debug) tips.
+approach to create a Brimcap configuration that generates NetFlow records from
+pcaps. The article then closes with some [Debug](#debug) tips.
 
 # Custom Zeek/Suricata Analyzers
 
