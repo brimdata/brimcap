@@ -43,7 +43,7 @@ article described how an alternate "Zeek Runner" script could be
 created/invoked such that Brim would launch Zeek from an install different than
 the one bundled with Brim. A similar option existed to invoke an alternate
 "Suricata Runner" (as well as a "Suricata Updater" for updating
-[rules](https://suricata.readthedocs.io/en/suricata-6.0.0/rules/)) however
+[rules](https://suricata.readthedocs.io/en/latest/rules/)) however
 these were never fully documented.
 
 * **`v0.25.0` and newer** - Brimcap is now bundled as part of Brim. Brimcap
@@ -61,7 +61,7 @@ Zeek/Suricata installations and/or alternate pcap processing tools.
 
 The goal in our first example customization will be to run Brim with the latest
 GA binary releases of [Zeek](https://github.com/zeek/zeek/wiki/Binary-Packages)
-and [Suricata](https://suricata.readthedocs.io/en/suricata-6.0.0/install.html#install-binary-packages),
+and [Suricata](https://suricata.readthedocs.io/en/latest/install.html#install-binary-packages),
 as these are newer than the versions that currently ship with Brimcap. We'll
 use Linux Ubuntu 18.04 as our OS platform. On such a host, the following
 commands install these from common repositories and ensure the binaries are in
@@ -103,7 +103,7 @@ configuration by setting
 [`escape-slash: no`](https://github.com/brimdata/build-suricata/blob/853fab6d7c21325f57e113645004b1107b78d840/brim-conf.yaml#L80-L81)
 for the `eve-log` output.
 
-3. To ensure [rules](https://suricata.readthedocs.io/en/suricata-6.0.0/rules/)
+3. To ensure [rules](https://suricata.readthedocs.io/en/latest/rules/)
 are kept current, the Brim app invokes the bundled "Suricata Updater" once
 each time it is opened. However, in a custom configuration, no attempt is made
 to trigger updates on your behalf. You may choose to to periodically run your
