@@ -221,6 +221,7 @@ func (m *migration) migrateData(ctx context.Context) error {
 		}
 		return err
 	}
+	defer f.Close()
 	if _, err = m.conn.LogPostReaders(ctx, m.poolID, nil, f); err != nil {
 		return err
 	}
