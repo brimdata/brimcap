@@ -322,7 +322,7 @@ To build and install the nfdump toolset with the commands we'll need to
 generate NetFlow, we execute the following on our Linux host:
 
 ```
-sudo apt install automake libtool pkg-config flex bison libbz2-dev
+sudo apt -y install automake libtool pkg-config flex bison libbz2-dev
 git clone https://github.com/phaag/nfdump.git && cd nfdump
 ./autogen.sh
 ./configure --enable-nfpcapd
