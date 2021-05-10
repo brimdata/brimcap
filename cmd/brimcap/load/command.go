@@ -15,6 +15,7 @@ import (
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/signalctx"
+	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/zngio"
 	"github.com/brimdata/zed/zson"
@@ -122,7 +123,7 @@ func (c *Command) Run(args []string) (err error) {
 	go display.Run(analyzer, stat.Size(), span)
 
 	reader := toioreader(analyzer)
-	_, err = c.conn.LogPostReaders(ctx, c.poolID, nil, reader)
+	_, err = c.conn.LogPostReaders(ctx, storage.NewLocalEngine(), c.poolID, nil, reader)
 	reader.Close()
 
 	if aerr := analyzer.Close(); err == nil {
