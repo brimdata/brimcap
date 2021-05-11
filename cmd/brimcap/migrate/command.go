@@ -20,8 +20,8 @@ import (
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/order"
 	"github.com/brimdata/zed/pkg/charm"
-	"github.com/brimdata/zed/pkg/iosrc"
 	"github.com/brimdata/zed/pkg/nano"
+	"github.com/brimdata/zed/pkg/storage"
 	"github.com/segmentio/ksuid"
 )
 
@@ -45,12 +45,16 @@ func init() {
 type Command struct {
 	*root.Command
 	conn      *client.Connection
+	engine    storage.Engine
 	rootflags cli.RootFlags
 	zqdroot   string
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	c := &Command{Command: parent.(*root.Command)}
+	c := &Command{
+		Command: parent.(*root.Command),
+		engine:  storage.NewLocalEngine(),
+	}
 	root.LogJSON = true
 	f.StringVar(&c.zqdroot, "zqd", "", "path to zqd root")
 	c.rootflags.SetFlags(f)
@@ -77,14 +81,14 @@ type spaceStorage struct {
 
 type spaceRow struct {
 	ID       string       `json:"id"`
-	DataURI  iosrc.URI    `json:"data_uri"`
+	DataURI  storage.URI  `json:"data_uri"`
 	Name     string       `json:"name"`
 	Storage  spaceStorage `json:"storage"`
 	TenantID string       `json:"tenant_id"`
 }
 
 type pcapMetadata struct {
-	PcapURI iosrc.URI
+	PcapURI storage.URI
 	Span    nano.Span
 	Index   pcap.Index
 }
@@ -222,7 +226,7 @@ func (m *migration) migrateData(ctx context.Context) error {
 		return err
 	}
 	defer f.Close()
-	if _, err = m.conn.LogPostReaders(ctx, m.poolID, nil, f); err != nil {
+	if _, err = m.conn.LogPostReaders(ctx, m.engine, m.poolID, nil, f); err != nil {
 		return err
 	}
 	return nil

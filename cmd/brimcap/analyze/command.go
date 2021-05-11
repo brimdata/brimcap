@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/signalctx"
+	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zson"
 )
@@ -75,7 +76,7 @@ func (c *Command) Run(args []string) (err error) {
 	ctx, cancel := signalctx.New(os.Interrupt)
 	defer cancel()
 
-	emitter, err := c.out.Open(ctx)
+	emitter, err := c.out.Open(ctx, storage.NewLocalEngine())
 	if err != nil {
 		return err
 	}
