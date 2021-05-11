@@ -44,8 +44,8 @@ func init() {
 
 type Command struct {
 	*root.Command
-	engine    storage.Engine
 	conn      *client.Connection
+	engine    storage.Engine
 	rootflags cli.RootFlags
 	zqdroot   string
 }
