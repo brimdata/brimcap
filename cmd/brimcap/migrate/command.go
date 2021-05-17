@@ -300,6 +300,10 @@ func (m *migration) removeSpace() error {
 }
 
 func (m *migration) abort() {
-	m.conn.PoolDelete(context.Background(), m.poolID)
-	os.Remove(m.brimcapEntry)
+	if err := m.conn.PoolDelete(context.Background(), m.poolID); err != nil {
+		m.logErr(fmt.Sprintf("error deleting pool from aborted migration: %v", err))
+	}
+	if err := os.Remove(m.brimcapEntry); err != nil {
+		m.logErr(fmt.Sprintf("error removing brimcap entry from aborted migration: %v", err))
+	}
 }
