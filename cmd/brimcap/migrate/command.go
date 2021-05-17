@@ -304,6 +304,6 @@ func (m *migration) abort() {
 		m.logErr(fmt.Sprintf("error deleting pool from aborted migration: %v", err))
 	}
 	if err := os.Remove(m.brimcapEntry); err != nil {
-		m.logErr(fmt.Sprintf("error brimcap entry from aborted migration: %v", err))
+		m.logErr(fmt.Sprintf("error removing brimcap entry from aborted migration: %v", err))
 	}
 }
