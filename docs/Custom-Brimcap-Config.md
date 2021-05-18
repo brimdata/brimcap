@@ -1,4 +1,4 @@
-# Custom `brimcap load` Configuration
+# Custom Brimcap Configuration
 
 - [Summary](#summary)
 - [Custom Zeek/Suricata Analyzers](#custom-zeeksuricata-analyzers)
@@ -67,18 +67,16 @@ GA binary releases of [Zeek](https://github.com/zeek/zeek/wiki/Binary-Packages)
 and [Suricata](https://suricata.readthedocs.io/en/latest/install.html#install-binary-packages),
 as these are newer than the versions that currently ship with Brimcap. We'll
 use Linux Ubuntu 18.04 as our OS platform. On such a host, the following
-commands install these from common repositories and ensure the binaries are in
-the `$PATH`.
+commands install these from common repositories.
 
 ```
 sudo add-apt-repository -y ppa:oisf/suricata-stable
 echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_18.04/ /' | sudo tee /etc/apt/sources.list.d/security:zeek.list
 curl -fsSL https://download.opensuse.org/repositories/security:zeek/xUbuntu_18.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
 sudo apt -y update
-sudo apt -y --no-install-recommends install suricata zeek jq
+sudo apt -y --no-install-recommends install suricata zeek
 sudo suricata-update
 sudo chmod go+rx /var/lib/suricata /var/lib/suricata/rules
-export PATH="/opt/zeek/bin:$PATH"
 ```
 
 Note that the Zeek/Suricata installations bundled with Brimcap include some
@@ -99,11 +97,10 @@ installed via [Zeek Package Manager](https://docs.zeek.org/projects/package-mana
 2. The Brimcap-bundled Suricata includes a
 [YAML configuration](https://github.com/brimdata/build-suricata/blob/master/brim-conf.yaml)
 that (among other things) enables the `community_id` field, which is essential
-for joining to the `community_id` field in Zeek events that may give context
+for joining to the `community_id` field in Zeek events to give context
 about why the alert fired. This is achieved in the bundled Suricata YAML
 configuration by setting
-[`community-id: yes`](https://github.com/brimdata/build-suricata/blob/853fab6d7c21325f57e113645004b1107b78d840/brim-conf.yaml#L51-L52) and JSON
-[`escape-slash: no`](https://github.com/brimdata/build-suricata/blob/853fab6d7c21325f57e113645004b1107b78d840/brim-conf.yaml#L80-L81)
+[`community-id: yes`](https://github.com/brimdata/build-suricata/blob/853fab6d7c21325f57e113645004b1107b78d840/brim-conf.yaml#L51-L52)
 for the `eve-log` output.
 
 3. To ensure [rules](https://suricata.readthedocs.io/en/latest/rules/)
@@ -118,23 +115,22 @@ For use with the Zeek/Suricata we just installed, a sample
 [Brimcap YAML configuration](https://github.com/brimdata/brimcap/blob/main/examples/zeek-suricata.yml)
 and accompanying wrapper scripts for [Zeek](https://github.com/brimdata/brimcap/blob/main/examples/zeek-wrapper.sh)
 and [Suricata](https://github.com/brimdata/brimcap/blob/main/examples/suricata-wrapper.sh)
-are available in the Brimcap repo. If Brim is running and all scripts/binaries
-invoked are in the `$PATH`, the configuration can be tested outside the app to
-import a `sample.pcap` like so:
+are available in the Brimcap repo. If Brim is currently running, the
+configuration can be tested outside the app to import a `sample.pcap` like so:
 
 ```
 $ /opt/Brim/resources/app.asar.unpacked/zdeps/zed api new testpool
 $ /opt/Brim/resources/app.asar.unpacked/zdeps/brimcap load -root "$HOME/.config/Brim/data/brimcap-root" -config zeek-suricata.yml -p testpool sample.pcap
 ```
 
-* **Note**: The `zdeps` directory that contains the `zed` and `brimcap`
+> **Note**: The `zdeps` directory that contains the `zed` and `brimcap`
 binaries varies per platform.
-
-|**OS Platform**|**Location**|
-|---------------|------------|
-| **Windows**   | `%USERPROFILE%\AppData\Local\Programs\Brim\resources\app.asar.unpacked\zdeps` |
-| **macOS**     | `/Applications/Brim.app/Contents/Resources/app.asar.unpacked/zdeps` |
-| **Linux**     | `/opt/Brim/resources/app.asar.unpacked/zdeps` |
+> 
+> |**OS Platform**|**Location**|
+> |---------------|------------|
+> | **Windows**   | `%USERPROFILE%\AppData\Local\Programs\Brim\resources\app.asar.unpacked\zdeps` |
+> | **macOS**     | `/Applications/Brim.app/Contents/Resources/app.asar.unpacked/zdeps` |
+> | **Linux**     | `/opt/Brim/resources/app.asar.unpacked/zdeps` |
 
 If successful, the new pool will appear in Brim, allowing you to browse the
 logs and open flows from the pcap via the **Packets** button.
@@ -143,7 +139,7 @@ logs and open flows from the pcap via the **Packets** button.
 
 The same `brimcap load` command line can be used to incrementally add more logs
 to the same pool for additional pcaps, which was not possible pre-Brimcap. The
-setting in the Brim **Preferences** for the **Brimcap Custom YAML Path** can
+setting in the Brim **Preferences** for the **Brimcap YAML Config File** can
 also be pointed at the path to this configuration file, which will cause it to
 be invoked when you open or drag pcap files into Brim.
 
@@ -151,6 +147,7 @@ In examining the example Brimcap YAML, we see at the top that we've defined two
 `analyzers`.
 
 ```
+$ cat zeek-suricata.yml
 analyzers:
   - cmd: zeek-wrapper.sh
   - cmd: suricata-wrapper.sh
@@ -163,63 +160,63 @@ A Brimcap analyzer has the following characteristics:
 lines are appended to them (i.e. `tail` could process them)
 3. By default, an analyzer's log outputs accumulate in a temporary directory
 that's automatically deleted when Brimcap exits (see the [Debug](#debug)
-section for more details).
-4. Additional per-analyzer options can be used to affect which generated logs
-are loaded and what additional processing is performed on them
+section for more details)
+4. Additional per-analyzer options can be used to determine which generated
+logs are loaded and what additional processing is performed on them
 
-The analyzer invoked by Brimcap is a wrapper script as referenced in the YAML.
-In addition to taking input on stdin, it also sets Zeek to ignore checksums
-(since these are often set incorrectly on pcaps) and we also disable a couple
-of the excess log outputs. This is very similar to the Zeek Runner script that
-was included with Brim `v0.24.0`.
+The first analyzer invoked by Brimcap is a wrapper script as referenced in the
+YAML. In addition to taking input on stdin, it also sets Zeek to ignore
+checksums (since these are often set incorrectly on pcaps) and we also disable
+a couple of the excess log outputs. This is very similar to the Zeek Runner
+script that was included with Brim `v0.24.0`.
 
 ```
-$ cat zeek-wrapper.sh 
+$ cat zeek-wrapper.sh
 #!/bin/bash
-exec zeek -C -r - --exec "event zeek_init() { Log::disable_stream(PacketFilter::LOG); Log::disable_stream(LoadedScripts::LOG); }" local
+exec /opt/zeek/bin -C -r - --exec "event zeek_init() { Log::disable_stream(PacketFilter::LOG); Log::disable_stream(LoadedScripts::LOG); }" local
 ```
 
-We use a similar wrapper for Suricata, but here we perform some additional
-steps to work around a known Suricata bug [#4106](https://redmine.openinfosecfoundation.org/issues/4106).
-This bug causes EVE JSON events to be output that contain duplicate keys, which
-Zed is not currently equipped to tolerate ([zed/2523](https://github.com/brimdata/zed/issues/2523)). We therefore pipe the EVE JSON data through [`jq`](https://stedolan.github.io/jq/),
-to remove duplicate keys. Shell pipeline
-additions such as this illustrate the kinds of processing you may want to
-invoke in your Brimcap customizations, as this may prove useful not just for
-working around bugs but also for providing enhanced functionality.
+> **Note:** If you intend to point to your custom Brimcap YAML config from
+> Brim **Preferences**, it's important to use full pathnames in your wrapper
+> script (e.g. `/opt/zeek/bin`) since Brim may not have the benefit of the same
+> `$PATH` setting as your interactive shell.
+
+We use a similar wrapper for Suricata.
 
 ```
 $ cat suricata-wrapper.sh 
 #!/bin/bash -e
-suricata -r /dev/stdin
-exec jq -c . eve.json > deduped-eve.json
+exec /usr/local/bin/suricata -r /dev/stdin
 ```
 
-Revisiting our Brimcap YAML configuration, we see this output file is
-referenced in a `globs:` setting. This setting can be used to specify one or
-more [glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards
+Revisiting our Brimcap YAML configuration, we see Suricata's expected
+[EVE JSON output](https://suricata.readthedocs.io/en/suricata-6.0.0/output/eve/eve-json-output.html)
+file is referenced in a `globs:` setting. This setting can be used to specify
+one or more [glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards
 that isolate a subset of the log outputs from the analyzer that should be
-processed. In this case it was important to only target this "deduped" log
-file, since otherwise the original `eve.json` would still have been processed
-and the error due to the presence of the duplicate fields would have halted the
-`brimcap load`.
+processed. In this case we don't even need to use the `*` wildcard since we're
+only expecting the single output file. If we'd not made this setting,
+`brimcap load` would have failed when attempting to import other non-EVE output
+files that are neither NDJSON nor other Zed-compatible formats.
 
 ```
 analyzers:
 ...
   - cmd: suricata-wrapper.sh
-    globs: ["deduped*.json"]
+    globs: ["eve.json"]
+...
 ```
 
 What follows below the `globs:` setting is a Zed shaper configuration. Whereas
 the Zeek TSV logs contain Zed-compatible rich data types (timestamps, IP
-addresses, etc.), since Suricata's EVE logs are JSON, here we use this shaper
-config to assign better data types as the JSON is being converted for storage
+addresses, etc.), since Suricata's EVE logs are NDJSON, here we use this shaper
+config to assign better data types as the NDJSON is being converted for storage
 into the Zed Lake. Out-of-the-box, Brimcap automatically applies this same
 shaping configuration on the EVE output generated from its bundled Suricata.
 Here it's broken out and made part of the configuration YAML such that you can
 further modify it to suit your needs.
 ```
+...
     shaper: |
       type port=uint16;
       type alert = {
@@ -268,7 +265,7 @@ further modify it to suit your needs.
         },
         community_id: bstring
       }
-      filter event_type=alert | put . = shape(alert) | rename ts=timestamp
+      filter event_type=="alert" | put . := shape(alert) | rename ts := timestamp
 ```
 
 A full description of all that's possible with shaping configurations is beyond
@@ -281,24 +278,24 @@ defined a single "wide" shape for _all_ alerts we've known Suricata to
 generate, which is convenient because it allows Brim to easily display them in
 columnar format.
 
-2. The `filter event_type=alert` trims the processed EVE events to only alerts.
-If you want to let through more Suricata data besides just alerts, you could
-remove this part of the pipeline. If so, you'll likely want to explore the
-additional data and create shapers to apply proper data types to them, since
-this will be a prerequisite for doing certain Zed queries with the data (e.g.
-a successful CIDR match requires IP addresses to be stored as `ip` type, not
-the string type in which they'd appear in unshaped JSON).
+2. The `filter event_type=="alert"` trims the processed EVE events to only
+alerts. If you want to let through more Suricata data besides just alerts, you
+could remove this part of the pipeline. If so, you'll likely want to explore
+the additional data and create shapers to apply proper data types to them,
+since this will be a prerequisite for doing certain Zed queries with the data
+(e.g.  a successful CIDR match requires IP addresses to be stored as `ip` type,
+not the string type in which they'd appear in unshaped NDJSON).
 
-3. The `put . = shape(alert)` applies the shape of the `alert` type to each
+3. The `put . := shape(alert)` applies the shape of the `alert` type to each
 input record. With what's shown here, additional fields that appear beyond
 those specified in the shaper (e.g. as the result of new Suricata features or
 your own customizations) will still be let through this pipeline and stored in
-the Zed Lake. If this is undesirable, add `| put . = crop(alert)` downstream of
-the first `put`, which will trim these additional fields.
+the Zed Lake. If this is undesirable, add `| put . := crop(alert)` downstream
+of the first `put`, which will trim these additional fields.
 
-4. The `rename ts=timestamp` changes the name of Suricata's `timestamp` field
-to match the `ts` one used by Zeek, which allows the data from both sources to
-be more seamlessly presented together in Brim.
+4. The `rename ts := timestamp` changes the name of Suricata's `timestamp`
+field to match the `ts` one used by Zeek, which allows the data from both
+sources to be more seamlessly presented together in Brim.
 
 # Custom NetFlow Analyzer
 
@@ -309,7 +306,7 @@ concepts to pcap processing tools other than Zeek or Suricata. In this case
 we'll use NetFlow records generated using the open source
 [nfdump](https://github.com/phaag/nfdump) toolset.
 
-* **Note**: While the example shows how shaped NetFlow records can be loaded
+> **Note:** While the example shows how shaped NetFlow records can be loaded
 via Brimcap, the **Packets** button in Brim is not currently wired to extract
 flows from a pcap via the 5-tuple and time details in NetFlow records. If this
 is functionality you're interested in pursuing, please
@@ -416,8 +413,7 @@ analyzers:
         exid: bytes,
         tr: time
       }
-      // The leading "put tr=time(tr)" is a workaround to zed/2670
-      put tr=time(tr) | put . = shape(netflow)
+      put . := shape(netflow)
 ```
 
 Putting it all together, we can test it by creating a new pool and then running

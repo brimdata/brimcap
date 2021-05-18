@@ -1,2 +1,2 @@
 #!/bin/bash -e
-/usr/local/bin/suricata -r /dev/stdin
+exec /usr/local/bin/suricata -r /dev/stdin
