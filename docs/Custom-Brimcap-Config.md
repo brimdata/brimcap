@@ -115,8 +115,9 @@ For use with the Zeek/Suricata we just installed, a sample
 [Brimcap YAML configuration](https://github.com/brimdata/brimcap/blob/main/examples/zeek-suricata.yml)
 and accompanying wrapper scripts for [Zeek](https://github.com/brimdata/brimcap/blob/main/examples/zeek-wrapper.sh)
 and [Suricata](https://github.com/brimdata/brimcap/blob/main/examples/suricata-wrapper.sh)
-are available in the Brimcap repo. If Brim is currently running, the
-configuration can be tested outside the app to import a `sample.pcap` like so:
+are available in the Brimcap repo. If Brim is currently running and the
+wrapper scripts are copied to `/usr/local/bin`, the configuration can be tested
+outside the app to import a `sample.pcap` like so:
 
 ```
 $ /opt/Brim/resources/app.asar.unpacked/zdeps/zed api new testpool
