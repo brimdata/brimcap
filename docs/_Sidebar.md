@@ -4,4 +4,4 @@
 
 **User Documentation**
 
-- [Custom `brimcap load` Config](Custom-brimcap-load-Config)
+- [[Custom Brimcap Config]]
