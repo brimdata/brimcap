@@ -1,4 +1,5 @@
 #!/bin/bash
+export LD_LIBRARY_PATH="/usr/local/lib"
 TMPFILE=$(mktemp)
 cat - > "$TMPFILE"
 /usr/local/bin/nfpcapd -r "$TMPFILE" -l .
