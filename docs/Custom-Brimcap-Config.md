@@ -144,14 +144,16 @@ setting in the Brim **Preferences** for the **Brimcap YAML Config File** can
 also be pointed at the path to this configuration file, which will cause it to
 be invoked when you open or drag pcap files into Brim.
 
+![Brim YAML Config File Preference](media/Brim-Pref-YAML-Config-File.png)
+
 In examining the example Brimcap YAML, we see at the top that we've defined two
 `analyzers`.
 
 ```
 $ cat zeek-suricata.yml
 analyzers:
-  - cmd: zeek-wrapper.sh
-  - cmd: suricata-wrapper.sh
+  - cmd: /usr/local/bin/zeek-wrapper.sh
+  - cmd: /usr/local/bin/suricata-wrapper.sh
 ```
 
 A Brimcap analyzer has the following characteristics:
@@ -203,7 +205,7 @@ files that are neither NDJSON nor other Zed-compatible formats.
 ```
 analyzers:
 ...
-  - cmd: suricata-wrapper.sh
+  - cmd: /usr/local/bin/suricata-wrapper.sh
     globs: ["eve.json"]
 ...
 ```
@@ -342,11 +344,11 @@ $ cat nfdump-wrapper.sh
 #!/bin/bash
 TMPFILE=$(mktemp)
 cat - > "$TMPFILE"
-nfpcapd -r "$TMPFILE" -l .
+/usr/local/bin/nfpcapd -r "$TMPFILE" -l .
 rm "$TMPFILE"
 for file in nfcapd.*
 do
-  nfdump -r $file -o csv | head -n -3 | zq -i csv -f ndjson - > ${file}.ndjson
+  /usr/local/bin/nfdump -r $file -o csv | head -n -3 | zq -i csv -f ndjson - > ${file}.ndjson
 done
 ```
 
@@ -357,7 +359,7 @@ rich data types.
 ```
 $ cat nfdump.yml 
 analyzers:
-  - cmd: nfdump-wrapper.sh
+  - cmd: /usr/local/bin/nfdump-wrapper.sh
     # The globs being set to "*.ndjson" is a workaround for the fact that our
     # current JSON reader won't accept much data and we can't tell
     # brimcap load to expect CSV input, so we're postprocessing in the
@@ -444,9 +446,9 @@ Zeek/Suricata like this:
 
 ```
 analyzers:
-  - cmd: zeek-wrapper.sh
+  - cmd: /usr/local/bin/zeek-wrapper.sh
     workdir: zeek-wd
-  - cmd: suricata-wrapper.sh
+  - cmd: /usr/local/bin/suricata-wrapper.sh
     workdir: suricata-wd
 ...
 ```
