@@ -180,9 +180,11 @@ exec /opt/zeek/bin -C -r - --exec "event zeek_init() { Log::disable_stream(Packe
 ```
 
 > **Note:** If you intend to point to your custom Brimcap YAML config from
-> Brim **Preferences**, it's important to use full pathnames in your wrapper
-> script (e.g. `/opt/zeek/bin`) since Brim may not have the benefit of the same
-> `$PATH` setting as your interactive shell.
+> Brim **Preferences**, it's important to use full pathnames to the wrapper
+> scripts referenced in your YAML (e.g. `/usr/local/bin/zeek-wrapper.sh`) and
+> in your wrapper scripts (e.g. `/opt/zeek/bin`) since Brim may not have the
+> benefit of the same `$PATH` setting as your interactive shell when it invokes
+> `brimcap load` with your custom config.
 
 We use a similar wrapper for Suricata.
 
@@ -194,13 +196,15 @@ exec /usr/local/bin/suricata -r /dev/stdin
 
 Revisiting our Brimcap YAML configuration, we see Suricata's expected
 [EVE JSON output](https://suricata.readthedocs.io/en/suricata-6.0.0/output/eve/eve-json-output.html)
-file is referenced in a `globs:` setting. This setting can be used to specify
-one or more [glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards
+file is referenced in a `globs:` setting. This setting can point to one or more
+filename specifications that may include
+[glob](https://en.wikipedia.org/wiki/Glob_(programming))-style wildcards
 that isolate a subset of the log outputs from the analyzer that should be
-processed. In this case we don't even need to use the `*` wildcard since we're
-only expecting the single output file. If we'd not made this setting,
-`brimcap load` would have failed when attempting to import other non-EVE output
-files that are neither NDJSON nor other Zed-compatible formats.
+processed. In this case we don't even need to use a `*` wildcard since we're
+only seeking to import the single output file. If we'd not included this
+setting, `brimcap load` would have failed when attempting to import the
+complete set of Suricata's log outputs, since several of its default outputs
+other than `eve.json` are not of Zed-compatible formats.
 
 ```
 analyzers:
