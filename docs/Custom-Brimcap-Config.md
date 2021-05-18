@@ -451,9 +451,9 @@ Zeek/Suricata like this:
 ```
 analyzers:
   - cmd: /usr/local/bin/zeek-wrapper.sh
-    workdir: zeek-wd
+    workdir: /tmp/zeek-wd
   - cmd: /usr/local/bin/suricata-wrapper.sh
-    workdir: suricata-wd
+    workdir: /tmp/suricata-wd
 ...
 ```
 
@@ -469,8 +469,8 @@ Repeating our `brimcap load` now with this enhanced YAML, we see after the run
 that the logs have been left behind for further examination.
 
 ```
-$ ls -l suricata-wd/ zeek-wd/
-suricata-wd/:
+$ ls -l /tmp/suricata-wd /tmp/zeek-wd
+/tmp/suricata-wd:
 total 1743088
 -rw-r--r--  1 phil  staff  407681197 May  6 11:06 deduped-eve.json
 -rw-r--r--  1 phil  staff  407682820 May  6 11:06 eve.json
@@ -478,7 +478,7 @@ total 1743088
 -rw-r--r--  1 phil  staff      30739 May  6 11:06 stats.log
 -rw-r--r--  1 phil  staff       1557 May  6 11:06 suricata.log
 
-zeek-wd/:
+/tmp/zeek-wd:
 total 97912
 -rw-r--r--  1 phil  staff       332 May  6 11:06 capture_loss.log
 -rw-r--r--  1 phil  staff  45760984 May  6 11:06 conn.log
