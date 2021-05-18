@@ -126,7 +126,7 @@ func (s *tailerTSuite) read() (<-chan string, <-chan error) {
 	buf := bytes.NewBuffer(nil)
 	w := tzngio.NewWriter(zio.NopCloser(buf))
 	go func() {
-		err := driver.Copy(context.Background(), w, sortTs, s.zctx, s.dr, driver.Config{})
+		err := driver.Copy(context.Background(), w, sortTs, s.zctx, s.dr, nil)
 		if err != nil {
 			close(result)
 			errCh <- err

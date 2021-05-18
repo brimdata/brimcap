@@ -12,13 +12,14 @@ import (
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cli/analyzecli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
-	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/signalctx"
+	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/zngio"
 	"github.com/brimdata/zed/zson"
+	"github.com/segmentio/ksuid"
 )
 
 var Load = &charm.Spec{
@@ -27,9 +28,9 @@ var Load = &charm.Spec{
 	Short: "analyze a pcap and send logs into the Brim desktop client",
 	Long: `
 The load command is the same as the analyze command except the output stream of
-generated logs is written to a specified space in the Brim desktop client.
+generated logs is written to a specified pool in the Brim desktop client.
 
-brimcap load -s myspace file.pcap
+brimcap load -p mypool file.pcap
 `,
 	New: New,
 }
@@ -44,40 +45,39 @@ type Command struct {
 	conn         *client.Connection
 	limit        int
 	rootflags    cli.RootFlags
-	space        string
-	spaceID      api.SpaceID
+	poolName     string
+	poolID       ksuid.KSUID
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.Command.Child = c
 	c.analyzeflags.SetFlags(f)
 	c.rootflags.SetFlags(f)
-	f.StringVar(&c.space, "s", "", "name of zqd space")
+	f.StringVar(&c.poolName, "p", "", "name of Zed lake pool")
 	f.IntVar(&c.limit, "n", 10000, "limit in bytes on index size")
 	return c, nil
 }
 
 func (c *Command) Init() error {
-	if c.space == "" {
-		return errors.New("space (-s) must be specified")
+	if c.poolName == "" {
+		return errors.New("pool (-p) must be specified")
 	}
 
 	c.conn = client.NewConnection()
-	list, err := c.conn.SpaceList(context.TODO())
+	list, err := c.conn.PoolList(context.TODO())
 	if err != nil {
 		return err
 	}
-	for _, sp := range list {
-		if sp.Name == c.space {
-			c.spaceID = sp.ID
+	for _, pool := range list {
+		if pool.Name == c.poolName {
+			c.poolID = pool.ID
 			return nil
 		}
 	}
-	return fmt.Errorf("space %q not found", c.space)
+	return fmt.Errorf("pool %q not found", c.poolName)
 }
 
-func (c *Command) Exec(args []string) (err error) {
+func (c *Command) Run(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	} else if args[0] == "-" {
@@ -93,7 +93,7 @@ func (c *Command) Exec(args []string) (err error) {
 		return err
 	}
 
-	display := analyzecli.NewDisplay(c.JSON)
+	display := analyzecli.NewDisplay(root.LogJSON)
 	pcappath := args[0]
 	root := c.rootflags.Root
 
@@ -123,7 +123,7 @@ func (c *Command) Exec(args []string) (err error) {
 	go display.Run(analyzer, stat.Size(), span)
 
 	reader := toioreader(analyzer)
-	_, err = c.conn.LogPostReaders(ctx, c.spaceID, nil, reader)
+	_, err = c.conn.LogPostReaders(ctx, storage.NewLocalEngine(), c.poolID, nil, reader)
 	reader.Close()
 
 	if aerr := analyzer.Close(); err == nil {

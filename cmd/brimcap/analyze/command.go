@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/signalctx"
+	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zson"
 )
@@ -53,13 +54,12 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.Command.Child = c
 	c.analyzeflags.SetFlags(f)
 	c.out.SetFlags(f)
 	return c, nil
 }
 
-func (c *Command) Exec(args []string) (err error) {
+func (c *Command) Run(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	}
@@ -76,7 +76,7 @@ func (c *Command) Exec(args []string) (err error) {
 	ctx, cancel := signalctx.New(os.Interrupt)
 	defer cancel()
 
-	emitter, err := c.out.Open(ctx)
+	emitter, err := c.out.Open(ctx, storage.NewLocalEngine())
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (c *Command) Exec(args []string) (err error) {
 	}
 	defer pcapfile.Close()
 
-	display := analyzecli.NewDisplay(c.JSON)
+	display := analyzecli.NewDisplay(root.LogJSON)
 	zctx := zson.NewContext()
 	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
 
@@ -98,7 +98,7 @@ func (c *Command) Exec(args []string) (err error) {
 		if err != nil {
 			return err
 		}
-		display := analyzecli.NewDisplay(c.JSON)
+		display := analyzecli.NewDisplay(root.LogJSON)
 		display.Run(analyzer, stat.Size(), nano.Span{})
 		defer display.Close()
 	}

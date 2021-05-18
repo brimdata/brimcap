@@ -41,24 +41,23 @@ func (r Root) AddPcap(pcappath string, limit int, warner zio.Warner) (nano.Span,
 		return nano.Span{}, err
 	}
 	defer f.Close()
-
+	if pcappath, err = filepath.Abs(pcappath); err != nil {
+		return nano.Span{}, err
+	}
 	hash := sha256.New()
 	reader := io.TeeReader(f, hash)
-
 	index, err := pcap.CreateIndexWithWarnings(reader, limit, warner)
 	if err != nil {
 		return nano.Span{}, err
 	}
-
 	b, err := json.Marshal(File{PcapPath: filepath.Clean(pcappath), Index: index})
 	if err != nil {
 		return nano.Span{}, err
 	}
-
-	return index.Span(), os.WriteFile(r.filepath(hash), b, 0600)
+	return index.Span(), os.WriteFile(r.Filepath(hash), b, 0600)
 }
 
-func (r Root) filepath(hash hash.Hash) string {
+func (r Root) Filepath(hash hash.Hash) string {
 	name := indexPrefix + base64.RawURLEncoding.EncodeToString(hash.Sum(nil)) + ".json"
 	return r.join(name)
 }
@@ -140,12 +139,15 @@ func (r Root) Search(ctx context.Context, req Search, w io.Writer) error {
 }
 
 // DeletePcap removes all files associated with the pcap path (if they exist).
-func (r Root) DeletePcap(pcappath string) error {
+func (r Root) DeletePcap(pcappath string) (err error) {
+	pcappath, err = filepath.Abs(pcappath)
+	if err != nil {
+		return err
+	}
 	files, err := r.Pcaps()
 	if err != nil {
 		return err
 	}
-	pcappath = filepath.Clean(pcappath)
 	for _, file := range files {
 		if file.PcapPath == pcappath {
 			if err := os.Remove(file.path); err != nil {
@@ -153,7 +155,6 @@ func (r Root) DeletePcap(pcappath string) error {
 			}
 		}
 	}
-
 	return nil
 }
 

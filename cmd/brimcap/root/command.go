@@ -39,24 +39,19 @@ through using brimcap search.
 	New: New,
 }
 
+var LogJSON bool
+
 type Command struct {
 	charm.Command
 	cli cli.Flags
-	// Child is set by the select Child command.
-	Child ChildCmd
-	JSON  bool
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{}
 	c.cli.SetFlags(f)
 	isterm := term.IsTerminal(int(os.Stdout.Fd()))
-	f.BoolVar(&c.JSON, "json", !isterm, "encode stderr in json")
+	f.BoolVar(&LogJSON, "json", !isterm, "encode stderr in json")
 	return c, nil
-}
-
-type ChildCmd interface {
-	Exec([]string) error
 }
 
 func (c *Command) Cleanup() {
@@ -68,14 +63,11 @@ func (c *Command) Init(all ...cli.Initializer) error {
 }
 
 func (c *Command) Run(args []string) error {
-	if c.Child != nil {
-		return c.writeError(c.Child.Exec(args))
-	}
 	defer c.cli.Cleanup()
 	if err := c.cli.Init(); err != nil {
-		return c.writeError(err)
+		return err
 	}
-	return Brimcap.Exec(c, []string{"help"})
+	return charm.NeedHelp
 }
 
 func (c *Command) AddRunnersToPath() error {
@@ -96,11 +88,11 @@ type MsgError struct {
 	Error string `json:"error"`
 }
 
-func (c *Command) writeError(err error) error {
+func LogError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if c.JSON {
+	if LogJSON {
 		json.NewEncoder(os.Stderr).Encode(MsgError{Type: "error", Error: err.Error()})
 	} else {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
