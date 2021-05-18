@@ -1,3 +1,2 @@
 #!/bin/bash -e
-suricata -r /dev/stdin
-exec jq -c . eve.json > deduped-eve.json
+/usr/local/bin/suricata -r /dev/stdin

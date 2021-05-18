@@ -1,7 +1,7 @@
 analyzers:
   - cmd: zeek-wrapper.sh
   - cmd: suricata-wrapper.sh
-    globs: ["deduped*.json"]
+    globs: ["eve.json"]
     shaper: |
       type port=uint16;
       type alert = {
@@ -50,4 +50,4 @@ analyzers:
         },
         community_id: bstring
       }
-      filter event_type=alert | put . = shape(alert) | rename ts=timestamp
+      filter event_type=="alert" | put . := shape(alert) | rename ts := timestamp

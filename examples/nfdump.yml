@@ -56,5 +56,4 @@ analyzers:
         exid: bytes,
         tr: time
       }
-      // The leading "put tr=time(tr)" is a workaround to zed/2670
-      put tr=time(tr) | put . = shape(netflow)
+      put . := shape(netflow)
