@@ -1,12 +1,15 @@
 package root
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/zed/pkg/charm"
@@ -58,8 +61,23 @@ func (c *Command) Cleanup() {
 	c.cli.Cleanup()
 }
 
-func (c *Command) Init(all ...cli.Initializer) error {
-	return c.cli.Init(all...)
+func (c *Command) InitWithContext(all ...cli.Initializer) (context.Context, func(), error) {
+	if err := c.cli.Init(all...); err != nil {
+		return nil, nil, err
+	}
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	cleanup := func() {
+		cancel()
+		c.cli.Cleanup()
+	}
+	return ctx, cleanup, nil
+}
+
+func (c *Command) Init(all ...cli.Initializer) (func(), error) {
+	if err := c.cli.Init(all...); err != nil {
+		return nil, err
+	}
+	return c.cli.Cleanup, nil
 }
 
 func (c *Command) Run(args []string) error {

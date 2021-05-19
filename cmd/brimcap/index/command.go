@@ -77,11 +77,11 @@ func (c *Command) Init() error {
 }
 
 func (c *Command) Run(args []string) (err error) {
-	defer c.Cleanup()
-	if err := c.Command.Init(&c.rootflags); err != nil {
+	cleanup, err := c.Command.Init(&c.rootflags, c)
+	if err != nil {
 		return err
 	}
-
+	defer cleanup()
 	if c.rootflags.IsSet {
 		if c.inputFile == "-" {
 			return errors.New("cannot write pcap from stdin to brimcap root")

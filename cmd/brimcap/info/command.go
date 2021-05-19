@@ -39,10 +39,11 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 }
 
 func (c *Command) Run(args []string) error {
-	defer c.Cleanup()
-	if err := c.Init(); err != nil {
+	cleanup, err := c.Command.Init()
+	if err != nil {
 		return err
 	}
+	defer cleanup()
 	if len(args) != 1 {
 		return errors.New("pcap info takes a single file as input")
 	}
