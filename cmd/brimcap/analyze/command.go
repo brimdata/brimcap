@@ -3,7 +3,6 @@ package analyze
 import (
 	"errors"
 	"flag"
-	"os"
 
 	"github.com/brimdata/brimcap/analyzer"
 	"github.com/brimdata/brimcap/cli"
@@ -12,7 +11,6 @@ import (
 	"github.com/brimdata/zed/cli/outputflags"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
-	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zson"
@@ -64,17 +62,15 @@ func (c *Command) Run(args []string) (err error) {
 		return errors.New("expected 1 pcapfile arg")
 	}
 
-	if err := c.Init(&c.out, &c.analyzeflags); err != nil {
+	ctx, cleanup, err := c.InitWithContext(&c.out, &c.analyzeflags)
+	if err != nil {
 		return err
 	}
-	defer c.Cleanup()
+	defer cleanup()
 
 	if err := c.AddRunnersToPath(); err != nil {
 		return err
 	}
-
-	ctx, cancel := signalctx.New(os.Interrupt)
-	defer cancel()
 
 	emitter, err := c.out.Open(ctx, storage.NewLocalEngine())
 	if err != nil {

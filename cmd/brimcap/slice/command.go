@@ -2,7 +2,6 @@ package slice
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -96,10 +95,11 @@ func parseSpan(sfrom, sto string) (nano.Span, error) {
 }
 
 func (c *Command) Run(args []string) error {
-	defer c.Cleanup()
-	if err := c.Init(); err != nil {
+	ctx, cleanup, err := c.Command.InitWithContext()
+	if err != nil {
 		return err
 	}
+	defer cleanup()
 	if c.indexFile != "" && c.inputFile == "-" {
 		return errors.New("stdin cannot be used with an index file; use -r to specify the pcap file")
 	}
@@ -171,5 +171,5 @@ func (c *Command) Run(args []string) error {
 	} else {
 		search = pcap.NewRangeSearch(span)
 	}
-	return search.Run(context.TODO(), out, pcapReader)
+	return search.Run(ctx, out, pcapReader)
 }

@@ -41,10 +41,11 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 }
 
 func (c *Command) Run(args []string) error {
-	defer c.Cleanup()
-	if err := c.Init(); err != nil {
+	ctx, cleanup, err := c.Command.InitWithContext()
+	if err != nil {
 		return err
 	}
+	defer cleanup()
 	if len(args) != 0 {
 		return errors.New("pcap ts takes no arguments")
 	}
@@ -71,6 +72,9 @@ func (c *Command) Run(args []string) error {
 		defer out.Close()
 	}
 	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		block, typ, err := reader.Read()
 		if err != nil {
 			if err == io.EOF {

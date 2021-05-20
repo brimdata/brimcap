@@ -96,10 +96,11 @@ func max(in []int) int {
 }
 
 func (c *Command) Run(args []string) error {
-	defer c.Cleanup()
-	if err := c.Init(); err != nil {
+	cleanup, err := c.Command.Init()
+	if err != nil {
 		return err
 	}
+	defer cleanup()
 	var cuts []int
 	for _, s := range args {
 		var err error

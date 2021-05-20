@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/brimdata/brimcap/analyzer"
 	"github.com/brimdata/brimcap/cli"
@@ -14,7 +13,6 @@ import (
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/pkg/charm"
-	"github.com/brimdata/zed/pkg/signalctx"
 	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/zngio"
@@ -58,13 +56,63 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	return c, nil
 }
 
-func (c *Command) Init() error {
+func (c *Command) Run(args []string) error {
+	if len(args) != 1 {
+		return errors.New("expected 1 pcapfile arg")
+	} else if args[0] == "-" {
+		return errors.New("reading a pcap from stdin not supported")
+	}
+	ctx, cleanup, err := c.Command.InitWithContext(&c.analyzeflags, &c.rootflags)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+	if err := c.lookupPool(ctx); err != nil {
+		return err
+	}
+	if err := c.AddRunnersToPath(); err != nil {
+		return err
+	}
+	display := analyzecli.NewDisplay(root.LogJSON)
+	pcappath := args[0]
+	root := c.rootflags.Root
+	span, err := root.AddPcap(pcappath, c.limit, display)
+	if err != nil {
+		return fmt.Errorf("error writing brimcap root: %w", err)
+	}
+	pcapfile, err := cli.OpenFileArg(pcappath)
+	if err != nil {
+		root.DeletePcap(pcappath)
+		return err
+	}
+	defer pcapfile.Close()
+	stat, err := pcapfile.Stat()
+	if err != nil {
+		root.DeletePcap(pcappath)
+		return err
+	}
+	zctx := zson.NewContext()
+	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
+	go display.Run(analyzer, stat.Size(), span)
+	reader := toioreader(analyzer)
+	_, err = c.conn.LogPostReaders(ctx, storage.NewLocalEngine(), c.poolID, nil, reader)
+	reader.Close()
+	if aerr := analyzer.Close(); err == nil {
+		err = aerr
+	}
+	if err != nil {
+		root.DeletePcap(pcappath)
+	}
+	display.Close()
+	return err
+}
+
+func (c *Command) lookupPool(ctx context.Context) error {
 	if c.poolName == "" {
 		return errors.New("pool (-p) must be specified")
 	}
-
 	c.conn = client.NewConnection()
-	list, err := c.conn.PoolList(context.TODO())
+	list, err := c.conn.PoolList(ctx)
 	if err != nil {
 		return err
 	}
@@ -75,65 +123,6 @@ func (c *Command) Init() error {
 		}
 	}
 	return fmt.Errorf("pool %q not found", c.poolName)
-}
-
-func (c *Command) Run(args []string) (err error) {
-	if len(args) != 1 {
-		return errors.New("expected 1 pcapfile arg")
-	} else if args[0] == "-" {
-		return errors.New("reading a pcap from stdin not supported")
-	}
-
-	if err := c.Command.Init(c, &c.analyzeflags, &c.rootflags); err != nil {
-		return err
-	}
-	defer c.Cleanup()
-
-	if err := c.AddRunnersToPath(); err != nil {
-		return err
-	}
-
-	display := analyzecli.NewDisplay(root.LogJSON)
-	pcappath := args[0]
-	root := c.rootflags.Root
-
-	span, err := root.AddPcap(pcappath, c.limit, display)
-	if err != nil {
-		return fmt.Errorf("error writing brimcap root: %w", err)
-	}
-
-	pcapfile, err := cli.OpenFileArg(pcappath)
-	if err != nil {
-		root.DeletePcap(pcappath)
-		return err
-	}
-	defer pcapfile.Close()
-
-	stat, err := pcapfile.Stat()
-	if err != nil {
-		root.DeletePcap(pcappath)
-		return err
-	}
-
-	ctx, cancel := signalctx.New(os.Interrupt)
-	defer cancel()
-
-	zctx := zson.NewContext()
-	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
-	go display.Run(analyzer, stat.Size(), span)
-
-	reader := toioreader(analyzer)
-	_, err = c.conn.LogPostReaders(ctx, storage.NewLocalEngine(), c.poolID, nil, reader)
-	reader.Close()
-
-	if aerr := analyzer.Close(); err == nil {
-		err = aerr
-	}
-	if err != nil {
-		root.DeletePcap(pcappath)
-	}
-	display.Close()
-	return err
 }
 
 type ioreader struct {

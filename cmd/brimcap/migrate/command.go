@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"path/filepath"
 
 	"github.com/brimdata/brimcap"
@@ -94,15 +93,14 @@ type pcapMetadata struct {
 }
 
 func (c *Command) Run(args []string) error {
-	if err := c.Command.Init(&c.rootflags); err != nil {
+	ctx, cleanup, err := c.Command.InitWithContext(&c.rootflags)
+	if err != nil {
 		return err
 	}
-	defer c.Cleanup()
+	defer cleanup()
 	if c.zqdroot == "" {
 		return errors.New("flag -zqd is required")
 	}
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
 	c.conn = client.NewConnection()
 	if _, err := c.conn.Ping(ctx); err != nil {
 		return err
