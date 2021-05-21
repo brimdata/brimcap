@@ -149,7 +149,7 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 	path := filepath.Join(c.zqdroot, space.ID)
 	logger := c.logger.With(zap.String("space", space.Name))
 	if space.Storage.Kind != "filestore" {
-		logger.Warn("unsupported storage kind skipping", zap.String("kind", space.Storage.Kind))
+		logger.Warn("unsupported storage kind, skipping", zap.String("kind", space.Storage.Kind))
 		return errSkip
 	}
 	pool, err := c.conn.PoolPost(ctx, api.PoolPostRequest{
