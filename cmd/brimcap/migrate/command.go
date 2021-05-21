@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -22,6 +21,7 @@ import (
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/storage"
 	"github.com/segmentio/ksuid"
+	"go.uber.org/zap"
 )
 
 var Migrate = &charm.Spec{
@@ -45,13 +45,21 @@ type Command struct {
 	*root.Command
 	conn      *client.Connection
 	engine    storage.Engine
+	logger    *zap.Logger
 	rootflags cli.RootFlags
 	zqdroot   string
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
+	conf := zap.NewProductionConfig()
+	conf.Sampling = nil
+	logger, err := conf.Build()
+	if err != nil {
+		return nil, err
+	}
 	c := &Command{
 		Command: parent.(*root.Command),
+		logger:  logger,
 		engine:  storage.NewLocalEngine(),
 	}
 	root.LogJSON = true
@@ -109,7 +117,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	c.logMsg("", fmt.Sprintf("migrating %d spaces", len(config.SpaceRows)))
+	c.logger.Info("migrating spaces", zap.Int("count", len(config.SpaceRows)))
 	for i := range config.SpaceRows {
 		if err := c.migrateSpace(ctx, config, i); err != nil && err != errSkip {
 			return err
@@ -120,7 +128,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	if len(config.SpaceRows) == 0 {
-		c.logMsg("", "all spaces migrated, removing old zqd directory")
+		c.logger.Info("all spaces migrated, removing old zqd directory")
 		return os.RemoveAll(c.zqdroot)
 	}
 	return nil
@@ -139,38 +147,45 @@ func (c *Command) loadZqdConfig() (zqdConfig, error) {
 func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error {
 	space := db.SpaceRows[idx]
 	path := filepath.Join(c.zqdroot, space.ID)
-	m := &migration{
-		Command:   c,
-		space:     space,
-		spaceRoot: path,
+	logger := c.logger.With(zap.String("space", space.Name))
+	if space.Storage.Kind != "filestore" {
+		logger.Warn("unsupported storage kind, skipping", zap.String("kind", space.Storage.Kind))
+		return errSkip
 	}
-	m.logMsg("migration starting")
-	if err := m.run(ctx); err != nil {
-		if err != errSkip {
-			m.logErr(err.Error())
+	pool, err := c.conn.PoolPost(ctx, api.PoolPostRequest{
+		Name:  space.Name,
+		Order: order.Desc,
+	})
+	if err != nil {
+		if errors.Is(err, client.ErrPoolExists) {
+			logger.Warn("pool already exists with same name, skipping")
+			return errSkip
 		}
 		return err
 	}
-	m.logMsg("migration successful")
+	m := &migration{
+		Command:   c,
+		logger:    logger.With(zap.String("pool_id", pool.ID.String())),
+		poolID:    pool.ID,
+		space:     space,
+		spaceRoot: path,
+	}
+	m.logger.Info("migration starting")
+	if err := m.run(ctx); err != nil {
+		if errors.Is(err, context.Canceled) {
+			m.logger.Warn("migration aborted")
+		} else if !errors.Is(err, errSkip) {
+			m.logger.Error("migration error", zap.Error(err))
+		}
+		return err
+	}
+	m.logger.Info("migration successful")
 	return nil
-}
-
-type log struct {
-	Space   string `json:"space,omitempty"`
-	Message string `json:"msg,omitempty"`
-	Error   string `json:"error,omitempty"`
-}
-
-func (c *Command) logMsg(space string, str string) {
-	json.NewEncoder(os.Stderr).Encode(log{Space: space, Message: str})
-}
-
-func (c *Command) logErr(space string, str string) {
-	json.NewEncoder(os.Stderr).Encode(log{Space: space, Error: str})
 }
 
 type migration struct {
 	*Command
+	logger *zap.Logger
 	// brimcapEntry is stored for abort.
 	brimcapEntry string
 	// poolID is stored for abort.
@@ -179,37 +194,18 @@ type migration struct {
 	spaceRoot string
 }
 
-func (c *migration) logMsg(str string) { c.Command.logMsg(c.space.Name, str) }
-func (c *migration) logErr(str string) { c.Command.logErr(c.space.Name, str) }
-
 func (m *migration) run(ctx context.Context) error {
-	if m.space.Storage.Kind != "filestore" {
-		m.logErr(fmt.Sprintf("unsupported storage kind: %s, skipping", m.space.Storage.Kind))
-		return errSkip
-	}
-	pool, err := m.conn.PoolPost(ctx, api.PoolPostRequest{
-		Name:  m.space.Name,
-		Order: order.Desc,
-	})
-	if err != nil {
-		if errors.Is(err, client.ErrPoolExists) {
-			m.logErr("pool already exists with same name, skipping")
-			return errSkip
-		}
-		return err
-	}
-	m.poolID = pool.ID
-	m.logMsg("migrating pcap")
+	m.logger.Info("migrating pcap")
 	if err := m.migratePcap(ctx); err != nil {
 		m.abort()
 		return err
 	}
-	m.logMsg("migrating data")
+	m.logger.Info("migrating data")
 	if err := m.migrateData(ctx); err != nil {
 		m.abort()
 		return err
 	}
-	m.logMsg("data migration completed")
+	m.logger.Info("data migration completed")
 	return m.removeSpace()
 }
 
@@ -235,7 +231,7 @@ func (m *migration) migratePcap(ctx context.Context) error {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			m.logMsg("space does not have a pcap")
+			m.logger.Info("space does not have a pcap")
 			return nil
 		}
 		return err
@@ -248,7 +244,7 @@ func (m *migration) migratePcap(ctx context.Context) error {
 	f, err := os.Open(pcappath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			m.logMsg(fmt.Sprintf("pcapfile %q not found, ignoring pcap", pcappath))
+			m.logger.Info("pcapfile not found, ignoring pcap", zap.String("pcap_path", pcappath))
 			return nil
 		}
 		return err
@@ -298,10 +294,7 @@ func (m *migration) removeSpace() error {
 }
 
 func (m *migration) abort() {
-	if err := m.conn.PoolDelete(context.Background(), m.poolID); err != nil {
-		m.logErr(fmt.Sprintf("error deleting pool from aborted migration: %v", err))
-	}
 	if err := os.Remove(m.brimcapEntry); err != nil {
-		m.logErr(fmt.Sprintf("error removing brimcap entry from aborted migration: %v", err))
+		m.logger.Error("error removing brimcap entry from aborted migration", zap.Error(err))
 	}
 }
