@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -16,10 +17,16 @@ import (
 	"github.com/brimdata/brimcap/pcap"
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
+	"github.com/brimdata/zed/field"
+	"github.com/brimdata/zed/lake"
 	"github.com/brimdata/zed/order"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/storage"
+	"github.com/brimdata/zed/zio"
+	"github.com/brimdata/zed/zio/anyio"
+	"github.com/brimdata/zed/zio/zsonio"
+	"github.com/brimdata/zed/zson"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -143,6 +150,25 @@ func (c *Command) loadZqdConfig() (zqdConfig, error) {
 	err = json.Unmarshal(b, &db)
 	return db, err
 }
+func unmarshal(r *client.ReadCloser, i interface{}) error {
+	format, err := api.MediaTypeToFormat(r.ContentType)
+	if err != nil {
+		return err
+	}
+	zr, err := anyio.NewReaderWithOpts(r, zson.NewContext(), anyio.ReaderOpts{Format: format})
+	if err != nil {
+		return nil
+	}
+	var buf bytes.Buffer
+	zw := zsonio.NewWriter(zio.NopCloser(&buf), zsonio.WriterOpts{})
+	if err := zio.Copy(zw, zr); err != nil {
+		return err
+	}
+	if err := zw.Close(); err != nil {
+		return err
+	}
+	return zson.Unmarshal(buf.String(), i)
+}
 
 func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error {
 	space := db.SpaceRows[idx]
@@ -152,15 +178,25 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 		logger.Warn("unsupported storage kind, skipping", zap.String("kind", space.Storage.Kind))
 		return errSkip
 	}
-	pool, err := c.conn.PoolPost(ctx, api.PoolPostRequest{
-		Name:  space.Name,
-		Order: order.Desc,
+	r, err := c.conn.PoolPost(ctx, api.PoolPostRequest{
+		Name: space.Name,
+		Layout: order.Layout{
+			Order: order.Desc,
+			Keys:  field.List{field.Dotted("ts")},
+		},
 	})
 	if err != nil {
 		if errors.Is(err, client.ErrPoolExists) {
 			logger.Warn("pool already exists with same name, skipping")
 			return errSkip
 		}
+		return err
+	}
+	var pool lake.PoolConfig
+	if err := unmarshal(r, &pool); err != nil {
+		return err
+	}
+	if err := r.Close(); err != nil {
 		return err
 	}
 	m := &migration{

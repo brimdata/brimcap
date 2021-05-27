@@ -11,10 +11,13 @@ import (
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cli/analyzecli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
+	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
+	"github.com/brimdata/zed/lake"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
+	"github.com/brimdata/zed/zio/anyio"
 	"github.com/brimdata/zed/zio/zngio"
 	"github.com/brimdata/zed/zson"
 	"github.com/segmentio/ksuid"
@@ -112,11 +115,31 @@ func (c *Command) lookupPool(ctx context.Context) error {
 		return errors.New("pool (-p) must be specified")
 	}
 	c.conn = client.NewConnection()
-	list, err := c.conn.PoolList(ctx)
+	r, err := c.conn.PoolScan(ctx)
 	if err != nil {
 		return err
 	}
-	for _, pool := range list {
+	defer r.Close()
+	format, err := api.MediaTypeToFormat(r.ContentType)
+	if err != nil {
+		return err
+	}
+	zr, err := anyio.NewReaderWithOpts(r, zson.NewContext(), anyio.ReaderOpts{Format: format})
+	if err != nil {
+		return nil
+	}
+	for {
+		rec, err := zr.Read()
+		if rec == nil {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		var pool lake.PoolConfig
+		if err := zson.UnmarshalZNGRecord(rec, &pool); err != nil {
+			return err
+		}
 		if pool.Name == c.poolName {
 			c.poolID = pool.ID
 			return nil

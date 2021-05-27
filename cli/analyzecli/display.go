@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/brimdata/brimcap/analyzer"
-	"github.com/brimdata/zed/cmd/zapi/format"
 	"github.com/brimdata/zed/pkg/display"
 	"github.com/brimdata/zed/pkg/nano"
+	"github.com/brimdata/zed/pkg/units"
 )
 
 type Display struct {
@@ -62,9 +62,9 @@ func (a *Display) Display(w io.Writer) bool {
 	}
 
 	if percent, ok := status.Completion(); ok {
-		fmt.Fprintf(w, "%5.1f%% %s/%s ", percent, format.Bytes(status.PcapReadSize), format.Bytes(status.PcapTotalSize))
+		fmt.Fprintf(w, "%5.1f%% %s/%s ", percent, units.Bytes(status.PcapReadSize), units.Bytes(status.PcapTotalSize))
 	} else {
-		fmt.Fprintf(w, "%s ", format.Bytes(status.PcapReadSize))
+		fmt.Fprintf(w, "%s ", units.Bytes(status.PcapReadSize))
 	}
 
 	fmt.Fprintf(w, "records=%d ", status.RecordsWritten)
