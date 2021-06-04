@@ -115,7 +115,7 @@ func (c *Command) lookupPool(ctx context.Context) error {
 		return errors.New("pool (-p) must be specified")
 	}
 	c.conn = client.NewConnection()
-	r, err := c.conn.PoolScan(ctx)
+	r, err := c.conn.ScanPools(ctx)
 	if err != nil {
 		return err
 	}
