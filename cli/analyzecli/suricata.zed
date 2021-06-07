@@ -45,4 +45,4 @@ type alert = {
 	community_id: bstring
 }
 
-filter event_type=="alert" | put . := shape(alert) | rename ts := timestamp
+filter event_type=="alert" | put this := shape(alert) | rename ts := timestamp
