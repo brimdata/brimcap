@@ -1,3 +1,11 @@
+## v0.0.4
+* Fix an issue where Space migrations could fail on Windows (#79)
+* Generate an error message during abort of Space migration (#86)
+* Create a [pcap troubleshooting wiki article ](https://github.com/brimdata/brimcap/wiki/Troubleshooting#ive-clicked-to-open-a-packet-capture-in-brim-but-it-failed-to-open) that includes info formerly from the [Brim wiki](https://github.com/brimdata/brim/wiki) (#83)
+* Add SIGTERM to the list of signals Brimcap listens to for graceful shutdown (#88)
+* Keep aborted Spaces so the caller of Brimcap (i.e., the Brim app) can handle cleanup (#89)
+* Have Brimcap start using the new Zed Lake client (#90)
+
 ## v0.0.3
 
 * Remove the `brimcap launch` command, since Brim will do `brimcap search` (#56)
