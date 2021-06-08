@@ -350,6 +350,7 @@ that `nfdump` appends by default which would trip up the Zed CSV reader.
 ```
 $ cat nfdump-wrapper.sh 
 #!/bin/bash
+export LD_LIBRARY_PATH="/usr/local/lib"
 TMPFILE=$(mktemp)
 cat - > "$TMPFILE"
 /usr/local/bin/nfpcapd -r "$TMPFILE" -l .
