@@ -361,9 +361,9 @@ do
 done
 ```
 
-> **Note:** The inclusion of `zq -i csv` in the pipeline works around a current
-> Brimcap limitation, such that only log formats auto-detected by the
-> Zed platform can be read. Therefore this call to `zq` turns the CSV into
+> **Note:** The inclusion of `zq -i csv` in the pipeline works around a Brimcap
+> limitation that only log formats auto-detected by the Zed platform can
+> currently be read. Therefore this call to `zq` turns the CSV into
 > ZNG, then the minimally-typed records in the ZNG are still enhanced by the
 > shaper configuration shown below. When either Brimcap is enhanced to allow
 > the explicit specification of input formats
