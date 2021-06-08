@@ -195,7 +195,7 @@ We use a similar wrapper for Suricata.
 ```
 $ cat suricata-wrapper.sh 
 #!/bin/bash -e
-exec /usr/local/bin/suricata -r /dev/stdin
+exec /usr/bin/suricata -r /dev/stdin
 ```
 
 Revisiting our Brimcap YAML configuration, we see Suricata's expected
