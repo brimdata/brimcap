@@ -180,7 +180,7 @@ script that was included with Brim `v0.24.0`.
 ```
 $ cat zeek-wrapper.sh
 #!/bin/bash
-exec /opt/zeek/bin -C -r - --exec "event zeek_init() { Log::disable_stream(PacketFilter::LOG); Log::disable_stream(LoadedScripts::LOG); }" local
+exec /opt/zeek/bin/zeek -C -r - --exec "event zeek_init() { Log::disable_stream(PacketFilter::LOG); Log::disable_stream(LoadedScripts::LOG); }" local
 ```
 
 > **Note:** If you intend to point to your custom Brimcap YAML config from
