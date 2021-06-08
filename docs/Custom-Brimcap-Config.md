@@ -120,7 +120,7 @@ wrapper scripts are copied to `/usr/local/bin`, the configuration can be tested
 outside the app to import a `sample.pcap` like so:
 
 ```
-$ /opt/Brim/resources/app.asar.unpacked/zdeps/zed api new testpool
+$ /opt/Brim/resources/app.asar.unpacked/zdeps/zed api create -p testpool
 $ /opt/Brim/resources/app.asar.unpacked/zdeps/brimcap load -root "$HOME/.config/Brim/data/brimcap-root" -config zeek-suricata.yml -p testpool sample.pcap
 ```
 
@@ -434,7 +434,7 @@ Putting it all together, we can test it by creating a new pool and then running
 `brimcap load` to import a sample pcap.
 
 ```
-$ /opt/Brim/resources/app.asar.unpacked/zdeps/zed api new testpool2
+$ /opt/Brim/resources/app.asar.unpacked/zdeps/zed api create -p testpool2
 $ /opt/Brim/resources/app.asar.unpacked/zdeps/brimcap load -root "$HOME/.config/Brim/data/brimcap-root" -config nfdump.yml -p testpool2 sample.pcap
 ```
 
