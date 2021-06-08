@@ -435,6 +435,12 @@ analyzers:
       put this := shape(netflow)
 ```
 
+> **Note:** The need to "escape" the reference to a field called `in` is due
+> to `in` being a reserved word in the Zed language. An open issue
+> [zed/2398](https://github.com/brimdata/zed/issues/2398) tracks an enhancement
+> that would reduce the scope of such clashes and hopefully make this escaping
+> unnecessary.
+
 Putting it all together, we can test it by creating a new pool and then running
 `brimcap load` to import a sample pcap.
 
