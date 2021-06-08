@@ -136,6 +136,10 @@ binaries varies per platform.
 If successful, the new pool will appear in Brim, allowing you to browse the
 logs and open flows from the pcap via the **Packets** button.
 
+> **Note:** Until [brim/950](https://github.com/brimdata/brim/issues/950) is
+> implemented, manually click **View > Reload** in Brim to see the updated
+> pool data.
+
 ![NetFlow Pool](media/Custom-Zeek-Suricata-Pool.png)
 
 The same `brimcap load` command line can be used to incrementally add more logs
