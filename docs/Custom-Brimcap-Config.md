@@ -373,8 +373,8 @@ done
 > this workaround will no longer be necessary.
 
 This script is called from our Brimcap config YAML, which includes a
-`globs:` setting to target only the CSV files and also a Zed shaper to apply
-rich data types.
+`globs:` setting to target only the needed files and also a Zed shaper to apply
+richer data types.
 
 ```
 $ cat nfdump.yml 
