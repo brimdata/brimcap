@@ -1,10 +1,6 @@
 analyzers:
   - cmd: /usr/local/bin/nfdump-wrapper.sh
-    # The globs being set to "*.ndjson" is a workaround for the fact that our
-    # current JSON reader won't accept much data and we can't tell
-    # brimcap load to expect CSV input, so we're postprocessing in the
-    # nfdump-wrapper.sh script with zq to turn the CSV back into NDJSON.
-    globs: ["*.ndjson"]
+    globs: ["*.zng"]
     shaper: |
       type netflow = {
         ts: time,
@@ -56,4 +52,4 @@ analyzers:
         exid: bytes,
         tr: time
       }
-      put . := shape(netflow)
+      put this := shape(netflow)

@@ -106,7 +106,7 @@ for the `eve-log` output.
 3. To ensure [rules](https://suricata.readthedocs.io/en/latest/rules/)
 are kept current, the Brim app invokes the bundled "Suricata Updater" once
 each time it is opened. However, in a custom configuration, no attempt is made
-to trigger updates on your behalf. You may choose to to periodically run your
+to trigger updates on your behalf. You may choose to periodically run your
 `suricata-update` manually or consider a scheduled mechanism such as `cron`.
 
 ## Example Configuration
@@ -272,7 +272,7 @@ further modify it to suit your needs.
         },
         community_id: bstring
       }
-      filter event_type=="alert" | put . := shape(alert) | rename ts := timestamp
+      filter event_type=="alert" | put this := shape(alert) | rename ts := timestamp
 ```
 
 A full description of all that's possible with shaping configurations is beyond
@@ -293,11 +293,11 @@ since this will be a prerequisite for doing certain Zed queries with the data
 (e.g.  a successful CIDR match requires IP addresses to be stored as `ip` type,
 not the string type in which they'd appear in unshaped NDJSON).
 
-3. The `put . := shape(alert)` applies the shape of the `alert` type to each
+3. The `put this := shape(alert)` applies the shape of the `alert` type to each
 input record. With what's shown here, additional fields that appear beyond
 those specified in the shaper (e.g. as the result of new Suricata features or
 your own customizations) will still be let through this pipeline and stored in
-the Zed Lake. If this is undesirable, add `| put . := crop(alert)` downstream
+the Zed Lake. If this is undesirable, add `| put this := crop(alert)` downstream
 of the first `put`, which will trim these additional fields.
 
 4. The `rename ts := timestamp` changes the name of Suricata's `timestamp`
@@ -352,9 +352,20 @@ cat - > "$TMPFILE"
 rm "$TMPFILE"
 for file in nfcapd.*
 do
-  /usr/local/bin/nfdump -r $file -o csv | head -n -3 | /opt/Brim/resources/app.asar.unpacked/zdeps/zq -i csv -f ndjson - > ${file}.ndjson
+  /usr/local/bin/nfdump -r $file -o csv | head -n -3 | /opt/Brim/resources/app.asar.unpacked/zdeps/zq -i csv - > ${file}.zng
 done
 ```
+
+> **Note:** The inclusion of `zq -i csv` in the pipeline works around a current
+> Brimcap limitation that only log formats that can be auto-detected by the
+> Zed platform can be read. Therefore this call to `zq` turns the CSV into
+> ZNG, then the minimally-typed records in the ZNG are still enhanced by the
+> shaper configuration shown below. When either Brimcap is enhanced to allow
+> the explicit specification of input formats
+> ([brimcap/80](https://github.com/brimdata/brimcap/issues/80))
+> or Zed is enhanced to auto-detect more formats such as CSV
+> ([zed/2517](https://github.com/brimdata/zed/issues/2517))
+> this workaround will no longer be necessary.
 
 This script is called from our Brimcap config YAML, which includes a
 `globs:` setting to target only the CSV files and also a Zed shaper to apply
@@ -364,11 +375,7 @@ rich data types.
 $ cat nfdump.yml 
 analyzers:
   - cmd: /usr/local/bin/nfdump-wrapper.sh
-    # The globs being set to "*.ndjson" is a workaround for the fact that our
-    # current JSON reader won't accept much data and we can't tell
-    # brimcap load to expect CSV input, so we're postprocessing in the
-    # nfdump-wrapper.sh script with zq to turn the CSV back into NDJSON.
-    globs: ["*.ndjson"]
+    globs: ["*.zng"]
     shaper: |
       type netflow = {
         ts: time,
@@ -420,7 +427,7 @@ analyzers:
         exid: bytes,
         tr: time
       }
-      put . := shape(netflow)
+      put this := shape(netflow)
 ```
 
 Putting it all together, we can test it by creating a new pool and then running
