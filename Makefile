@@ -56,7 +56,7 @@ bin/zed-$(ZED_VERSION):
 	@echo 'module deps' > $@.mod
 	@go get -d -modfile=$@.mod github.com/brimdata/zed@$(ZED_VERSION)
 	@go mod download -modfile=$@.mod
-	@go build -modfile=$@.mod -o $@ github.com/brimdata/zed/cmd/zed
+	@go build -mod=mod -modfile=$@.mod -o $@ github.com/brimdata/zed/cmd/zed
 
 .PHONY: bin/zed
 bin/zed: bin/zed-$(ZED_VERSION)
