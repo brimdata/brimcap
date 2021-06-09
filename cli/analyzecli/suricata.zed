@@ -1,10 +1,11 @@
+type port=uint16;
 type alert = {
 	timestamp: time,
 	event_type: bstring,
 	src_ip: ip,
-	src_port: port=(uint16),
+	src_port: port,
 	dest_ip: ip,
-	dest_port: port=(uint16),
+	dest_port: port,
 	vlan: [uint16],
 	proto: bstring,
 	app_proto: bstring,
@@ -36,9 +37,9 @@ type alert = {
 	icmp_type: uint64,
 	tunnel: {
 		src_ip: ip,
-		src_port: port=(uint16),
+		src_port: port,
 		dest_ip: ip,
-		dest_port: port=(uint16),
+		dest_port: port,
 		proto: bstring,
 		depth: uint64
 	},

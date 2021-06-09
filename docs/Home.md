@@ -6,3 +6,7 @@ your effective use of Brimcap.
 ## Support Resources
 
 - [[Troubleshooting]]
+
+## User Documentation
+
+- [[Custom Brimcap Config]]
