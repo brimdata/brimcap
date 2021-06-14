@@ -74,7 +74,7 @@ func TestAnalyzerRemovesLogDir(t *testing.T) {
 
 	if rec, err := r.Read(); err != nil {
 		t.Fatalf("expected error to be nil, got %v", err)
-	} else if recstr := rec.Type.ZSONOf(rec.Bytes); recstr != expected {
+	} else if recstr := rec.Type.Format(rec.Bytes); recstr != expected {
 		t.Fatalf("expected record to equal %q, got %q", recstr, expected)
 	}
 
