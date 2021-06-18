@@ -3,7 +3,7 @@ VERSION = $(shell git describe --tags --dirty --always)
 LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
 ZED_VERSION := $(shell go list -f {{.Version}} -m github.com/brimdata/zed)
 
-SURICATATAG = v5.0.3-brim1
+SURICATATAG = v5.0.3-brim2
 SURICATAPATH = suricata-$(SURICATATAG)
 ZEEKTAG = v3.2.1-brim10
 ZEEKPATH = zeek-$(ZEEKTAG)
