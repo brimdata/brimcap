@@ -1,3 +1,9 @@
+## v0.0.5
+* Publish [Custom Brimcap Configuration](https://github.com/brimdata/brimcap/wiki/Custom-Brimcap-Config) wiki article (#72)
+* Update the README (#96)
+* Change `.` to `this` in Suricata shaper (#92)
+* Fix an issue loading pcaps on some Linux distributions by using new Suricata artifact v5.0.3-brim2 (#100)
+
 ## v0.0.4
 * Fix an issue where Space migrations could fail on Windows (#79)
 * Generate an error message during abort of Space migration (#86)
