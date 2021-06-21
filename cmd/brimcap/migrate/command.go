@@ -150,12 +150,13 @@ func (c *Command) loadZqdConfig() (zqdConfig, error) {
 	err = json.Unmarshal(b, &db)
 	return db, err
 }
-func unmarshal(r *client.ReadCloser, i interface{}) error {
+
+func unmarshal(r *client.Response, i interface{}) error {
 	format, err := api.MediaTypeToFormat(r.ContentType)
 	if err != nil {
 		return err
 	}
-	zr, err := anyio.NewReaderWithOpts(r, zson.NewContext(), anyio.ReaderOpts{Format: format})
+	zr, err := anyio.NewReaderWithOpts(r.Body, zson.NewContext(), anyio.ReaderOpts{Format: format})
 	if err != nil {
 		return nil
 	}
@@ -196,7 +197,7 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 	if err := unmarshal(r, &pool); err != nil {
 		return err
 	}
-	if err := r.Close(); err != nil {
+	if err := r.Body.Close(); err != nil {
 		return err
 	}
 	m := &migration{
