@@ -119,12 +119,12 @@ func (c *Command) lookupPool(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer r.Body.Close()
 	format, err := api.MediaTypeToFormat(r.ContentType)
 	if err != nil {
 		return err
 	}
-	zr, err := anyio.NewReaderWithOpts(r, zson.NewContext(), anyio.ReaderOpts{Format: format})
+	zr, err := anyio.NewReaderWithOpts(r.Body, zson.NewContext(), anyio.ReaderOpts{Format: format})
 	if err != nil {
 		return nil
 	}
