@@ -5,3 +5,4 @@
 **User Documentation**
 
 - [[Custom Brimcap Config]]
+- [[Geolocation]]

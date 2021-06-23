@@ -10,3 +10,4 @@ your effective use of Brimcap.
 ## User Documentation
 
 - [[Custom Brimcap Config]]
+- [[Geolocation]]
