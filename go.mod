@@ -5,8 +5,8 @@ go 1.16
 require (
 	github.com/brimdata/zed v0.29.1-0.20210628182317-389b1200a929
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/golang/mock v1.5.0
 	github.com/google/gopacket v1.1.19
+	github.com/gosuri/uilive v0.0.4
 	github.com/segmentio/ksuid v1.0.2
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.6.0

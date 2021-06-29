@@ -3,6 +3,7 @@ package analyze
 import (
 	"errors"
 	"flag"
+	"time"
 
 	"github.com/brimdata/brimcap/analyzer"
 	"github.com/brimdata/brimcap/cli"
@@ -12,8 +13,6 @@ import (
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/storage"
-	"github.com/brimdata/zed/zio"
-	"github.com/brimdata/zed/zson"
 )
 
 var Analyze = &charm.Spec{
@@ -45,8 +44,8 @@ func init() {
 
 type Command struct {
 	*root.Command
+	analyzecli.Display
 	analyzeflags analyzecli.Flags
-	emitter      zio.WriteCloser
 	out          outputflags.Flags
 }
 
@@ -61,48 +60,30 @@ func (c *Command) Run(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	}
-
 	ctx, cleanup, err := c.InitWithContext(&c.out, &c.analyzeflags)
 	if err != nil {
 		return err
 	}
 	defer cleanup()
-
 	if err := c.AddRunnersToPath(); err != nil {
 		return err
 	}
-
 	emitter, err := c.out.Open(ctx, storage.NewLocalEngine())
 	if err != nil {
 		return err
 	}
 	defer emitter.Close()
-
 	pcapfile, err := cli.OpenFileArg(args[0])
 	if err != nil {
 		return err
 	}
 	defer pcapfile.Close()
-
-	display := analyzecli.NewDisplay(root.LogJSON)
-	zctx := zson.NewContext()
-	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
-
-	// If not emitting to stdio write stats to stderr.
-	if c.out.FileName() != "" {
-		stat, err := pcapfile.Stat()
-		if err != nil {
-			return err
-		}
-		display := analyzecli.NewDisplay(root.LogJSON)
-		display.Run(analyzer, stat.Size(), nano.Span{})
-		defer display.Close()
+	info, err := pcapfile.Stat()
+	if err != nil {
+		return err
 	}
-
-	err = zio.CopyWithContext(ctx, emitter, analyzer)
-	if aerr := analyzer.Close(); err == nil {
-		err = aerr
-	}
-	display.Close()
-	return err
+	c.Display = analyzecli.NewDisplay(root.LogJSON, info.Size(), nano.Span{})
+	defer c.Display.End()
+	configs := c.analyzeflags.Configs
+	return analyzer.Run(ctx, pcapfile, emitter, c, time.Second, configs...)
 }
