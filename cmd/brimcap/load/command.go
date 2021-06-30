@@ -1,11 +1,13 @@
 package analyze
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/brimdata/brimcap/analyzer"
 	"github.com/brimdata/brimcap/cli"
@@ -15,12 +17,13 @@ import (
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/lake"
 	"github.com/brimdata/zed/pkg/charm"
-	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/anyio"
 	"github.com/brimdata/zed/zio/zngio"
+	"github.com/brimdata/zed/zio/zsonio"
 	"github.com/brimdata/zed/zson"
 	"github.com/segmentio/ksuid"
+	"golang.org/x/sync/errgroup"
 )
 
 var Load = &charm.Spec{
@@ -42,6 +45,7 @@ func init() {
 
 type Command struct {
 	*root.Command
+	analyzecli.Display
 	analyzeflags analyzecli.Flags
 	conn         *client.Connection
 	limit        int
@@ -76,38 +80,73 @@ func (c *Command) Run(args []string) error {
 	if err := c.AddRunnersToPath(); err != nil {
 		return err
 	}
-	display := analyzecli.NewDisplay(root.LogJSON)
 	pcappath := args[0]
-	root := c.rootflags.Root
-	span, err := root.AddPcap(pcappath, c.limit, display)
+	span, err := c.rootflags.Root.AddPcap(pcappath, c.limit, c)
 	if err != nil {
 		return fmt.Errorf("error writing brimcap root: %w", err)
 	}
+	abort := func() { c.rootflags.Root.DeletePcap(pcappath) }
 	pcapfile, err := cli.OpenFileArg(pcappath)
 	if err != nil {
-		root.DeletePcap(pcappath)
+		abort()
 		return err
 	}
 	defer pcapfile.Close()
-	stat, err := pcapfile.Stat()
+	info, err := pcapfile.Stat()
 	if err != nil {
-		root.DeletePcap(pcappath)
+		abort()
 		return err
 	}
-	zctx := zson.NewContext()
-	analyzer := analyzer.CombinerWithContext(ctx, zctx, pcapfile, c.analyzeflags.Configs...)
-	go display.Run(analyzer, stat.Size(), span)
-	reader := toioreader(analyzer)
-	_, err = c.conn.LogPostReaders(ctx, storage.NewLocalEngine(), c.poolID, nil, reader)
-	reader.Close()
-	if aerr := analyzer.Close(); err == nil {
-		err = aerr
+	c.Display = analyzecli.NewDisplay(root.LogJSON, info.Size(), span)
+	defer c.Display.End()
+	pr, pw := io.Pipe()
+	group, ctx := errgroup.WithContext(ctx)
+	group.Go(func() error {
+		zw := zngio.NewWriter(pw, zngio.WriterOpts{})
+		return analyzer.Run(ctx, pcapfile, zw, c, time.Second, c.analyzeflags.Configs...)
+	})
+	group.Go(func() error {
+		return c.post(ctx, pr)
+	})
+	if err := group.Wait(); err != nil {
+		abort()
+		return err
 	}
+	return nil
+}
+
+func (c *Command) post(ctx context.Context, pr *io.PipeReader) error {
+	res, err := c.conn.Add(ctx, c.poolID, pr)
 	if err != nil {
-		root.DeletePcap(pcappath)
+		return err
 	}
-	display.Close()
-	return err
+	var add api.AddResponse
+	err = unmarshal(res, &add)
+	res.Body.Close()
+	if err != nil {
+		return err
+	}
+	return c.conn.Commit(ctx, c.poolID, add.Commit, api.CommitRequest{})
+}
+
+func unmarshal(r *client.Response, i interface{}) error {
+	format, err := api.MediaTypeToFormat(r.ContentType)
+	if err != nil {
+		return err
+	}
+	zr, err := anyio.NewReaderWithOpts(r.Body, zson.NewContext(), anyio.ReaderOpts{Format: format})
+	if err != nil {
+		return nil
+	}
+	var buf bytes.Buffer
+	zw := zsonio.NewWriter(zio.NopCloser(&buf), zsonio.WriterOpts{})
+	if err := zio.Copy(zw, zr); err != nil {
+		return err
+	}
+	if err := zw.Close(); err != nil {
+		return err
+	}
+	return zson.Unmarshal(buf.String(), i)
 }
 
 func (c *Command) lookupPool(ctx context.Context) error {

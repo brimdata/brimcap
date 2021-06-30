@@ -3,187 +3,82 @@ package analyzer
 import (
 	"context"
 	"io"
-	"os"
-	"sync"
 	"sync/atomic"
+	"time"
 
-	"github.com/brimdata/brimcap/ztail"
-	"github.com/brimdata/zed/compiler"
-	"github.com/brimdata/zed/compiler/ast"
-	"github.com/brimdata/zed/driver"
 	"github.com/brimdata/zed/zio"
-	"github.com/brimdata/zed/zng"
-	"github.com/brimdata/zed/zson"
+	"golang.org/x/sync/errgroup"
 )
 
-type Interface interface {
-	zio.ReadCloser
-	BytesRead() int64
-	RecordsRead() int64
-	WarningHandler(zio.Warner)
+type Stats struct {
+	BytesRead      int64
+	RecordsWritten int64
 }
 
-type analyzer struct {
-	cancel   context.CancelFunc
-	config   Config
-	ctx      context.Context
-	once     sync.Once
-	procErr  error
-	procDone chan struct{}
-	reader   *readCounter
-	records  int64
-	tailer   *ztail.Tailer
-	warner   zio.Warner
-	workdir  string
-	zctx     *zson.Context
-	zreader  zio.Reader
+type Display interface {
+	zio.Warner
+	Stats(Stats) error
 }
 
-func New(zctx *zson.Context, r io.Reader, conf Config) Interface {
-	return NewWithContext(context.Background(), zctx, r, conf)
-}
-
-func NewWithContext(ctx context.Context, zctx *zson.Context, r io.Reader, conf Config) Interface {
-	ctx, cancel := context.WithCancel(ctx)
-	a := &analyzer{
-		cancel:   cancel,
-		config:   conf,
-		ctx:      ctx,
-		procDone: make(chan struct{}),
-		reader:   &readCounter{reader: r},
-		zctx:     zctx,
+// Run executes the provided configs against the pcap stream, writing the
+// produced records to w. If interval is > 0, the d.Stats will be called
+// at that interval.
+func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval time.Duration, confs ...Config) error {
+	if err := Configs(confs).Validate(); err != nil {
+		return err
 	}
-	return a
-}
-
-func (p *analyzer) WarningHandler(w zio.Warner) {
-	p.warner = w
-}
-
-func (p *analyzer) Read() (*zng.Record, error) {
-	var err error
-	p.once.Do(func() {
-		err = p.run()
+	group, ctx := errgroup.WithContext(ctx)
+	r, err := newReader(ctx, d, confs...)
+	if err != nil {
+		return err
+	}
+	procs, err := runProcesses(ctx, pcap, confs...)
+	if err != nil {
+		r.close()
+		return err
+	}
+	var recordCount int64
+	group.Go(func() error {
+		defer r.stop()
+		return procs.wait()
 	})
-	if err != nil {
-		return nil, err
-	}
-	rec, err := p.zreader.Read()
-	if rec == nil && err == nil {
-		// If EOS received and done channel is closed, return the process error.
-		// The tailer may have been closed because the process exited with an
-		// error.
-		select {
-		case <-p.procDone:
-			err = p.procErr
-		default:
+	group.Go(func() error {
+		for ctx.Err() == nil {
+			rec, err := r.Read()
+			if rec == nil || err != nil {
+				return err
+			}
+			if err := w.Write(rec); err != nil {
+				return err
+			}
+			atomic.AddInt64(&recordCount, 1)
 		}
+		return nil
+	})
+	if interval > 0 {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					d.Stats(Stats{
+						BytesRead:      procs.bytesRead(),
+						RecordsWritten: atomic.LoadInt64(&recordCount),
+					})
+				}
+			}
+		}()
 	}
-	if rec != nil {
-		atomic.AddInt64(&p.records, 1)
-	}
-	return rec, err
-}
-
-func (p *analyzer) run() (err error) {
-	var shaper ast.Proc
-	if p.config.Shaper != "" {
-		if shaper, err = compiler.ParseProc(p.config.Shaper); err != nil {
-			close(p.procDone)
-			return err
-		}
-	}
-
-	p.workdir = p.config.WorkDir
-	if p.workdir == "" {
-		if p.workdir, err = os.MkdirTemp("", "brimcap-"); err != nil {
-			close(p.procDone)
-			return err
-		}
-	}
-
-	process, err := newLauncher(p.config)(p.ctx, p.workdir, p.reader)
-	if err != nil {
-		close(p.procDone)
-		p.removeWorkDir()
-		return err
-	}
-
-	tailer, err := ztail.New(p.zctx, p.workdir, p.config.ReaderOpts, p.config.Globs...)
-	if err != nil {
-		close(p.procDone)
-		p.removeWorkDir()
-		return err
-	}
-	tailer.WarningHandler(p.warner)
-
-	go func() {
-		p.procErr = process.Wait()
-		close(p.procDone)
-		// Tell DirReader to stop tail files, which will in turn cause an EOF on
-		// zbuf.Read stream when remaining data has been read.
-		if err := p.tailer.Stop(); p.procErr == nil {
-			p.procErr = err
-		}
-
-	}()
-
-	p.zreader = tailer
-	p.tailer = tailer
-	if shaper != nil {
-		p.zreader, err = driver.NewReader(p.ctx, shaper, p.zctx, p.zreader)
-		if err != nil {
-			close(p.procDone)
-			tailer.Close()
-			p.removeWorkDir()
-			return err
-		}
-	}
-	return nil
-}
-
-func (p *analyzer) RecordsRead() int64 {
-	return atomic.LoadInt64(&p.records)
-}
-
-func (p *analyzer) BytesRead() int64 {
-	return p.reader.Bytes()
-}
-
-func (p *analyzer) removeWorkDir() error {
-	if p.config.WorkDir == "" {
-		return os.RemoveAll(p.workdir)
-	}
-	return nil
-}
-
-// Close shutdowns the current process (if it is still active), shutdowns the
-// go-routine tailing for logs and removes the temporary log directory.
-func (p *analyzer) Close() (err error) {
-	p.cancel()
-	<-p.procDone
-
-	if p.tailer != nil {
-		err = p.tailer.Close()
-	}
-
-	if err2 := p.removeWorkDir(); err == nil {
-		err = err2
+	err = group.Wait()
+	if err == nil {
+		// Send final Stats upon completion.
+		d.Stats(Stats{
+			BytesRead:      procs.bytesRead(),
+			RecordsWritten: atomic.LoadInt64(&recordCount),
+		})
 	}
 	return err
-}
-
-type readCounter struct {
-	reader io.Reader
-	count  int64
-}
-
-func (r *readCounter) Read(b []byte) (int, error) {
-	n, err := r.reader.Read(b)
-	atomic.AddInt64(&r.count, int64(n))
-	return n, err
-}
-
-func (r *readCounter) Bytes() int64 {
-	return atomic.LoadInt64(&r.count)
 }

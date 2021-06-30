@@ -1,0 +1,41 @@
+script: |
+  chmod +x errorproc.sh sleepy.sh && mkdir wd && mv errorproc.sh sleepy.sh wd
+  # We expect the next command to fail.
+  brimcap analyze -config=config.yaml alerts.pcap || true
+
+inputs:
+  - name: alerts.pcap
+  - name: config.yaml
+    data: |
+      analyzers:
+        - cmd: ./errorproc.sh
+          globs: ["*.zson"] # so ztail will not try to read *.sh
+          stderr: stderr.out
+          workdir: wd
+        - cmd: ./sleepy.sh
+          globs: ["*.zson"] # so ztail will not try to read *.sh
+          workdir: wd
+        - cmd: ./sleepy.sh
+          globs: ["*.zson"] # so ztail will not try to read *.sh
+          workdir: wd
+        - cmd: ./sleepy.sh
+          globs: ["*.zson"] # so ztail will not try to read *.sh
+          workdir: wd
+  - name: errorproc.sh
+    data: |
+      #!/bin/bash
+      >&2 echo "some error information in stderr"
+      exit 1
+  - name: sleepy.sh
+    data: |
+      #!/bin/bash
+      { sleep 10 && kill $$; } >& /dev/null &
+      cat > /dev/null
+
+outputs:
+  - name: stderr
+    data: |
+      {"type":"error","error":"errorproc.sh exited with code 1\nstdout: (no output)\nstderr:\nsome error information in stderr\n"}
+  - name: stderr.out 
+    data: |
+      some error information in stderr

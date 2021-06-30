@@ -1,9 +1,8 @@
-//go:generate mockgen -destination=./mock/mock_process.go -package=mock github.com/brimdata/brimcap/analyzer ProcessWaiter
-
 package analyzer
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -12,98 +11,138 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
+	"syscall"
+
+	"github.com/brimdata/zed/zio"
+	"golang.org/x/sync/errgroup"
 )
 
-// ProcessWaiter is an interface for interacting with a running process.
-type ProcessWaiter interface {
-	// Wait waits for a running process to exit, returning any errors that
-	// occur.
-	Wait() error
+type operation struct {
+	counter *writeCounter
+	group   *errgroup.Group
 }
 
-type Process struct {
-	cmd     *exec.Cmd
-	stderr  *prefixSuffixSaver
-	stdout  *prefixSuffixSaver
-	closers []io.Closer
-}
+func (o *operation) bytesRead() int64 { return atomic.LoadInt64(&o.counter.written) }
+func (o *operation) wait() error      { return o.group.Wait() }
 
-func NewProcess(cmd *exec.Cmd) *Process {
-	return &Process{
-		cmd:    cmd,
-		stderr: &prefixSuffixSaver{N: 32 << 10},
-		stdout: &prefixSuffixSaver{N: 32 << 10},
-	}
-}
-
-func (p *Process) SetStdio(stderr string, stdout string) error {
-	if stderr != "" {
-		f, err := os.Create(stderr)
+func runProcesses(ctx context.Context, r io.Reader, confs ...Config) (*operation, error) {
+	var writers []io.Writer
+	group, ctx := errgroup.WithContext(ctx)
+	for _, conf := range confs {
+		cmd, writer, err := command(conf)
 		if err != nil {
-			return p.error(err)
+			return nil, err
 		}
-		p.cmd.Stderr = f
-		p.closers = append(p.closers, f)
+		group.Go(cmd.Run)
+		writers = append(writers, writer)
 	}
-
-	if stdout != "" {
-		f, err := os.Create(stdout)
-		if err != nil {
-			return p.error(err)
+	writeCounter := new(writeCounter)
+	writers = append(writers, writeCounter)
+	group.Go(func() error {
+		_, err := io.Copy(io.MultiWriter(writers...), r)
+		for _, w := range writers {
+			if closer, ok := w.(io.Closer); ok {
+				closer.Close()
+			}
 		}
-		p.cmd.Stdout = f
-		p.closers = append(p.closers, f)
-	}
-
-	return nil
+		// Broken pipe error is a result of a process shutting down. Return nil
+		// here since the process errors are more interesting.
+		if errors.Is(err, syscall.EPIPE) {
+			err = nil
+		}
+		return err
+	})
+	return &operation{
+		counter: writeCounter,
+		group:   group,
+	}, nil
 }
 
-func (p *Process) Start() error {
-	if p.cmd.Stderr == nil {
-		p.cmd.Stderr = p.stderr
-	} else {
-		p.cmd.Stderr = io.MultiWriter(p.stderr, p.cmd.Stderr)
+func command(conf Config) (*wrappedCmd, io.WriteCloser, error) {
+	cmd := exec.Command(conf.Cmd, conf.Args...)
+	cmd.Dir = conf.WorkDir
+	pw, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, nil, err
 	}
-
-	if p.cmd.Stdout == nil {
-		p.cmd.Stdout = p.stdout
-	} else {
-		p.cmd.Stdout = io.MultiWriter(p.cmd.Stdout, p.stdout)
-	}
-
-	err := p.cmd.Start()
-	return p.error(err)
+	return &wrappedCmd{
+		Cmd:         cmd,
+		stderrPath:  conf.StderrPath,
+		stderrSaver: &prefixSuffixSaver{N: 32 << 10},
+		stdoutPath:  conf.StdoutPath,
+		stdoutSaver: &prefixSuffixSaver{N: 32 << 10},
+	}, pw, nil
 }
 
-func (p *Process) Wait() error {
-	err := p.cmd.Wait()
-	for _, closer := range p.closers {
-		closer.Close()
-	}
-	return p.error(err)
+type wrappedCmd struct {
+	*exec.Cmd
+	stdoutPath  string
+	stdoutSaver *prefixSuffixSaver
+	stderrPath  string
+	stderrSaver *prefixSuffixSaver
+	wg          sync.WaitGroup
 }
 
-func (p *Process) error(err error) error {
+func (c *wrappedCmd) Run() error {
+	stderr, err := stdioWriter(c.stderrPath, c.stderrSaver)
+	if err != nil {
+		return err
+	}
+	defer stderr.Close()
+	stdout, err := stdioWriter(c.stdoutPath, c.stdoutSaver)
+	if err != nil {
+		return err
+	}
+	defer stdout.Close()
+	c.Cmd.Stderr, c.Cmd.Stdout = stderr, stdout
+	return c.error(c.Cmd.Run())
+}
+
+func stdioWriter(path string, saver *prefixSuffixSaver) (io.WriteCloser, error) {
+	if path == "" {
+		return zio.NopCloser(saver), nil
+	}
+	f, err := os.Create(path)
+	if err != nil {
+		return nil, err
+	}
+	w := io.MultiWriter(f, saver)
+	return struct {
+		io.Writer
+		io.Closer
+	}{w, f}, nil
+}
+
+func (c *wrappedCmd) error(err error) error {
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
 		return &ProcessExitError{
-			Args:   p.cmd.Args,
 			Err:    exitErr,
-			Path:   p.cmd.Path,
-			Stderr: p.stderr.Bytes(),
-			Stdout: p.stdout.Bytes(),
+			Path:   c.Cmd.Path,
+			Stderr: c.stderrSaver.Bytes(),
+			Stdout: c.stdoutSaver.Bytes(),
 		}
 	}
 	if err != nil {
-		name := filepath.Base(p.cmd.Path)
+		name := filepath.Base(c.Cmd.Path)
 		return fmt.Errorf("%s process error: %w", name, err)
 	}
-
 	return nil
 }
 
+type writeCounter struct {
+	written int64
+}
+
+func (w *writeCounter) Write(b []byte) (int, error) {
+	n := len(b)
+	atomic.AddInt64(&w.written, int64(n))
+	return n, nil
+}
+
 type ProcessExitError struct {
-	Args   []string
 	Err    *exec.ExitError
 	Path   string
 	Stderr []byte
