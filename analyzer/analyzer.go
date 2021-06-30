@@ -21,7 +21,7 @@ type Driver interface {
 }
 
 // Run executes the provided configs against the pcap stream, writing the
-// produced records to w. If interval is > 0, the Stats call in d will be called
+// produced records to w. If interval is > 0, d.Stats is called
 // at that interval.
 func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Driver, interval time.Duration, confs ...Config) error {
 	if err := Configs(confs).Validate(); err != nil {
