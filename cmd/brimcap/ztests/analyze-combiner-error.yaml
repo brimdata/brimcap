@@ -1,8 +1,7 @@
 script: |
-  # Undo -e since we expect all subsequent commands to fail.
-  set +e
   chmod +x errorproc.sh sleepy.sh && mkdir wd && mv errorproc.sh sleepy.sh wd
-  brimcap analyze -config=config.yaml alerts.pcap 
+  # We expect the next command to fail.
+  brimcap analyze -config=config.yaml alerts.pcap || true
 
 inputs:
   - name: alerts.pcap
