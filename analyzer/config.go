@@ -24,7 +24,7 @@ type Config struct {
 	WorkDir string `yaml:"workdir"`
 }
 
-func (c Config) Validate() error {
+func (c Config) validate() error {
 	if c.WorkDir == "" {
 		return fmt.Errorf("%s: workdir not set", c.Cmd)
 	}
@@ -49,7 +49,7 @@ type Configs []Config
 
 func (cs Configs) Validate() (merr error) {
 	for _, config := range cs {
-		if err := config.Validate(); err != nil {
+		if err := config.validate(); err != nil {
 			merr = multierr.Append(merr, err)
 		}
 	}

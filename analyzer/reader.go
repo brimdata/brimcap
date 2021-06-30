@@ -14,32 +14,32 @@ import (
 	"go.uber.org/multierr"
 )
 
-type Reader struct {
+type reader struct {
 	reader  zio.Reader
 	records int64
 	tailers tailers
 }
 
-func NewReader(ctx context.Context, warner zio.Warner, confs ...Config) (*Reader, error) {
+func newReader(ctx context.Context, warner zio.Warner, confs ...Config) (*reader, error) {
 	var tailers tailers
 	var readers []zio.Reader
 	zctx := zson.NewContext()
 	for _, conf := range confs {
 		reader, tailer, err := tailOne(ctx, zctx, conf, warner)
 		if err != nil {
-			tailers.Close()
+			tailers.close()
 			return nil, err
 		}
 		tailers = append(tailers, tailer)
 		readers = append(readers, reader)
 	}
-	return &Reader{
+	return &reader{
 		reader:  zio.NewCombiner(ctx, readers),
 		tailers: tailers,
 	}, nil
 }
 
-func (h *Reader) Read() (*zng.Record, error) {
+func (h *reader) Read() (*zng.Record, error) {
 	rec, err := h.reader.Read()
 	if rec != nil {
 		atomic.AddInt64(&h.records, 1)
@@ -47,8 +47,8 @@ func (h *Reader) Read() (*zng.Record, error) {
 	return rec, err
 }
 
-func (h *Reader) Stop() error        { return h.tailers.Stop() }
-func (h *Reader) Close() (err error) { return h.tailers.Close() }
+func (h *reader) stop() error        { return h.tailers.stop() }
+func (h *reader) close() (err error) { return h.tailers.close() }
 
 func tailOne(ctx context.Context, zctx *zson.Context, conf Config, warner zio.Warner) (zio.Reader, *ztail.Tailer, error) {
 	var shaper ast.Proc
@@ -76,7 +76,7 @@ func tailOne(ctx context.Context, zctx *zson.Context, conf Config, warner zio.Wa
 
 type tailers []*ztail.Tailer
 
-func (t tailers) Stop() error {
+func (t tailers) stop() error {
 	var merr error
 	for _, tailer := range t {
 		if err := tailer.Stop(); err != nil {
@@ -86,7 +86,7 @@ func (t tailers) Stop() error {
 	return merr
 }
 
-func (t tailers) Close() error {
+func (t tailers) close() error {
 	var merr error
 	for _, tailer := range t {
 		if err := tailer.Close(); err != nil {

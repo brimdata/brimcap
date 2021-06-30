@@ -15,32 +15,32 @@ type Stats struct {
 	RecordsWritten int64
 }
 
-type Driver interface {
+type Display interface {
 	zio.Warner
 	Stats(Stats) error
 }
 
 // Run executes the provided configs against the pcap stream, writing the
-// produced records to w. If interval is > 0, d.Stats is called
+// produced records to w. If interval is > 0, the d.Stats will be called
 // at that interval.
-func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Driver, interval time.Duration, confs ...Config) error {
+func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval time.Duration, confs ...Config) error {
 	if err := Configs(confs).Validate(); err != nil {
 		return err
 	}
 	group, ctx := errgroup.WithContext(ctx)
-	r, err := NewReader(ctx, d, confs...)
+	r, err := newReader(ctx, d, confs...)
 	if err != nil {
 		return err
 	}
-	procs, err := RunProcesses(ctx, pcap, confs...)
+	procs, err := runProcesses(ctx, pcap, confs...)
 	if err != nil {
-		r.Close()
+		r.close()
 		return err
 	}
 	var recordCount int64
 	group.Go(func() error {
-		defer r.Stop()
-		return procs.Wait()
+		defer r.stop()
+		return procs.wait()
 	})
 	group.Go(func() error {
 		for ctx.Err() == nil {
@@ -65,7 +65,7 @@ func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Driver, interval t
 					return
 				case <-ticker.C:
 					d.Stats(Stats{
-						BytesRead:      procs.BytesRead(),
+						BytesRead:      procs.bytesRead(),
 						RecordsWritten: atomic.LoadInt64(&recordCount),
 					})
 				}
@@ -76,7 +76,7 @@ func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Driver, interval t
 	if err == nil {
 		// Send final Stats upon completion.
 		d.Stats(Stats{
-			BytesRead:      procs.BytesRead(),
+			BytesRead:      procs.bytesRead(),
 			RecordsWritten: atomic.LoadInt64(&recordCount),
 		})
 	}

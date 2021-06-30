@@ -19,16 +19,15 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Operation struct {
+type operation struct {
 	counter *writeCounter
 	group   *errgroup.Group
 }
 
-func (o *Operation) BytesRead() int64 { return atomic.LoadInt64(&o.counter.written) }
-func (o *Operation) Wait() error      { return o.group.Wait() }
+func (o *operation) bytesRead() int64 { return atomic.LoadInt64(&o.counter.written) }
+func (o *operation) wait() error      { return o.group.Wait() }
 
-func RunProcesses(ctx context.Context, r io.Reader, confs ...Config) (*Operation, error) {
-	var cmds []*wrappedCmd
+func runProcesses(ctx context.Context, r io.Reader, confs ...Config) (*operation, error) {
 	var writers []io.Writer
 	group, ctx := errgroup.WithContext(ctx)
 	for _, conf := range confs {
@@ -36,14 +35,11 @@ func RunProcesses(ctx context.Context, r io.Reader, confs ...Config) (*Operation
 		if err != nil {
 			return nil, err
 		}
-		cmds = append(cmds, cmd)
+		group.Go(cmd.Run)
 		writers = append(writers, writer)
 	}
 	writeCounter := new(writeCounter)
 	writers = append(writers, writeCounter)
-	for _, cmd := range cmds {
-		group.Go(cmd.Run)
-	}
 	group.Go(func() error {
 		_, err := io.Copy(io.MultiWriter(writers...), r)
 		for _, w := range writers {
@@ -58,7 +54,7 @@ func RunProcesses(ctx context.Context, r io.Reader, confs ...Config) (*Operation
 		}
 		return err
 	})
-	return &Operation{
+	return &operation{
 		counter: writeCounter,
 		group:   group,
 	}, nil
@@ -101,12 +97,7 @@ func (c *wrappedCmd) Run() error {
 	}
 	defer stdout.Close()
 	c.Cmd.Stderr, c.Cmd.Stdout = stderr, stdout
-	err = c.Cmd.Start()
-	if err != nil {
-		return c.error(err)
-	}
-	err = c.Cmd.Wait()
-	return c.error(err)
+	return c.error(c.Cmd.Run())
 }
 
 func stdioWriter(path string, saver *prefixSuffixSaver) (io.WriteCloser, error) {
@@ -124,20 +115,15 @@ func stdioWriter(path string, saver *prefixSuffixSaver) (io.WriteCloser, error) 
 	}{w, f}, nil
 }
 
-type nopCloser struct{}
-
-func (n nopCloser) Close() error { return nil }
-
 func (c *wrappedCmd) error(err error) error {
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
-		perr := &ProcessExitError{
+		return &ProcessExitError{
 			Err:    exitErr,
 			Path:   c.Cmd.Path,
 			Stderr: c.stderrSaver.Bytes(),
 			Stdout: c.stdoutSaver.Bytes(),
 		}
-		return perr
 	}
 	if err != nil {
 		name := filepath.Base(c.Cmd.Path)
