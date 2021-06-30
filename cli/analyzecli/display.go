@@ -42,9 +42,10 @@ func NewDisplay(jsonOut bool, pcapsize int64, span nano.Span) Display {
 type statusLineDisplay struct {
 	live          *uilive.Writer
 	pcapsize      int64
-	warnings      map[string]int
 	warningsCount int64
-	warningsMu    sync.Mutex
+
+	warningsMu sync.Mutex
+	warnings   map[string]int
 }
 
 func (d *statusLineDisplay) Warn(msg string) error {
