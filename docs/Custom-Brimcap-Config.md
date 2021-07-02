@@ -14,7 +14,7 @@
 
 # Summary
 
-When used out-of-the-box in a default configuration, `brimcap load` invokes
+When used out-of-the-box in a default configuration, `brimcap analyze` invokes
 Zeek and Suricata binaries that are bundled with Brimcap to generate
 richly-typed summary logs from pcap files. However, one of Brimcap's strengths
 is its ability to invoke any arbitrary combination of such "analyzers" that
@@ -52,8 +52,8 @@ these were never fully documented.
 * **`v0.25.0` and newer** - Brimcap is now bundled as part of Brim. Brimcap
 includes Zeek and Suricata binaries equivalent to those that were bundled with
 Brim `v0.24.0` and older, however they are no longer launched by the Zed
-backend. Instead Brim now runs `brimcap load` for each pcap imported into the
-app. In a default configuration, `brimcap load` invokes runner scripts
+backend. Instead Brim now runs `brimcap analyze` for each pcap imported into the
+app. In a default configuration, `brimcap analyze` invokes runner scripts
 that point to the Zeek/Suricata binaries that are bundled with Brimcap,
 effectively providing an out-of-the-box experience equivalent to what is
 possible in Brim `v0.24.0`. However, for custom configurations, Brimcap
@@ -120,8 +120,10 @@ wrapper scripts are copied to `/usr/local/bin`, the configuration can be tested
 outside the app to import a `sample.pcap` like so:
 
 ```
-$ /opt/Brim/resources/app.asar.unpacked/zdeps/zed api create -p testpool
-$ /opt/Brim/resources/app.asar.unpacked/zdeps/brimcap load -root "$HOME/.config/Brim/data/brimcap-root" -config zeek-suricata.yml -p testpool sample.pcap
+$ export ZDEPS="/opt/Brim/resources/app.asar.unpacked/zdeps"
+$ $ZDEPS/zed api create -p testpool
+$ $ZDEPS/brimcap analyze -config zeek-suricata.yml sample.pcap | $ZDEPS/zed api load -p testpool -
+$ $ZDEPS/brimcap index -root "$HOME/.config/Brim/data/brimcap-root" -r sample.pcap
 ```
 
 > **Note**: The `zdeps` directory that contains the `zed` and `brimcap`
@@ -136,17 +138,14 @@ binaries varies per platform.
 If successful, the new pool will appear in Brim, allowing you to browse the
 logs and open flows from the pcap via the **Packets** button.
 
-> **Note:** Until [brim/950](https://github.com/brimdata/brim/issues/950) is
-> implemented, manually click **View > Reload** in Brim to see the updated
-> pool data.
-
 ![NetFlow Pool](media/Custom-Zeek-Suricata-Pool.png)
 
-The same `brimcap load` command line can be used to incrementally add more logs
-to the same pool for additional pcaps, which was not possible pre-Brimcap. The
-setting in the Brim **Preferences** for the **Brimcap YAML Config File** can
-also be pointed at the path to this configuration file, which will cause it to
-be invoked when you open or drag pcap files into Brim.
+The same combination of `brimcap` and `zed api` commands can be used to
+incrementally add more logs to the same pool and index for additional pcaps,
+which was not possible pre-Brimcap. The setting in the Brim **Preferences** for
+the **Brimcap YAML Config File** can also be pointed at the path to this
+configuration file, which will cause it to be invoked when you open or drag
+pcap files into Brim.
 
 ![Brim YAML Config File Preference](media/Brim-Pref-YAML-Config-File.png)
 
@@ -160,22 +159,28 @@ analyzers:
   - cmd: /usr/local/bin/suricata-wrapper.sh
 ```
 
-A Brimcap analyzer has the following characteristics:
+To be invoked successfully by Brimcap, an analyzer process should have the
+following characteristics:
 
-1. It expects pcap input to be streamed to it via standard input (stdin)
-2. It's expected to output log files that can be further processed as soon as
-lines are appended to them (i.e. `tail` could process them)
-3. By default, an analyzer's log outputs accumulate in a temporary directory
+1. It expects pcap input to be streamed to it via standard input (stdin).
+2. It is assumed that if stdin is closed on a process launched by the analyzer,
+that process will exit.
+3. The analyzer process must ensure that all processes that have inherited
+stdout/stderr have been killed before the analyzer process exits.
+4. It's expected to output log files that can be further processed as soon as
+lines are appended to them (i.e. `tail` could process them).
+
+By default, an analyzer's log outputs accumulate in a temporary directory
 that's automatically deleted when Brimcap exits (see the [Debug](#debug)
-section for more details)
-4. Additional per-analyzer options can be used to determine which generated
-logs are loaded and what additional processing is performed on them
+section for more details). Additional per-analyzer options can be used to
+determine which generated logs are loaded and what additional processing is
+performed on them.
 
-The first analyzer invoked by Brimcap is a wrapper script as referenced in the
-YAML. In addition to taking input on stdin, it also sets Zeek to ignore
-checksums (since these are often set incorrectly on pcaps) and we also disable
-a couple of the excess log outputs. This is very similar to the Zeek Runner
-script that was included with Brim `v0.24.0`.
+In our example config, the first analyzer invoked by Brimcap is a wrapper
+script as referenced in the YAML. In addition to taking input on stdin, it also
+sets Zeek to ignore checksums (since these are often set incorrectly on pcaps)
+and we also disable a couple of the excess log outputs. This is very similar to
+the Zeek Runner script that was included with Brim `v0.24.0`.
 
 ```
 $ cat zeek-wrapper.sh
@@ -188,7 +193,7 @@ exec /opt/zeek/bin/zeek -C -r - --exec "event zeek_init() { Log::disable_stream(
 > scripts referenced in your YAML (e.g. `/usr/local/bin/zeek-wrapper.sh`) and
 > in your wrapper scripts (e.g. `/opt/zeek/bin`) since Brim may not have the
 > benefit of the same `$PATH` setting as your interactive shell when it invokes
-> `brimcap load` with your custom config.
+> `brimcap analyze` with your custom config.
 
 We use a similar wrapper for Suricata.
 
@@ -206,9 +211,9 @@ filename specifications that may include
 that isolate a subset of the log outputs from the analyzer that should be
 processed. In this case we don't even need to use a `*` wildcard since we're
 only seeking to import the single output file. If we'd not included this
-setting, `brimcap load` would have failed when attempting to import the
-complete set of Suricata's log outputs, since several of its default outputs
-other than `eve.json` are not of Zed-compatible formats.
+setting, `brimcap analyze` would have failed when attempting to process
+the complete set of Suricata's log outputs, since several of its default
+outputs other than `eve.json` are not of Zed-compatible formats.
 
 ```
 analyzers:
@@ -441,12 +446,13 @@ analyzers:
 > that would reduce the scope of such clashes and hopefully make this escaping
 > unnecessary.
 
-Putting it all together, we can test it by creating a new pool and then running
-`brimcap load` to import a sample pcap.
+Putting it all together, we can test it by using our command combination to
+create a new pool and import the data for a sample pcap.
 
 ```
-$ /opt/Brim/resources/app.asar.unpacked/zdeps/zed api create -p testpool2
-$ /opt/Brim/resources/app.asar.unpacked/zdeps/brimcap load -root "$HOME/.config/Brim/data/brimcap-root" -config nfdump.yml -p testpool2 sample.pcap
+$ export ZDEPS="/opt/Brim/resources/app.asar.unpacked/zdeps"
+$ $ZDEPS/zed api create -p testpool2
+$ $ZDEPS/brimcap analyze -config nfdump.yml sample.pcap | $ZDEPS/zed api load -p testpool2 -
 ```
 
 Our pool is now ready to be queried in Brim.
@@ -483,14 +489,13 @@ removed by Brimcap. If your analyzer appends to its log outputs, you'll likely
 want to delete the contents of the working directory between Brimcap runs to
 avoid accumulating redundant logs.
 
-Repeating our `brimcap load` now with this enhanced YAML, we see after the run
-that the logs have been left behind for further examination.
+Repeating our `brimcap analyze` now with this enhanced YAML, we see after the
+run that the logs have been left behind for further examination.
 
 ```
 $ ls -l /tmp/suricata-wd /tmp/zeek-wd
 /tmp/suricata-wd:
 total 1743088
--rw-r--r--  1 phil  staff  407681197 May  6 11:06 deduped-eve.json
 -rw-r--r--  1 phil  staff  407682820 May  6 11:06 eve.json
 -rw-r--r--  1 phil  staff   53312039 May  6 11:05 fast.log
 -rw-r--r--  1 phil  staff      30739 May  6 11:06 stats.log
