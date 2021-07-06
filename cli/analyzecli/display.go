@@ -32,8 +32,10 @@ func NewDisplay(jsonOut bool, pcapsize int64, span nano.Span) Display {
 			span:     s,
 		}
 	}
+	live := uilive.New()
+	live.Start()
 	return &statusLineDisplay{
-		live:     uilive.New(),
+		live:     live,
 		pcapsize: pcapsize,
 		warnings: make(map[string]int),
 	}
