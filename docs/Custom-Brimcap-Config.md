@@ -162,13 +162,10 @@ analyzers:
 To be invoked successfully by Brimcap, an analyzer process should have the
 following characteristics:
 
-1. It expects pcap input to be streamed to it via standard input (stdin).
-2. It is assumed that if stdin is closed on a process launched by the analyzer,
-that process will exit.
-3. The analyzer process must ensure that all processes that have inherited
-stdout/stderr have been killed before the analyzer process exits.
-4. It's expected to output log files that can be further processed as soon as
-lines are appended to them (i.e. `tail` could process them).
+1. It reads one pcap from its standard input (stdin).
+2. It exits after its standard input is closed.
+3. It terminates any descendant processes when it exits.
+4. It writes to log outputs only by appending.
 
 By default, an analyzer's log outputs accumulate in a temporary directory
 that's automatically deleted when Brimcap exits (see the [Debug](#debug)
