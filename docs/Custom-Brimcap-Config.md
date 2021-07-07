@@ -177,7 +177,7 @@ determine which generated logs are loaded and what additional processing is
 performed on them.
 
 In our example config, the first analyzer invoked by Brimcap is a wrapper
-script as referenced in the YAML. In addition to taking input on stdin, it also
+script as referenced in the YAML. In addition to reading from its standard input, it also
 tells Zeek to ignore checksums (since these are often set incorrectly on pcaps)
 and disables a couple of the excess log outputs. This is very similar to
 the Zeek Runner script that was included with Brim `v0.24.0`.
