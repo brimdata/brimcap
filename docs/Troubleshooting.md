@@ -29,7 +29,7 @@ detail.
 To start debugging such problems, it helps to understand how Brim opens flows
 extracted from pcaps. Once the [5-tuple](https://www.napatech.com/what-is-a-flow/), connection start time, and connection
 duration are isolated from the Zeek `conn` record for the flow, Brim
-executes a `brimcap search` command to extract the packets for the target flow
+invokes `brimcap search` to extract the packets for the target flow
 into a temporary file. Once this temporary file has been written to the local
 filesystem, the application on your operating system that's configured to
 automatically open files ending in `.pcap` will be launched to open this file.
