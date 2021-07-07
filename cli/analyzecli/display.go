@@ -60,10 +60,10 @@ func (d *statusLineDisplay) Warn(msg string) error {
 
 func (d *statusLineDisplay) Stats(stats analyzer.Stats) error {
 	if d.pcapsize > 0 {
-		percent := float64(stats.BytesRead) / float64(d.pcapsize)
-		fmt.Fprintf(d.live, "%5.1f%% %s/%s ", percent, units.Bytes(stats.BytesRead), units.Bytes(d.pcapsize))
+		percent := (float64(stats.BytesRead) / float64(d.pcapsize)) * 100
+		fmt.Fprintf(d.live, "%5.1f%% %s/%s ", percent, units.Bytes(stats.BytesRead).Abbrev(), units.Bytes(d.pcapsize).Abbrev())
 	} else {
-		fmt.Fprintf(d.live, "%s ", units.Bytes(stats.BytesRead))
+		fmt.Fprintf(d.live, "%s ", units.Bytes(stats.BytesRead).Abbrev())
 	}
 	fmt.Fprintf(d.live, "records=%d ", stats.RecordsWritten)
 	if warnings := atomic.LoadInt64(&d.warningsCount); warnings > 0 {
