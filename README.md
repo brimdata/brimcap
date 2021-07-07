@@ -34,7 +34,7 @@ Whenever a pcap is imported into Brim, the app takes the following steps:
 
 3. `brimcap index` is invoked to populate a local pcap index that allows for
    quick extraction of flows via Brim's **Packets** button, which the app
-   performs by executing a `brimcap search` command.
+   performs by invoking `brimcap search`.
 
 If Brim is running, you can perform these same  operations from your shell,
 which may prove useful for automation or batch import of many pcaps to the same
