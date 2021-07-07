@@ -176,7 +176,7 @@ section for more details). Additional per-analyzer options can be used to
 determine which generated logs are loaded and what additional processing is
 performed on them.
 
-In our example config, the first analyzer invoked by Brimcap is a wrapper
+In our example configuration, the first analyzer invoked by Brimcap is a wrapper
 script as referenced in the YAML. In addition to reading from its standard input, it also
 tells Zeek to ignore checksums (since these are often set incorrectly on pcaps)
 and disables a couple of the excess log outputs. This is very similar to
