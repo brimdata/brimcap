@@ -120,10 +120,10 @@ wrapper scripts are copied to `/usr/local/bin`, the configuration can be tested
 outside the app to import a `sample.pcap` like so:
 
 ```
-$ export ZDEPS="/opt/Brim/resources/app.asar.unpacked/zdeps"
-$ $ZDEPS/zed api create -p testpool
-$ $ZDEPS/brimcap analyze -config zeek-suricata.yml sample.pcap | $ZDEPS/zed api load -p testpool -
-$ $ZDEPS/brimcap index -root "$HOME/.config/Brim/data/brimcap-root" -r sample.pcap
+$ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
+$ zed api create -p testpool
+$ brimcap analyze -config zeek-suricata.yml sample.pcap | zed api load -p testpool -
+$ brimcap index -root "$HOME/.config/Brim/data/brimcap-root" -r sample.pcap
 ```
 
 > **Note**: The `zdeps` directory that contains the `zed` and `brimcap`
@@ -447,9 +447,9 @@ Putting it all together, we can test it by using our command combination to
 create a new pool and import the data for a sample pcap.
 
 ```
-$ export ZDEPS="/opt/Brim/resources/app.asar.unpacked/zdeps"
-$ $ZDEPS/zed api create -p testpool2
-$ $ZDEPS/brimcap analyze -config nfdump.yml sample.pcap | $ZDEPS/zed api load -p testpool2 -
+$ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
+$ zed api create -p testpool2
+$ brimcap analyze -config nfdump.yml sample.pcap | zed api load -p testpool2 -
 ```
 
 Our pool is now ready to be queried in Brim.
