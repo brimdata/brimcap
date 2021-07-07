@@ -193,7 +193,7 @@ exec /opt/zeek/bin/zeek -C -r - --exec "event zeek_init() { Log::disable_stream(
 > scripts referenced in your YAML (e.g. `/usr/local/bin/zeek-wrapper.sh`) and
 > in your wrapper scripts (e.g. `/opt/zeek/bin`) since Brim may not have the
 > benefit of the same `$PATH` setting as your interactive shell when it invokes
-> `brimcap analyze` with your custom config.
+> `brimcap analyze` with your custom configuration.
 
 We use a similar wrapper for Suricata.
 
