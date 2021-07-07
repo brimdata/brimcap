@@ -173,7 +173,7 @@ lines are appended to them (i.e. `tail` could process them).
 By default, an analyzer's log outputs accumulate in a temporary directory
 that's automatically deleted when Brimcap exits (see the [Debug](#debug)
 section for more details). Additional per-analyzer options can be used to
-determine which generated logs are loaded and what additional processing is
+specify which output logs are loaded and what additional processing is
 performed on them.
 
 In our example configuration, the first analyzer invoked by Brimcap is a wrapper
