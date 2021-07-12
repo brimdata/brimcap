@@ -39,8 +39,8 @@ for viewing the logs in the rich GUI of the Brim desktop app
 Additionally logs can also be written as ndjson and then operated on using jq
 (https://stedolan.github.io/jq/).
 
-The brimcap index can be used to index pcap files, then the index can be
-efficiently searched via brimcap search, such as for flow extraction.
+The brimcap index command can be used to index pcap files for
+flow extraction via the brimcap search command.
 `,
 	New: New,
 }
