@@ -1,0 +1,43 @@
+script: |
+  chmod +x badoutput.sh success.sh
+  mkdir wd1; mv badoutput.sh wd1
+  mkdir wd2; mv success.sh wd2
+  brimcap analyze -config=config.yaml alerts.pcap > out.zng
+
+inputs:
+  - name: config.yaml
+    data: |
+      analyzers:
+        - cmd: ./badoutput.sh
+          globs: ["*.json"] # so ztail will not try to read *.sh
+          workdir: wd1
+        - cmd: ./success.sh
+          globs: ["*.json"] # so ztail will not try to read *.sh
+          workdir: wd2
+  - name: badoutput.sh
+    data: |
+      #!/bin/bash
+      cat << EOF > bad.json
+      {"msg":1}
+      {"msg":2}
+      {"msg":3}
+      {"msg
+      EOF
+      cat > /dev/null
+  - name: success.sh
+    data: |
+      #!/bin/bash
+      cat << EOF > success.json
+      {"msg":1}
+      {"msg":2}
+      {"msg":3}
+      {"msg":4}
+      EOF
+      cat > /dev/null
+  - name: alerts.pcap
+
+outputs:
+  - name: stderr
+    regexp: |
+      \{"type":"warning","warning":"\.\/badoutput.sh: .*bad\.json: parse error: parsing string literal"\}
+      \{"type":"status","ts":\{"sec":\d+,"ns":\d+\},"pcap_read_size":737694,"pcap_total_size":737694,"records_written":7\}
