@@ -1,3 +1,10 @@
+## v0.0.6
+* Move the [Geolocation article](https://github.com/brimdata/brimcap/wiki/Geolocation) over from the Brimcap wiki (#104)
+* Refactor `brimcap analyze` to use the new Zed Lake add/commit endpoints and fix a deadlock issue (#110)
+* Fix a deadlock issue that was caused by an analyze process writing no records (#115)
+* Fix the percentage and byte counts on the command line status updates (#116)
+* Drop `brimcap load` in favor of granular use of `brimcap analyze`, `brimcap index` and `zapi` (#117, #114, #120)
+
 ## v0.0.5
 * Publish [Custom Brimcap Configuration](https://github.com/brimdata/brimcap/wiki/Custom-Brimcap-Config) wiki article (#72)
 * Update the README (#96)
