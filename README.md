@@ -12,6 +12,7 @@ the [`zq` command line utility](https://github.com/brimdata/zed/tree/main/cmd/ze
 1. [Install brimcap](#standalone-install)
 2. Have a pcap handy (or download a [sample pcap](https://wiki.wireshark.org/SampleCaptures))
 3. Run `brimcap analyze`
+
    ```
    brimcap analyze sample.pcap > sample.zng
    ```
@@ -23,14 +24,19 @@ the [`zq` command line utility](https://github.com/brimdata/zed/tree/main/cmd/ze
 ## Usage with Brim desktop app
 
 brimcap is bundled with the [Brim desktop app](https://github.com/brimdata/brim).
-Whenever a pcap is imported into Brim, the app executes `brimcap load` to
-generate output equivalent to that from `brimcap analyze`, then those logs are
-imported into a [Pool in the Zed Lake](https://github.com/brimdata/zed/blob/main/docs/lake/README.md)
-behind Brim. `brimcap load` also populates a pcap index that allows for
-quick extraction of flows via Brim's **Packets** button, which the app performs
-by executing a `brimcap search` command.
+Whenever a pcap is imported into Brim, the app takes the following steps:
 
-If Brim is running, you can perform these `load` operations from your shell,
+1. `brimcap analyze` is invoked to generate logs from the pcap.
+
+2. The logs are imported into a newly-created
+   [Pool in the Zed Lake](https://github.com/brimdata/zed/blob/main/docs/lake/README.md)
+   behind Brim, similar to how `zapi create` and `zapi load` are used.
+
+3. `brimcap index` is invoked to populate a local pcap index that allows for
+   quick extraction of flows via Brim's **Packets** button, which the app
+   performs by invoking `brimcap search`.
+
+If Brim is running, you can perform these same  operations from your shell,
 which may prove useful for automation or batch import of many pcaps to the same
 Pool. The [Custom Brimcap Config](https://github.com/brimdata/brimcap/wiki/Custom-Brimcap-Config)
 article shows example command lines along with other advanced configuration

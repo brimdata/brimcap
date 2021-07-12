@@ -29,7 +29,7 @@ detail.
 To start debugging such problems, it helps to understand how Brim opens flows
 extracted from pcaps. Once the [5-tuple](https://www.napatech.com/what-is-a-flow/), connection start time, and connection
 duration are isolated from the Zeek `conn` record for the flow, Brim
-executes a `brimcap load` command to extract the packets for the target flow
+invokes `brimcap search` to extract the packets for the target flow
 into a temporary file. Once this temporary file has been written to the local
 filesystem, the application on your operating system that's configured to
 automatically open files ending in `.pcap` will be launched to open this file.
@@ -99,9 +99,10 @@ regardless of how long the flow lasts.
 To similarly attempt to isolate flows, Brim relies on Zeek's `conn` event,
 which includes the `id` and `proto` fields that capture the 5-tuple for a
 flow, along with the fields for `ts` (time of first packet) and `duration`
-(how long the connection lasted). Brim uses these values to construct a`brimcap load` command line to extract the flow from the indexed pcap file. However,
-this is where Zeek's occasionally different perception of flows may come into
-play.
+(how long the connection lasted). Brim uses these values to construct a
+`brimcap search` command line to extract the flow from the indexed pcap file.
+However, this is where Zeek's occasionally different perception of flows may
+come into play.
 
 For starters, Zeek's [`conn` documentation](https://docs.zeek.org/en/current/scripts/base/protocols/conn/main.zeek.html#type-Conn::Info)
 discloses that the time span covered by the `duration` field "will not include the final ACK [...] for 3-way or 4-way [TCP] connection tear-downs". Therefore
