@@ -53,7 +53,9 @@ type Command struct {
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{}
 	c.cli.SetFlags(f)
-	isterm := term.IsTerminal(int(os.Stdout.Fd()))
+	isterm := term.IsTerminal(int(os.Stdout.Fd())) ||
+		term.IsTerminal(int(os.Stdin.Fd())) ||
+		term.IsTerminal(int(os.Stderr.Fd()))
 	f.BoolVar(&LogJSON, "json", !isterm, "encode stderr in json")
 	return c, nil
 }
