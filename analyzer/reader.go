@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"context"
+	"fmt"
 	"sync/atomic"
 
 	"github.com/brimdata/brimcap/ztail"
@@ -62,16 +63,34 @@ func tailOne(ctx context.Context, zctx *zson.Context, conf Config, warner zio.Wa
 	if err != nil {
 		return nil, nil, err
 	}
-	tailer.WarningHandler(warner)
+	wrapped := wrappedReader{reader: tailer, warner: warner, cmd: conf.Cmd}
+	tailer.WarningHandler(wrapped)
 	if shaper != nil {
-		zreader, err := driver.NewReader(ctx, shaper, zctx, tailer)
+		wrapped.reader, err = driver.NewReader(ctx, shaper, zctx, tailer)
 		if err != nil {
 			tailer.Close()
 			return nil, nil, err
 		}
-		return zreader, tailer, nil
 	}
-	return tailer, tailer, nil
+	return wrapped, tailer, nil
+}
+
+type wrappedReader struct {
+	cmd    string
+	warner zio.Warner
+	reader zio.Reader
+}
+
+func (w wrappedReader) Warn(msg string) error {
+	return w.warner.Warn(fmt.Sprintf("%s: %s", w.cmd, msg))
+}
+
+func (w wrappedReader) Read() (*zng.Record, error) {
+	rec, err := w.reader.Read()
+	if err != nil {
+		err = fmt.Errorf("%s: %w", w.cmd, err)
+	}
+	return rec, err
 }
 
 type tailers []*ztail.Tailer
