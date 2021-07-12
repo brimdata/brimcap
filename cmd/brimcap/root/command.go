@@ -28,13 +28,11 @@ to Zeek and Suricata) and emits the generated logs from these processes. Brimcap
 is built on top of the flexible Zed system (https://github.com/brimdata/zed),
 so the logs can be written into a variety of structured log formats.
 
-For those familiar with zq (https://github.com/brimdata/zed/tree/main/cmd/zed#zq),
-logs can written as ZNG or ZSON, then use zq to efficiently search through
-them. Logs of these same formats could also be loaded into a Zed lake
-(https://github.com/brimdata/zed/blob/main/docs/lake/design.md) using
-zapi (https://github.com/brimdata/zed/tree/main/cmd/zed#zapi), which allows
-for viewing the logs in the rich GUI of the Brim desktop app
-(https://github.com/brimdata/brim).
+Logs written as ZNG or ZSON can be searched with
+zq (https://github.com/brimdata/zed/tree/main/cmd/zed#zq) or loaded into a
+Zed lake (https://github.com/brimdata/zed/blob/main/docs/lake/design.md)
+using zapi (https://github.com/brimdata/zed/tree/main/cmd/zed#zapi) for
+viewing in the Brim desktop app (https://github.com/brimdata/brim).
 
 Additionally logs can also be written as ndjson and then operated on using jq
 (https://stedolan.github.io/jq/).
