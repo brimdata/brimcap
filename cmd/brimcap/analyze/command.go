@@ -60,12 +60,6 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	return c, nil
 }
 
-// json:
-// - always display stats in stderr (except if -nostats is enabled)
-// status line display stats iff:
-// - -o is a file: display stats
-// - -o is stdout and stdout is NOT a terminal: display stats
-
 func (c *Command) Run(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
@@ -92,6 +86,11 @@ func (c *Command) Run(args []string) (err error) {
 	if err != nil {
 		return err
 	}
+	// json:
+	// - always display stats (except if -nostats is enabled)
+	// status line display stats iff:
+	// - -o is a file: display stats
+	// - -o is stdout and stdout is NOT a terminal: display stats
 	if root.LogJSON {
 		c.Display = analyzecli.JSONDisplay(!c.nostats, info.Size(), nano.Span{})
 	} else {
