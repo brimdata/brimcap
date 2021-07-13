@@ -4,6 +4,7 @@ package ztail
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
@@ -33,22 +34,30 @@ type Tailer struct {
 	watchWg sync.WaitGroup
 }
 
-func New(zctx *zson.Context, dir string, opts anyio.ReaderOpts, globs ...string) (*Tailer, error) {
+func New(zctx *zson.Context, dir string, opts anyio.ReaderOpts, warner zio.Warner, globs ...string) (*Tailer, error) {
 	dir = filepath.Clean(dir)
 	tailer, err := tail.TailDir(dir, globs...)
 	if err != nil {
 		return nil, err
+	}
+	if warner == nil {
+		warner = nopWarner{}
 	}
 	r := &Tailer{
 		opts:    opts,
 		readers: make(map[string]*tail.File),
 		results: make(chan result, 5),
 		tailer:  tailer,
+		warner:  warner,
 		zctx:    zctx,
 	}
 	go r.start()
 	return r, nil
 }
+
+type nopWarner struct{}
+
+func (nopWarner) Warn(_ string) error { return nil }
 
 type result struct {
 	rec *zng.Record
@@ -123,7 +132,7 @@ func (t *Tailer) tailFile(file string) error {
 		zf, err := anyio.OpenFromNamedReadCloser(t.zctx, f, file, t.opts)
 		if err != nil {
 			f.Close()
-			t.results <- result{err: err}
+			t.warner.Warn(fmt.Sprintf("%s: %v", filepath.Base(file), err))
 			return
 		}
 		defer zf.Close()
@@ -145,10 +154,6 @@ func (t *Tailer) tailFile(file string) error {
 		}
 	}()
 	return nil
-}
-
-func (t *Tailer) WarningHandler(warner zio.Warner) {
-	t.warner = warner
 }
 
 func (t *Tailer) Read() (*zng.Record, error) {
