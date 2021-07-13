@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sync"
-	"sync/atomic"
 
 	"github.com/brimdata/brimcap/analyzer"
 	"github.com/brimdata/zed/pkg/nano"
@@ -20,45 +18,37 @@ type Display interface {
 	End()
 }
 
-func NewDisplay(jsonOut bool, pcapsize int64, span nano.Span) Display {
-	if jsonOut {
-		var s *nano.Span
-		if span.Dur > 0 {
-			s = &span
-		}
-		return &jsonDisplay{
-			encoder:  json.NewEncoder(os.Stderr),
-			pcapsize: pcapsize,
-			span:     s,
-		}
-	}
-	live := uilive.New()
-	live.Start()
-	return &statusLineDisplay{
-		live:     live,
+func StatusLineDisplay(stats bool, pcapsize int64, span nano.Span) Display {
+	d := &statusLineDisplay{
+		bypass:   os.Stderr,
 		pcapsize: pcapsize,
-		warnings: make(map[string]int),
+		stats:    stats,
 	}
+	if stats {
+		d.live = uilive.New()
+		d.live.Out = os.Stderr
+		d.live.Start()
+		d.bypass = d.live.Bypass()
+	}
+	return d
 }
 
 type statusLineDisplay struct {
-	live          *uilive.Writer
-	pcapsize      int64
-	warningsCount int64
-
-	warningsMu sync.Mutex
-	warnings   map[string]int
+	bypass   io.Writer
+	live     *uilive.Writer
+	pcapsize int64
+	stats    bool
 }
 
 func (d *statusLineDisplay) Warn(msg string) error {
-	d.warningsMu.Lock()
-	d.warnings[msg]++
-	d.warningsMu.Unlock()
-	atomic.AddInt64(&d.warningsCount, 1)
+	fmt.Fprintln(d.bypass, msg)
 	return nil
 }
 
 func (d *statusLineDisplay) Stats(stats analyzer.Stats) error {
+	if !d.stats {
+		return nil
+	}
 	if d.pcapsize > 0 {
 		percent := (float64(stats.BytesRead) / float64(d.pcapsize)) * 100
 		fmt.Fprintf(d.live, "%5.1f%% %s/%s ", percent, units.Bytes(stats.BytesRead).Abbrev(), units.Bytes(d.pcapsize).Abbrev())
@@ -66,31 +56,34 @@ func (d *statusLineDisplay) Stats(stats analyzer.Stats) error {
 		fmt.Fprintf(d.live, "%s ", units.Bytes(stats.BytesRead).Abbrev())
 	}
 	fmt.Fprintf(d.live, "records=%d ", stats.RecordsWritten)
-	if warnings := atomic.LoadInt64(&d.warningsCount); warnings > 0 {
-		fmt.Fprintf(d.live, "warnings=%d", warnings)
-	}
 	io.WriteString(d.live, "\n")
 	return d.live.Flush()
 }
 
 func (d *statusLineDisplay) End() {
-	d.live.Stop()
-	warnings := atomic.LoadInt64(&d.warningsCount)
-	if warnings == 0 {
-		return
+	if d.live != nil {
+		d.live.Stop()
 	}
-	fmt.Fprintf(os.Stderr, "%d warnings occurred while parsing log data:\n", warnings)
-	d.warningsMu.Lock()
-	for msg, count := range d.warnings {
-		fmt.Fprintf(os.Stderr, "    %s: x%d\n", msg, count)
+}
+
+func JSONDisplay(stats bool, pcapsize int64, span nano.Span) Display {
+	var s *nano.Span
+	if span.Dur > 0 {
+		s = &span
 	}
-	d.warningsMu.Unlock()
+	return &jsonDisplay{
+		encoder:  json.NewEncoder(os.Stderr),
+		pcapsize: pcapsize,
+		span:     s,
+		stats:    stats,
+	}
 }
 
 type jsonDisplay struct {
 	encoder  *json.Encoder
 	pcapsize int64
 	span     *nano.Span
+	stats    bool
 }
 
 func (j *jsonDisplay) Warn(msg string) error {
@@ -101,6 +94,9 @@ func (j *jsonDisplay) Warn(msg string) error {
 }
 
 func (j *jsonDisplay) Stats(stats analyzer.Stats) error {
+	if !j.stats {
+		return nil
+	}
 	return j.encoder.Encode(MsgStatus{
 		Type:           "status",
 		Ts:             nano.Now(),

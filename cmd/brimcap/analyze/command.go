@@ -3,6 +3,7 @@ package analyze
 import (
 	"errors"
 	"flag"
+	"os"
 	"time"
 
 	"github.com/brimdata/brimcap/analyzer"
@@ -13,6 +14,7 @@ import (
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/storage"
+	"golang.org/x/term"
 )
 
 var Analyze = &charm.Spec{
@@ -46,6 +48,7 @@ type Command struct {
 	*root.Command
 	analyzecli.Display
 	analyzeflags analyzecli.Flags
+	nostats      bool
 	out          outputflags.Flags
 }
 
@@ -53,6 +56,7 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
 	c.analyzeflags.SetFlags(f)
 	c.out.SetFlags(f)
+	f.BoolVar(&c.nostats, "nostats", false, "do not write stats to stderr")
 	return c, nil
 }
 
@@ -82,7 +86,18 @@ func (c *Command) Run(args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	c.Display = analyzecli.NewDisplay(root.LogJSON, info.Size(), nano.Span{})
+	// json:
+	// - always display stats (except if -nostats is enabled)
+	// status line display stats iff:
+	// - -o is a file: display stats
+	// - -o is stdout and stdout is NOT a terminal: display stats
+	if root.LogJSON {
+		c.Display = analyzecli.JSONDisplay(!c.nostats, info.Size(), nano.Span{})
+	} else {
+		tofile := c.out.FileName() != ""
+		stats := !c.nostats && (tofile || !term.IsTerminal(int(os.Stdout.Fd())))
+		c.Display = analyzecli.StatusLineDisplay(stats, info.Size(), nano.Span{})
+	}
 	defer c.Display.End()
 	configs := c.analyzeflags.Configs
 	return analyzer.Run(ctx, pcapfile, emitter, c, time.Second, configs...)
