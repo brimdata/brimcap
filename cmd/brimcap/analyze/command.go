@@ -56,7 +56,7 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
 	c.analyzeflags.SetFlags(f)
 	c.out.SetFlags(f)
-	f.BoolVar(&c.nostats, "nostats", false, "do not display stats in stderr")
+	f.BoolVar(&c.nostats, "nostats", false, "do not write stats to stderr")
 	return c, nil
 }
 
