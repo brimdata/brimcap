@@ -1,0 +1,27 @@
+script: |
+  chmod +x proc.sh
+  mkdir wd; mv proc.sh wd
+  brimcap analyze -config=config.yaml -nostats alerts.pcap > out.zng
+
+inputs:
+  - name: config.yaml
+    data: |
+      analyzers:
+        - cmd: ./proc.sh
+          workdir: wd
+  - name: proc.sh
+    data: |
+      #!/bin/bash
+      cat << EOF > out.json
+      {"msg":1}
+      {"msg":2}
+      {"msg":3}
+      {"msg":4}
+      EOF
+      cat > /dev/null
+  - name: alerts.pcap
+
+outputs:
+  - name: stderr
+    data: |
+      {"type":"warning","warning":"./proc.sh: proc.sh: format detection error\n\ttzng: line 2: bad format\n\tzeek: line 2: bad types/fields definition in zeek header\n\tzjson: line 1: invalid character '#' looking for beginning of value\n\tzson: zson syntax error\n\tzng: zng type ID out of range\n\tcsv: auto-detection not supported\n\tjson: auto-detection not supported\n\tparquet: auto-detection not supported\n\tzst: auto-detection not supported"}

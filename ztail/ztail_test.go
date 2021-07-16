@@ -57,7 +57,7 @@ func (s *tailerTSuite) SetupTest() {
 	s.dir = s.T().TempDir()
 	s.zctx = zson.NewContext()
 	var err error
-	s.dr, err = New(s.zctx, s.dir, anyio.ReaderOpts{Format: "tzng"})
+	s.dr, err = New(s.zctx, s.dir, anyio.ReaderOpts{Format: "tzng"}, nil)
 	s.Require().NoError(err)
 }
 
@@ -88,18 +88,6 @@ func (s *tailerTSuite) TestExistingFiles() {
 	s.write(f1, f2)
 	s.Require().NoError(<-errCh)
 	s.Equal(expected, <-result)
-}
-
-func (s *tailerTSuite) TestInvalidFile() {
-	_, errCh := s.read()
-	f1 := s.createFile("test1.tzng")
-	_, err := f1.WriteString("#0:record[ts:time]\n")
-	s.Require().NoError(err)
-	_, err = f1.WriteString("this is an invalid line\n")
-	s.Require().NoError(err)
-	s.Require().NoError(f1.Sync())
-	s.EqualError(<-errCh, "line 2: bad format")
-	s.NoError(s.dr.Stop())
 }
 
 func (s *tailerTSuite) TestEmptyFile() {
