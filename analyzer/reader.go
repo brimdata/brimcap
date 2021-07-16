@@ -59,7 +59,7 @@ func tailOne(ctx context.Context, zctx *zson.Context, conf Config, warner zio.Wa
 			return nil, nil, err
 		}
 	}
-	wrapped := wrappedReader{warner: warner, cmd: conf.Cmd}
+	wrapped := wrappedReader{cmd: conf.Cmd, warner: warner}
 	tailer, err := ztail.New(zctx, conf.WorkDir, conf.ReaderOpts, wrapped, conf.Globs...)
 	if err != nil {
 		return nil, nil, err
