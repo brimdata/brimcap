@@ -1,3 +1,8 @@
+## v1.0.0
+* Include the name of the analyzer process with any warnings & errors it generates (#122)
+* Adjust defaults for whether logging during analysis is output as JSON vs. status line (#123)
+* Rather than quitting, emit a warning and continue if `brimcap analyze` fails to read an output file (#125)
+
 ## v0.0.6
 * Move the [Geolocation article](https://github.com/brimdata/brimcap/wiki/Geolocation) over from the Brimcap wiki (#104)
 * Refactor `brimcap analyze` to use the new Zed Lake add/commit endpoints and fix a deadlock issue (#110)
