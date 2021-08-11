@@ -168,6 +168,10 @@ type File struct {
 func (f File) PcapReader(span nano.Span) (pcapio.Reader, io.Closer, error) {
 	file, err := os.Open(f.PcapPath)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			os.Remove(f.path)
+			err = nil
+		}
 		return nil, nil, err
 	}
 

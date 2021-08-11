@@ -1,0 +1,24 @@
+script: |
+  mkdir root
+  brimcap index -root root -r non-overlap.pcapng
+  rm non-overlap.pcapng
+
+  brimcap search -root root \
+    -w result.pcap \
+    -ts 2020-03-10T15:42:03.826851Z \
+    -duration 428us \
+    -proto tcp \
+    -src.ip 192.168.10.120 \
+    -src.port 62576 \
+    -dst.ip 104.123.204.164 \
+    -dst.port 443
+
+inputs:
+  - name: non-overlap.pcapng
+
+outputs:
+  - name: stdout
+    data: ""
+  - name: stderr
+    data: |
+      {"type":"error","error":"no packets found"}
