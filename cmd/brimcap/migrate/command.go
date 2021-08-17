@@ -25,6 +25,7 @@ import (
 	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/anyio"
+	"github.com/brimdata/zed/zio/zngio"
 	"github.com/brimdata/zed/zio/zsonio"
 	"github.com/brimdata/zed/zson"
 	"github.com/segmentio/ksuid"
@@ -51,7 +52,6 @@ func init() {
 type Command struct {
 	*root.Command
 	conn      *client.Connection
-	engine    storage.Engine
 	logger    *zap.Logger
 	rootflags cli.RootFlags
 	zqdroot   string
@@ -67,7 +67,6 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{
 		Command: parent.(*root.Command),
 		logger:  logger,
-		engine:  storage.NewLocalEngine(),
 	}
 	root.LogJSON = true
 	f.StringVar(&c.zqdroot, "zqd", "", "path to zqd root")
@@ -257,10 +256,23 @@ func (m *migration) migrateData(ctx context.Context) error {
 		return err
 	}
 	defer f.Close()
-	if _, err = m.conn.LogPostReaders(ctx, m.engine, m.poolID, nil, f); err != nil {
+	resp, err := m.conn.Add(ctx, m.poolID, f)
+	if err != nil {
 		return err
 	}
-	return nil
+	defer resp.Body.Close()
+	rec, err := zngio.NewReader(resp.Body, zson.NewContext()).Read()
+	if err != nil {
+		return err
+	}
+	var add api.AddResponse
+	if err := zson.UnmarshalZNGRecord(rec, &add); err != nil {
+		return err
+	}
+	return m.conn.Commit(ctx, m.poolID, add.Commit, api.CommitRequest{
+		Author:  "brimcap",
+		Message: "automatic migration of " + zngpath,
+	})
 }
 
 func (m *migration) migratePcap(ctx context.Context) error {
