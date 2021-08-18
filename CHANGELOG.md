@@ -1,3 +1,6 @@
+## v1.0.1
+* Fix an issue where stale packet index entries could cause a failure to extract a flow from another pcap (#128)
+
 ## v1.0.0
 * Include the name of the analyzer process with any warnings & errors it generates (#122)
 * Adjust defaults for whether logging during analysis is output as JSON vs. status line (#123)
