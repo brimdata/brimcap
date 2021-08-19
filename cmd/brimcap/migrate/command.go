@@ -172,7 +172,6 @@ func unmarshal(r *client.Response, i interface{}) error {
 
 func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error {
 	space := db.SpaceRows[idx]
-	path := filepath.Join(c.zqdroot, space.ID)
 	logger := c.logger.With(zap.String("space", space.Name))
 	if space.Storage.Kind != "filestore" {
 		logger.Warn("unsupported storage kind, skipping", zap.String("kind", space.Storage.Kind))
@@ -204,7 +203,7 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 		logger:    logger.With(zap.String("pool_id", pool.ID.String())),
 		poolID:    pool.ID,
 		space:     space,
-		spaceRoot: path,
+		spaceRoot: space.DataURI.Filepath(),
 	}
 	m.logger.Info("migration starting")
 	if err := m.run(ctx); err != nil {
