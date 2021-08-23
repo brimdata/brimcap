@@ -1,3 +1,6 @@
+## v1.0.2
+* Fix an issue where legacy Space migration would fail for a custom Data Directory in Brim (#133)
+
 ## v1.0.1
 * Fix an issue where stale packet index entries could cause a failure to extract a flow from another pcap (#128)
 
