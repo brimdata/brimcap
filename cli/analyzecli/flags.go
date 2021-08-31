@@ -5,6 +5,8 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"path/filepath"
+	"strconv"
 
 	"github.com/brimdata/brimcap/analyzer"
 )
@@ -65,19 +67,24 @@ func (f *Flags) LoadConfigs() ([]analyzer.Config, error) {
 }
 
 // EnsureWorkDirs creates temporary directories and sets them for a config if
-// WorkDir is not set. A list of any created temporary directory paths is
-// returned.
-func EnsureWorkDirs(configs []analyzer.Config) ([]string, error) {
-	var tmpdirs []string
-	var err error
+// WorkDir is not set. If a temporary directory is needed, the path for the base
+// directory is returned.
+func EnsureWorkDirs(configs []analyzer.Config) (string, error) {
+	var dir string
 	for i := range configs {
 		if configs[i].WorkDir == "" {
-			configs[i].WorkDir, err = os.MkdirTemp("", "brimcap-")
-			if err != nil {
-				break
+			if dir == "" {
+				var err error
+				dir, err = os.MkdirTemp("", "brimcap-")
+				if err != nil {
+					return "", err
+				}
 			}
-			tmpdirs = append(tmpdirs, configs[i].WorkDir)
+			configs[i].WorkDir = filepath.Join(dir, strconv.Itoa(i))
+			if err := os.Mkdir(configs[i].WorkDir, 0700); err != nil {
+				return dir, err
+			}
 		}
 	}
-	return tmpdirs, err
+	return dir, nil
 }

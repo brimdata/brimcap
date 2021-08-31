@@ -1,7 +1,6 @@
 package analyze
 
 import (
-	"encoding/json"
 	"errors"
 	"flag"
 	"os"
@@ -51,7 +50,6 @@ type Command struct {
 	analyzeflags analyzecli.Flags
 	nostats      bool
 	out          outputflags.Flags
-	printtmp     bool
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
@@ -59,7 +57,6 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c.analyzeflags.SetFlags(f)
 	c.out.SetFlags(f)
 	f.BoolVar(&c.nostats, "nostats", false, "do not write stats to stderr")
-	f.BoolVar(&c.printtmp, "printtmp", false, "print the location of any created temp dirs to stderr")
 	return c, nil
 }
 
@@ -79,10 +76,9 @@ func (c *Command) Run(args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	tmpdirs, err := analyzecli.EnsureWorkDirs(configs)
-	defer rmTmpdirs(tmpdirs)
-	if c.printtmp {
-		printTmpdirs(tmpdirs)
+	tmpdir, err := analyzecli.EnsureWorkDirs(configs)
+	if tmpdir != "" {
+		defer func() { os.RemoveAll(tmpdir) }()
 	}
 	if err != nil {
 		return err
@@ -115,20 +111,4 @@ func (c *Command) Run(args []string) (err error) {
 	}
 	defer c.Display.End()
 	return analyzer.Run(ctx, pcapfile, emitter, c, time.Second, configs...)
-}
-
-func printTmpdirs(tmpdirs []string) {
-	encoder := json.NewEncoder(os.Stderr)
-	for _, dir := range tmpdirs {
-		encoder.Encode(map[string]string{
-			"type": "TempDir",
-			"path": dir,
-		})
-	}
-}
-
-func rmTmpdirs(dirs []string) {
-	for _, dir := range dirs {
-		os.RemoveAll(dir)
-	}
 }

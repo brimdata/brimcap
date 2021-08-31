@@ -1,8 +1,7 @@
 script: |
-  tmpdir=$(brimcap analyze -printtmp -suricata=F alerts.pcap 2>&1 >/dev/null \
-    | zed query -f text 'type=="TempDir" | cut path' -)
-  [ -d $tmpdir ] && echo "TempDir $tmpdir still exists when it should have been deleted." \
-    && exit 1
+  mkdir d
+  TMPDIR=$PWD/d TMP=$PWD/d brimcap analyze -suricata=F alerts.pcap >/dev/null 2>&1
+  ls d
 
 inputs:
   - name: alerts.pcap
