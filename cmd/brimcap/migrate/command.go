@@ -18,14 +18,12 @@ import (
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/field"
-	"github.com/brimdata/zed/lake"
 	"github.com/brimdata/zed/order"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/anyio"
-	"github.com/brimdata/zed/zio/zngio"
 	"github.com/brimdata/zed/zio/zsonio"
 	"github.com/brimdata/zed/zson"
 	"github.com/segmentio/ksuid"
@@ -191,8 +189,13 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 		}
 		return err
 	}
-	var pool lake.PoolConfig
-	if err := unmarshal(r, &pool); err != nil {
+	r.Body.Close()
+	r, err = c.conn.IDs(ctx, space.Name, "main")
+	if err != nil {
+		return err
+	}
+	var ids api.IDsResponse
+	if err := unmarshal(r, &ids); err != nil {
 		return err
 	}
 	if err := r.Body.Close(); err != nil {
@@ -200,8 +203,9 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 	}
 	m := &migration{
 		Command:   c,
-		logger:    logger.With(zap.String("pool_id", pool.ID.String())),
-		poolID:    pool.ID,
+		logger:    logger.With(zap.String("pool_id", ids.PoolID.String())),
+		poolID:    ids.PoolID,
+		branchID:  ids.BranchID,
 		space:     space,
 		spaceRoot: space.DataURI.Filepath(),
 	}
@@ -220,7 +224,8 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 
 type migration struct {
 	*Command
-	logger *zap.Logger
+	logger   *zap.Logger
+	branchID ksuid.KSUID
 	// brimcapEntry is stored for abort.
 	brimcapEntry string
 	// poolID is stored for abort.
@@ -255,23 +260,15 @@ func (m *migration) migrateData(ctx context.Context) error {
 		return err
 	}
 	defer f.Close()
-	resp, err := m.conn.Add(ctx, m.poolID, f)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	rec, err := zngio.NewReader(resp.Body, zson.NewContext()).Read()
-	if err != nil {
-		return err
-	}
-	var add api.AddResponse
-	if err := zson.UnmarshalZNGRecord(rec, &add); err != nil {
-		return err
-	}
-	return m.conn.Commit(ctx, m.poolID, add.Commit, api.CommitRequest{
+	resp, err := m.conn.Load(ctx, m.poolID, m.branchID, f, api.CommitRequest{
 		Author:  "brimcap",
 		Message: "automatic migration of " + zngpath,
 	})
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
 }
 
 func (m *migration) migratePcap(ctx context.Context) error {
