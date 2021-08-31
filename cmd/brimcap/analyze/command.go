@@ -1,6 +1,7 @@
 package analyze
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"os"
@@ -50,6 +51,7 @@ type Command struct {
 	analyzeflags analyzecli.Flags
 	nostats      bool
 	out          outputflags.Flags
+	printtmp     bool
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
@@ -57,6 +59,7 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c.analyzeflags.SetFlags(f)
 	c.out.SetFlags(f)
 	f.BoolVar(&c.nostats, "nostats", false, "do not write stats to stderr")
+	f.BoolVar(&c.printtmp, "printtmp", false, "print the location of any created temp dirs to stderr")
 	return c, nil
 }
 
@@ -64,12 +67,24 @@ func (c *Command) Run(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	}
-	ctx, cleanup, err := c.InitWithContext(&c.out, &c.analyzeflags)
+	ctx, cleanup, err := c.InitWithContext(&c.out)
 	if err != nil {
 		return err
 	}
 	defer cleanup()
 	if err := c.AddRunnersToPath(); err != nil {
+		return err
+	}
+	configs, err := c.analyzeflags.LoadConfigs()
+	if err != nil {
+		return err
+	}
+	tmpdirs, err := analyzecli.EnsureWorkDirs(configs)
+	defer rmTmpdirs(tmpdirs)
+	if c.printtmp {
+		printTmpdirs(tmpdirs)
+	}
+	if err != nil {
 		return err
 	}
 	emitter, err := c.out.Open(ctx, storage.NewLocalEngine())
@@ -99,6 +114,21 @@ func (c *Command) Run(args []string) (err error) {
 		c.Display = analyzecli.StatusLineDisplay(stats, info.Size(), nano.Span{})
 	}
 	defer c.Display.End()
-	configs := c.analyzeflags.Configs
 	return analyzer.Run(ctx, pcapfile, emitter, c, time.Second, configs...)
+}
+
+func printTmpdirs(tmpdirs []string) {
+	encoder := json.NewEncoder(os.Stderr)
+	for _, dir := range tmpdirs {
+		encoder.Encode(map[string]string{
+			"type": "TempDir",
+			"path": dir,
+		})
+	}
+}
+
+func rmTmpdirs(dirs []string) {
+	for _, dir := range dirs {
+		os.RemoveAll(dir)
+	}
 }

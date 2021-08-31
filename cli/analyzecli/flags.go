@@ -24,7 +24,6 @@ var (
 )
 
 type Flags struct {
-	Configs        []analyzer.Config
 	configPath     string
 	suricata       bool
 	suricataStderr string
@@ -44,29 +43,41 @@ func (f *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.StringVar(&DefaultZeek.StdoutPath, "zeek.stdout", "", "write zeek process stderr to path")
 }
 
-func (f *Flags) Init() (err error) {
+func (f *Flags) LoadConfigs() ([]analyzer.Config, error) {
+	var err error
+	var configs []analyzer.Config
 	if f.configPath != "" {
-		if f.Configs, err = analyzer.LoadYAMLConfigFile(f.configPath); err != nil {
-			return err
+		if configs, err = analyzer.LoadYAMLConfigFile(f.configPath); err != nil {
+			return nil, err
 		}
 	} else {
 		if f.zeek {
-			f.Configs = append(f.Configs, DefaultZeek)
+			configs = append(configs, DefaultZeek)
 		}
 		if f.suricata {
-			f.Configs = append(f.Configs, DefaultSuricata)
+			configs = append(configs, DefaultSuricata)
 		}
 	}
-	if len(f.Configs) == 0 {
-		return errors.New("at least one analyzer (zeek or suricata) must be enabled")
+	if len(configs) == 0 {
+		return nil, errors.New("at least one analyzer (zeek or suricata) must be enabled")
 	}
-	for i := range f.Configs {
-		if f.Configs[i].WorkDir == "" {
-			f.Configs[i].WorkDir, err = os.MkdirTemp("", "brimcap-")
+	return configs, nil
+}
+
+// EnsureWorkDirs creates temporary directories and sets them for a config if
+// WorkDir is not set. A list of any created temporary directory paths is
+// returned.
+func EnsureWorkDirs(configs []analyzer.Config) ([]string, error) {
+	var tmpdirs []string
+	var err error
+	for i := range configs {
+		if configs[i].WorkDir == "" {
+			configs[i].WorkDir, err = os.MkdirTemp("", "brimcap-")
 			if err != nil {
-				return err
+				break
 			}
+			tmpdirs = append(tmpdirs, configs[i].WorkDir)
 		}
 	}
-	return nil
+	return tmpdirs, err
 }
