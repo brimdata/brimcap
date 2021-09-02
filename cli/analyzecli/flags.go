@@ -5,6 +5,8 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"path/filepath"
+	"strconv"
 
 	"github.com/brimdata/brimcap/analyzer"
 )
@@ -24,7 +26,6 @@ var (
 )
 
 type Flags struct {
-	Configs        []analyzer.Config
 	configPath     string
 	suricata       bool
 	suricataStderr string
@@ -44,29 +45,46 @@ func (f *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.StringVar(&DefaultZeek.StdoutPath, "zeek.stdout", "", "write zeek process stderr to path")
 }
 
-func (f *Flags) Init() (err error) {
+func (f *Flags) LoadConfigs() ([]analyzer.Config, error) {
+	var err error
+	var configs []analyzer.Config
 	if f.configPath != "" {
-		if f.Configs, err = analyzer.LoadYAMLConfigFile(f.configPath); err != nil {
-			return err
+		if configs, err = analyzer.LoadYAMLConfigFile(f.configPath); err != nil {
+			return nil, err
 		}
 	} else {
 		if f.zeek {
-			f.Configs = append(f.Configs, DefaultZeek)
+			configs = append(configs, DefaultZeek)
 		}
 		if f.suricata {
-			f.Configs = append(f.Configs, DefaultSuricata)
+			configs = append(configs, DefaultSuricata)
 		}
 	}
-	if len(f.Configs) == 0 {
-		return errors.New("at least one analyzer (zeek or suricata) must be enabled")
+	if len(configs) == 0 {
+		return nil, errors.New("at least one analyzer (zeek or suricata) must be enabled")
 	}
-	for i := range f.Configs {
-		if f.Configs[i].WorkDir == "" {
-			f.Configs[i].WorkDir, err = os.MkdirTemp("", "brimcap-")
-			if err != nil {
-				return err
+	return configs, nil
+}
+
+// EnsureWorkDirs creates temporary directories and sets them for a config if
+// WorkDir is not set. If a temporary directory is needed, the path for the base
+// directory is returned.
+func EnsureWorkDirs(configs []analyzer.Config) (string, error) {
+	var dir string
+	for i := range configs {
+		if configs[i].WorkDir == "" {
+			if dir == "" {
+				var err error
+				dir, err = os.MkdirTemp("", "brimcap-")
+				if err != nil {
+					return "", err
+				}
+			}
+			configs[i].WorkDir = filepath.Join(dir, strconv.Itoa(i))
+			if err := os.Mkdir(configs[i].WorkDir, 0700); err != nil {
+				return dir, err
 			}
 		}
 	}
-	return nil
+	return dir, nil
 }

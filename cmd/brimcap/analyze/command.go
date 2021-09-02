@@ -64,12 +64,23 @@ func (c *Command) Run(args []string) (err error) {
 	if len(args) != 1 {
 		return errors.New("expected 1 pcapfile arg")
 	}
-	ctx, cleanup, err := c.InitWithContext(&c.out, &c.analyzeflags)
+	ctx, cleanup, err := c.InitWithContext(&c.out)
 	if err != nil {
 		return err
 	}
 	defer cleanup()
 	if err := c.AddRunnersToPath(); err != nil {
+		return err
+	}
+	configs, err := c.analyzeflags.LoadConfigs()
+	if err != nil {
+		return err
+	}
+	tmpdir, err := analyzecli.EnsureWorkDirs(configs)
+	if tmpdir != "" {
+		defer func() { os.RemoveAll(tmpdir) }()
+	}
+	if err != nil {
 		return err
 	}
 	emitter, err := c.out.Open(ctx, storage.NewLocalEngine())
@@ -99,6 +110,5 @@ func (c *Command) Run(args []string) (err error) {
 		c.Display = analyzecli.StatusLineDisplay(stats, info.Size(), nano.Span{})
 	}
 	defer c.Display.End()
-	configs := c.analyzeflags.Configs
 	return analyzer.Run(ctx, pcapfile, emitter, c, time.Second, configs...)
 }

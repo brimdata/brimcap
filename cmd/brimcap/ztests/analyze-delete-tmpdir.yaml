@@ -1,0 +1,13 @@
+script: |
+  mkdir d
+  TMPDIR=$PWD/d TMP=$PWD/d brimcap analyze -suricata=F alerts.pcap >/dev/null 2>&1
+  ls d
+
+inputs:
+  - name: alerts.pcap
+
+outputs:
+  - name: stderr
+    data: ""
+  - name: stdout
+    data: ""
