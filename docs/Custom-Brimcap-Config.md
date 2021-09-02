@@ -127,13 +127,8 @@ $ brimcap index -root "$HOME/.config/Brim/data/brimcap-root" -r sample.pcap
 ```
 
 > **Note**: The `zdeps` directory that contains the `zed` and `brimcap`
-binaries varies per platform.
-> 
-> |**OS Platform**|**Location**|
-> |---------------|------------|
-> | **Windows**   | `%USERPROFILE%\AppData\Local\Programs\Brim\resources\app.asar.unpacked\zdeps` |
-> | **macOS**     | `/Applications/Brim.app/Contents/Resources/app.asar.unpacked/zdeps` |
-> | **Linux**     | `/opt/Brim/resources/app.asar.unpacked/zdeps` |
+> binaries varies per platform. See the Brim [Filesystem Paths](https://github.com/brimdata/brim/wiki/Filesystem-Paths#application-binaries-v0250)
+> article for details.
 
 If successful, the new pool will appear in Brim, allowing you to browse the
 logs and open flows from the pcap via the **Packets** button.
@@ -342,7 +337,7 @@ export LD_LIBRARY_PATH="/usr/local/lib"
 
 ## Example Configuration
 
-As we did with Zeek and Suricata, we create a wrapper script to act as our
+As we did with Zeek and Suricata, we create a [wrapper script](https://github.com/brimdata/brimcap/blob/main/examples/nfdump-wrapper.sh) to act as our
 Brimcap analyzer. It works in two phases, first creating binary NetFlow records
 and then converting them to CSV. `nfpcapd` only accepts a true pcap file input
 (not a device like `/dev/stdin`), so we first store the incoming pcap in a
@@ -400,7 +395,7 @@ analyzers:
         ibyt: uint64,
         opkt: uint64,
         obyt: uint64,
-        \in: uint64,
+        in: uint64,
         out: uint64,
         sas: uint64,
         das: uint64,
@@ -436,12 +431,6 @@ analyzers:
       }
       put this := shape(netflow)
 ```
-
-> **Note:** The need to "escape" the reference to a field called `in` is due
-> to `in` being a reserved word in the Zed language. An open issue
-> [zed/2398](https://github.com/brimdata/zed/issues/2398) tracks an enhancement
-> that would reduce the scope of such clashes and hopefully make this escaping
-> unnecessary.
 
 Putting it all together, we can test it by using our command combination to
 create a new pool and import the data for a sample pcap.
