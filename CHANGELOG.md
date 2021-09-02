@@ -1,3 +1,7 @@
+## v1.0.3
+* Update legacy Space migration to work with Zed Lake branches (#140)
+* Fix an issue where temporary analyzer directories were not being deleted on exit (#137)
+
 ## v1.0.2
 * Fix an issue where legacy Space migration would fail for a custom Data Directory in Brim (#133)
 
