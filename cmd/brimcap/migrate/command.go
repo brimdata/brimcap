@@ -18,6 +18,7 @@ import (
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/field"
+	"github.com/brimdata/zed/lake"
 	"github.com/brimdata/zed/order"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
@@ -189,23 +190,16 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 		}
 		return err
 	}
-	r.Body.Close()
-	r, err = c.conn.IDs(ctx, space.Name, "main")
-	if err != nil {
-		return err
-	}
-	var ids api.IDsResponse
-	if err := unmarshal(r, &ids); err != nil {
-		return err
-	}
-	if err := r.Body.Close(); err != nil {
+	defer r.Body.Close()
+	var branchMeta lake.BranchMeta
+	if err := unmarshal(r, &branchMeta); err != nil {
 		return err
 	}
 	m := &migration{
 		Command:   c,
-		logger:    logger.With(zap.String("pool_id", ids.PoolID.String())),
-		poolID:    ids.PoolID,
-		branchID:  ids.BranchID,
+		logger:    logger.With(zap.String("pool_id", branchMeta.Pool.ID.String())),
+		branch:    branchMeta.Branch.Name,
+		poolID:    branchMeta.Pool.ID,
 		space:     space,
 		spaceRoot: space.DataURI.Filepath(),
 	}
@@ -224,8 +218,8 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 
 type migration struct {
 	*Command
-	logger   *zap.Logger
-	branchID ksuid.KSUID
+	logger *zap.Logger
+	branch string
 	// brimcapEntry is stored for abort.
 	brimcapEntry string
 	// poolID is stored for abort.
@@ -260,9 +254,9 @@ func (m *migration) migrateData(ctx context.Context) error {
 		return err
 	}
 	defer f.Close()
-	resp, err := m.conn.Load(ctx, m.poolID, m.branchID, f, api.CommitRequest{
-		Author:  "brimcap",
-		Message: "automatic migration of " + zngpath,
+	resp, err := m.conn.Load(ctx, m.poolID, m.branch, f, api.CommitMessage{
+		Author: "brimcap",
+		Body:   "automatic migration of " + zngpath,
 	})
 	if err != nil {
 		return err

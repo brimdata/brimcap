@@ -18,7 +18,7 @@ analyzers:
         ibyt: uint64,
         opkt: uint64,
         obyt: uint64,
-        \in: uint64,
+        in: uint64,
         out: uint64,
         sas: uint64,
         das: uint64,
