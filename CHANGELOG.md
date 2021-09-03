@@ -1,5 +1,5 @@
 ## v1.0.3
-* Update legacy Space migration to work with Zed Lake branches (#140)
+* Update legacy Space migration to work with Zed Lake branches (#140, #145)
 * Fix an issue where temporary analyzer directories were not being deleted on exit (#137)
 
 ## v1.0.2
