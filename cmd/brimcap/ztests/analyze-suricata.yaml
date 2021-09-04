@@ -8,4 +8,4 @@ outputs:
     data: |
       {
           count: 15 (uint64)
-      } (=0)
+      }
