@@ -23,10 +23,16 @@ type Display interface {
 // Run executes the provided configs against the pcap stream, writing the
 // produced records to w. If interval is > 0, the d.Stats will be called
 // at that interval.
-func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval time.Duration, confs ...Config) error {
-	if err := Configs(confs).Validate(); err != nil {
+func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval time.Duration, cs ...Config) error {
+	confs := Configs(cs).removeDisabled()
+	if err := confs.Validate(); err != nil {
 		return err
 	}
+	cleanup, err := confs.ensureWorkDirs()
+	if err != nil {
+		return err
+	}
+	defer cleanup()
 	group, ctx := errgroup.WithContext(ctx)
 	r, err := newReader(ctx, d, confs...)
 	if err != nil {

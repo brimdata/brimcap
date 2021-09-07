@@ -2,9 +2,9 @@ script: |
   # Undo -e since we expect all subsequent commands to fail.
   set +e
   chmod +x errorproc.sh && mkdir wd && mv errorproc.sh wd
-  cat alerts.pcap | brimcap analyze -config=config1.yaml -
+  cat alerts.pcap | brimcap analyze -config=config1.yaml -o /dev/null -
   >&2 echo === 
-  brimcap analyze -config=config2.yaml alerts.pcap
+  brimcap analyze -config=config2.yaml -o /dev/null alerts.pcap
 
 inputs:
   - name: alerts.pcap
@@ -12,12 +12,14 @@ inputs:
     data: |
       analyzers:
         - cmd: ./errorproc.sh
+          name: error
           globs: ["*.zson"] # so ztail will not try to read errorproc.sh
           workdir: wd
   - name: config2.yaml
     data: |
       analyzers:
         - cmd: ./errorproc.sh
+          name: error
           globs: ["*.zson"] # so ztail will not try to read errorproc.sh
           stderr: stderr.out
           workdir: wd

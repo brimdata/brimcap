@@ -47,17 +47,17 @@ func init() {
 type Command struct {
 	*root.Command
 	analyzecli.Display
-	analyzeflags analyzecli.Flags
-	nostats      bool
-	out          outputflags.Flags
+	config  cli.ConfigFlags
+	nostats bool
+	out     outputflags.Flags
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.analyzeflags.SetFlags(f)
-	c.out.SetFlags(f)
 	f.BoolVar(&c.nostats, "nostats", false, "do not write stats to stderr")
-	return c, nil
+	c.out.SetFlags(f)
+	err := c.config.SetFlags(f)
+	return c, err
 }
 
 func (c *Command) Run(args []string) (err error) {
@@ -70,17 +70,6 @@ func (c *Command) Run(args []string) (err error) {
 	}
 	defer cleanup()
 	if err := c.AddRunnersToPath(); err != nil {
-		return err
-	}
-	configs, err := c.analyzeflags.LoadConfigs()
-	if err != nil {
-		return err
-	}
-	tmpdir, err := analyzecli.EnsureWorkDirs(configs)
-	if tmpdir != "" {
-		defer func() { os.RemoveAll(tmpdir) }()
-	}
-	if err != nil {
 		return err
 	}
 	emitter, err := c.out.Open(ctx, storage.NewLocalEngine())
@@ -110,5 +99,5 @@ func (c *Command) Run(args []string) (err error) {
 		c.Display = analyzecli.StatusLineDisplay(stats, info.Size(), nano.Span{})
 	}
 	defer c.Display.End()
-	return analyzer.Run(ctx, pcapfile, emitter, c, time.Second, configs...)
+	return analyzer.Run(ctx, pcapfile, emitter, c, time.Second, c.config.Analyzers...)
 }

@@ -1,0 +1,23 @@
+script: |
+  brimcap config \
+    -config=brimcap.config \
+    -analyzer.test.cmd=test123 \
+    -analyzer.test.stderr=/my/special/path
+
+inputs:
+  - name: brimcap.config
+    data: |
+      analyzers:
+        - name: test
+          cmd: test
+
+outputs:
+  - name: stderr
+    data: ""
+  - name: stdout
+    data: |
+      analyzers:
+        - cmd: test123
+          name: test
+          stderr: /my/special/path
+

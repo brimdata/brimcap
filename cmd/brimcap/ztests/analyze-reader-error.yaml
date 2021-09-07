@@ -9,9 +9,11 @@ inputs:
     data: |
       analyzers:
         - cmd: ./badoutput.sh
+          name: bad
           globs: ["*.json"] # so ztail will not try to read *.sh
           workdir: wd1
         - cmd: ./success.sh
+          name: success
           globs: ["*.json"] # so ztail will not try to read *.sh
           workdir: wd2
   - name: badoutput.sh

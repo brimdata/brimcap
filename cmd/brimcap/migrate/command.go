@@ -50,10 +50,10 @@ func init() {
 
 type Command struct {
 	*root.Command
-	conn      *client.Connection
-	logger    *zap.Logger
-	rootflags cli.RootFlags
-	zqdroot   string
+	config  cli.ConfigFlags
+	conn    *client.Connection
+	logger  *zap.Logger
+	zqdroot string
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
@@ -69,8 +69,8 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	}
 	root.LogJSON = true
 	f.StringVar(&c.zqdroot, "zqd", "", "path to zqd root")
-	c.rootflags.SetFlags(f)
-	return c, nil
+	err = c.config.SetRootOnlyFlags(f)
+	return c, err
 }
 
 var errSkip = errors.New("skipping this space")
@@ -106,13 +106,16 @@ type pcapMetadata struct {
 }
 
 func (c *Command) Run(args []string) error {
-	ctx, cleanup, err := c.Command.InitWithContext(&c.rootflags)
+	ctx, cleanup, err := c.Command.InitWithContext()
 	if err != nil {
 		return err
 	}
 	defer cleanup()
 	if c.zqdroot == "" {
 		return errors.New("flag -zqd is required")
+	}
+	if c.config.RootPath == "" {
+		return errors.New("root path (-root) must be set")
 	}
 	c.conn = client.NewConnection()
 	if _, err := c.conn.Ping(ctx); err != nil {
@@ -297,7 +300,7 @@ func (m *migration) migratePcap(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	rootentry := m.rootflags.Root.Filepath(hash)
+	rootentry := m.config.RootPath
 	info, _ := os.Stat(rootentry)
 	if info == nil {
 		// Only write if hash doesn't exist in brimcap root.
