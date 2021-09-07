@@ -54,8 +54,7 @@ func (f *ConfigFlags) loadConfig() error {
 }
 
 func prereadConfigFlag() string {
-	args := os.Args
-	for len(args) > 0 {
+	for args := os.Args; len(args) > 0; {
 		s := args[0]
 		args = args[1:]
 		if s == "-config" {
