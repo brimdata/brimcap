@@ -13,22 +13,20 @@ import (
 var suricatashaper string
 
 var (
-	DefaultZeek = analyzer.Config{
-		Name: "zeek",
-		Cmd:  "zeekrunner",
-	}
-	DefaultSuricata = analyzer.Config{
-		Name:   "suricata",
-		Cmd:    "suricatarunner",
-		Globs:  []string{"*.json"},
-		Shaper: suricatashaper,
-	}
-	DefaultConfig = Config{
-		Analyzers: []analyzer.Config{
-			DefaultSuricata,
-			DefaultZeek,
+var DefaultConfig = Config{
+	Analyzers: []analyzer.Config{
+		{
+			Name:   "suricata",
+			Cmd:    "suricatarunner",
+			Globs:  []string{"*.json"},
+			Shaper: suricatashaper,
 		},
-	}
+		{
+			Name: "zeek",
+			Cmd:  "zeekrunner",
+		},
+	},
+}
 )
 
 func LoadConfigYAML(path string) (Config, error) {
