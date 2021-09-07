@@ -30,7 +30,7 @@ so the logs can be written into a variety of structured log formats.
 
 Logs written as ZNG or ZSON can be searched with
 zq (https://github.com/brimdata/zed/tree/main/cmd/zed#zq) or loaded into a
-Zed lake (https://github.com/brimdata/zed/blob/main/docs/lake/design.md)
+Zed lake (https://github.com/brimdata/zed/blob/main/docs/lake/README.md)
 using zapi (https://github.com/brimdata/zed/tree/main/cmd/zed#zapi) for
 viewing in the Brim desktop app (https://github.com/brimdata/brim).
 
