@@ -36,7 +36,7 @@ func (c *Config) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.Disabled, pre+"disabled", c.Disabled, "disable analyzer")
 	fs.StringVar(&c.StdoutPath, pre+"stdout", c.StdoutPath, "write stdout to path")
 	fs.StringVar(&c.StderrPath, pre+"stderr", c.StderrPath, "write stderr to path")
-	fs.StringVar(&c.WorkDir, pre+"workdir", c.WorkDir, "workdir")
+	fs.StringVar(&c.WorkDir, pre+"workdir", c.WorkDir, "working directory")
 }
 
 func (c Config) Validate() error {
