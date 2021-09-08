@@ -1,3 +1,8 @@
+## v1.0.4
+* Additions to custom YAML configuration (#148)
+   * A `root` option can be used to specify the Brimcap root location
+   * `name` is now a required part of an `analyzer` configuration
+
 ## v1.0.3
 * Update legacy Space migration to work with Zed Lake branches (#140, #145)
 * Fix an issue where temporary analyzer directories were not being deleted on exit (#137)
