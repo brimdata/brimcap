@@ -20,4 +20,3 @@ outputs:
         - cmd: test123
           name: test
           stderr: /my/special/path
-
