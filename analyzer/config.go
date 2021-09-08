@@ -31,7 +31,7 @@ type Config struct {
 }
 
 func (c *Config) SetFlags(fs *flag.FlagSet) {
-	pre := fmt.Sprintf("analyzer.%s.", c.Name)
+	pre := fmt.Sprintf("analyzers.%s.", c.Name)
 	fs.StringVar(&c.Cmd, pre+"cmd", c.Cmd, "command to run")
 	fs.BoolVar(&c.Disabled, pre+"disabled", c.Disabled, "disable analyzer")
 	fs.StringVar(&c.StdoutPath, pre+"stdout", c.StdoutPath, "write stdout to path")

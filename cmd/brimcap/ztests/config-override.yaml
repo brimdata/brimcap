@@ -2,8 +2,8 @@ script: |
   brimcap config \
     -config=brimcap.config \
     -root=/path/to/root \
-    -analyzer.test.cmd=test123 \
-    -analyzer.test.stderr=/my/special/path
+    -analyzers.test.cmd=test123 \
+    -analyzers.test.stderr=/my/special/path
 
 inputs:
   - name: brimcap.config
