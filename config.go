@@ -12,7 +12,6 @@ import (
 //go:embed suricata.zed
 var suricatashaper string
 
-var (
 var DefaultConfig = Config{
 	Analyzers: []analyzer.Config{
 		{
@@ -27,7 +26,11 @@ var DefaultConfig = Config{
 		},
 	},
 }
-)
+
+type Config struct {
+	RootPath  string            `yaml:"root,omitempty"`
+	Analyzers []analyzer.Config `yaml:"analyzers,omitempty"`
+}
 
 func LoadConfigYAML(path string) (Config, error) {
 	b, err := os.ReadFile(path)
@@ -40,11 +43,6 @@ func LoadConfigYAML(path string) (Config, error) {
 		err = fmt.Errorf("error loading config file: %w", err)
 	}
 	return c, err
-}
-
-type Config struct {
-	RootPath  string            `yaml:"root,omitempty"`
-	Analyzers []analyzer.Config `yaml:"analyzers,omitempty"`
 }
 
 func (c Config) Root() Root { return Root(c.RootPath) }

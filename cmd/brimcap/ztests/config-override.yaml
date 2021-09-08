@@ -1,6 +1,7 @@
 script: |
   brimcap config \
     -config=brimcap.config \
+    -root=/path/to/root \
     -analyzer.test.cmd=test123 \
     -analyzer.test.stderr=/my/special/path
 
@@ -16,6 +17,7 @@ outputs:
     data: ""
   - name: stdout
     data: |
+      root: /path/to/root
       analyzers:
         - cmd: test123
           name: test

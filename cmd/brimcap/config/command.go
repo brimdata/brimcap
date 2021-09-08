@@ -13,7 +13,7 @@ import (
 var Config = &charm.Spec{
 	Name:  "config",
 	Usage: "config [options]",
-	Short: "config XXX",
+	Short: "print the current config yaml to stdout",
 	New:   New,
 }
 

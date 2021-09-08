@@ -26,8 +26,11 @@ func (f *ConfigFlags) SetRootOnlyFlags(fs *flag.FlagSet) error {
 	if err := f.loadConfig(); err != nil {
 		return err
 	}
-	// Even though we've already parsed the -config flag, add it to the FlagSet
-	// so it appears in help.
+	if err := f.Config.Validate(); err != nil {
+		return err
+	}
+	// Even though we've already parsed the -config flag,
+	// add it to the FlagSet so it appears in help.
 	fs.String("config", os.Getenv("BRIMCAP_CONFIG"), "path to config file (env BRIMCAP_CONFIG)")
 	defaultRoot := f.Config.RootPath
 	if defaultRoot == "" {
