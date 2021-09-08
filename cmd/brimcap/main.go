@@ -4,6 +4,7 @@ import (
 	"os"
 
 	_ "github.com/brimdata/brimcap/cmd/brimcap/analyze"
+	_ "github.com/brimdata/brimcap/cmd/brimcap/config"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/cut"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/index"
 	_ "github.com/brimdata/brimcap/cmd/brimcap/info"

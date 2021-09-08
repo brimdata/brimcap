@@ -1,6 +1,7 @@
 package search
 
 import (
+	"errors"
 	"flag"
 	"os"
 
@@ -27,25 +28,31 @@ func init() {
 
 type Command struct {
 	*root.Command
+	config      cli.ConfigFlags
 	outfile     string
-	rootflags   cli.RootFlags
 	searchflags cli.PcapSearchFlags
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
 	f.StringVar(&c.outfile, "w", "-", "file to write to or stdout if -")
-	c.rootflags.SetFlags(f)
 	c.searchflags.SetFlags(f)
-	return c, nil
+	err := c.config.SetRootOnlyFlags(f)
+	return c, err
 }
 
 func (c *Command) Run(args []string) (err error) {
-	ctx, cleanup, err := c.Command.InitWithContext(&c.rootflags, &c.searchflags)
+	ctx, cleanup, err := c.Command.InitWithContext(&c.searchflags)
 	if err != nil {
 		return err
 	}
 	defer cleanup()
+	if err := c.config.Validate(); err != nil {
+		return err
+	}
+	if c.config.RootPath == "" {
+		return errors.New("root path (-root) must be set")
+	}
 	out := os.Stdout
 	if c.outfile != "-" {
 		out, err = os.Create(c.outfile)
@@ -53,7 +60,7 @@ func (c *Command) Run(args []string) (err error) {
 			return err
 		}
 	}
-	err = c.rootflags.Root.Search(ctx, c.searchflags.Search, out)
+	err = c.config.Root().Search(ctx, c.searchflags.Search, out)
 	if c.outfile != "-" {
 		out.Close()
 		if err != nil {

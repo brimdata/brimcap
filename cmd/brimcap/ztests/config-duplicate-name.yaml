@@ -1,0 +1,17 @@
+script: |
+  brimcap config -config=brimcap.config
+
+inputs:
+  - name: brimcap.config
+    data: |
+      analyzers:
+        - name: test
+          cmd: test
+        - name: test
+          cmd: test
+
+outputs:
+  - name: stderr
+    data: |
+      {"type":"error","error":"test: name field must be unique"}
+

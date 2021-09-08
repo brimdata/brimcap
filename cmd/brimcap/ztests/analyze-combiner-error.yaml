@@ -9,16 +9,20 @@ inputs:
     data: |
       analyzers:
         - cmd: ./errorproc.sh
+          name: errorproc1
           globs: ["*.zson"] # so ztail will not try to read *.sh
           stderr: stderr.out
           workdir: wd
         - cmd: ./sleepy.sh
+          name: sleepy1
           globs: ["*.zson"] # so ztail will not try to read *.sh
           workdir: wd
         - cmd: ./sleepy.sh
+          name: sleepy2
           globs: ["*.zson"] # so ztail will not try to read *.sh
           workdir: wd
         - cmd: ./sleepy.sh
+          name: sleepy3
           globs: ["*.zson"] # so ztail will not try to read *.sh
           workdir: wd
   - name: errorproc.sh

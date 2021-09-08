@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/brimdata/brimcap"
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/brimcap/pcap"
@@ -49,63 +50,48 @@ func init() {
 type Command struct {
 	*root.Command
 	limit      int
-	rootflags  cli.RootFlags
+	config     cli.ConfigFlags
 	inputFile  string
 	outputFile string
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.rootflags.Optional = true
-	c.rootflags.SetFlags(f)
+	if err := c.config.SetRootOnlyFlags(f); err != nil {
+		return nil, err
+	}
 	f.StringVar(&c.inputFile, "r", "-", "input file to read from or stdin if -")
 	f.StringVar(&c.outputFile, "x", "-", "name of output file for the index or - for stdout")
 	f.IntVar(&c.limit, "n", 10000, "limit on index size")
 	return c, nil
 }
 
-func (c *Command) Init() error {
-	if c.rootflags.IsSet {
-		if c.outputFile != "-" {
-			return errors.New("-root and -x cannot both be set")
-		}
-		if c.inputFile == "-" {
-			return errors.New("input cannot be stdin if writing to brimcap root")
-		}
-	}
-	return nil
-}
-
 func (c *Command) Run(args []string) (err error) {
-	cleanup, err := c.Command.Init(&c.rootflags, c)
+	cleanup, err := c.Command.Init()
 	if err != nil {
 		return err
 	}
 	defer cleanup()
-	if c.rootflags.IsSet {
+	if c.config.RootPath != "" {
 		if c.inputFile == "-" {
 			return errors.New("cannot write pcap from stdin to brimcap root")
 		}
-		_, err := c.rootflags.Root.AddPcap(c.inputFile, c.limit, c)
+		_, err := brimcap.Root(c.config.RootPath).AddPcap(c.inputFile, c.limit, c)
 		return err
 	}
-
 	f, err := cli.OpenFileArg(c.inputFile)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-
 	index, err := pcap.CreateIndexWithWarnings(f, c.limit, c)
 	if err != nil {
 		return err
 	}
-
 	b, err := json.Marshal(index)
 	if err != nil {
 		return err
 	}
-
 	if c.outputFile == "-" {
 		fmt.Println(string(b))
 		return nil

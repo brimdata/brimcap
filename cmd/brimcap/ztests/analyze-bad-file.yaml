@@ -8,6 +8,7 @@ inputs:
     data: |
       analyzers:
         - cmd: ./proc.sh
+          name: proc
           workdir: wd
   - name: proc.sh
     data: |
