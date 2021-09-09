@@ -1,3 +1,6 @@
+## v1.0.5
+* Allow expansion of environment variables in Brimcap config YAML (#153)
+
 ## v1.0.4
 * Additions to custom YAML configuration (#148)
    * A `root` option can be used to specify the Brimcap root location
