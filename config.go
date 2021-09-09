@@ -37,8 +37,9 @@ func LoadConfigYAML(path string) (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("error loading config file: %w", err)
 	}
+	s := os.ExpandEnv(string(b))
 	var c Config
-	err = yaml.Unmarshal(b, &c)
+	err = yaml.Unmarshal([]byte(s), &c)
 	if err != nil {
 		err = fmt.Errorf("error loading config file: %w", err)
 	}
