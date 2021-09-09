@@ -1,0 +1,21 @@
+script: |
+  export MY_ROOT_PATH=/my/root/path
+  brimcap config -config=brimcap.config
+
+inputs:
+  - name: brimcap.config
+    data: |
+      root: ${MY_ROOT_PATH}
+      analyzers:
+        - name: test
+          cmd: test
+
+outputs:
+  - name: stderr
+    data: ""
+  - name: stdout
+    data: |
+      root: /my/root/path
+      analyzers:
+        - cmd: test
+          name: test
