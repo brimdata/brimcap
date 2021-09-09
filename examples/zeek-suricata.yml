@@ -1,6 +1,8 @@
 analyzers:
   - cmd: /usr/local/bin/zeek-wrapper.sh
+    name: zeek
   - cmd: /usr/local/bin/suricata-wrapper.sh
+    name: suricata
     globs: ["eve.json"]
     shaper: |
       type port=uint16;

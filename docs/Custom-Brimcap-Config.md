@@ -121,8 +121,9 @@ outside the app to import a `sample.pcap` like so:
 
 ```
 $ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
-$ zed api create -p testpool
-$ brimcap analyze -config zeek-suricata.yml sample.pcap | zed api load -p testpool -
+$ zed api create testpool
+$ zed api use -p testpool
+$ brimcap analyze -config zeek-suricata.yml sample.pcap | zed api load -
 $ brimcap index -root "$HOME/.config/Brim/data/brimcap-root" -r sample.pcap
 ```
 
