@@ -441,8 +441,9 @@ create a new pool and import the data for a sample pcap.
 
 ```
 $ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
-$ zed api create -p testpool2
-$ brimcap analyze -config nfdump.yml sample.pcap | zed api load -p testpool2 -
+$ zed api create testpool2
+$ zed api use -p testpool2
+$ brimcap analyze -config nfdump.yml sample.pcap | zed api load -
 ```
 
 Our pool is now ready to be queried in Brim.
@@ -465,8 +466,10 @@ Zeek/Suricata like this:
 ```
 analyzers:
   - cmd: /usr/local/bin/zeek-wrapper.sh
+    name: zeek
     workdir: /tmp/zeek-wd
   - cmd: /usr/local/bin/suricata-wrapper.sh
+    name: suricata
     workdir: /tmp/suricata-wd
 ...
 ```
