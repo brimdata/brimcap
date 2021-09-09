@@ -121,8 +121,9 @@ outside the app to import a `sample.pcap` like so:
 
 ```
 $ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
-$ zed api create -p testpool
-$ brimcap analyze -config zeek-suricata.yml sample.pcap | zed api load -p testpool -
+$ zed api create testpool
+$ zed api use -p testpool
+$ brimcap analyze -config zeek-suricata.yml sample.pcap | zed api load -
 $ brimcap index -root "$HOME/.config/Brim/data/brimcap-root" -r sample.pcap
 ```
 
@@ -151,7 +152,9 @@ In examining the example Brimcap YAML, we see at the top that we've defined two
 $ cat zeek-suricata.yml
 analyzers:
   - cmd: /usr/local/bin/zeek-wrapper.sh
+    name: zeek
   - cmd: /usr/local/bin/suricata-wrapper.sh
+    name: suricata
 ```
 
 To be invoked successfully by Brimcap, an analyzer process should have the
@@ -377,6 +380,7 @@ richer data types.
 $ cat nfdump.yml 
 analyzers:
   - cmd: /usr/local/bin/nfdump-wrapper.sh
+    name: nfdump
     globs: ["*.zng"]
     shaper: |
       type netflow = {
@@ -437,8 +441,9 @@ create a new pool and import the data for a sample pcap.
 
 ```
 $ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
-$ zed api create -p testpool2
-$ brimcap analyze -config nfdump.yml sample.pcap | zed api load -p testpool2 -
+$ zed api create testpool2
+$ zed api use -p testpool2
+$ brimcap analyze -config nfdump.yml sample.pcap | zed api load -
 ```
 
 Our pool is now ready to be queried in Brim.
@@ -461,8 +466,10 @@ Zeek/Suricata like this:
 ```
 analyzers:
   - cmd: /usr/local/bin/zeek-wrapper.sh
+    name: zeek
     workdir: /tmp/zeek-wd
   - cmd: /usr/local/bin/suricata-wrapper.sh
+    name: suricata
     workdir: /tmp/suricata-wd
 ...
 ```
