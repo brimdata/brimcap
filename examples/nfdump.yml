@@ -1,5 +1,6 @@
 analyzers:
   - cmd: /usr/local/bin/nfdump-wrapper.sh
+    name: nfdump
     globs: ["*.zng"]
     shaper: |
       type netflow = {

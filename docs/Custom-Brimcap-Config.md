@@ -152,7 +152,9 @@ In examining the example Brimcap YAML, we see at the top that we've defined two
 $ cat zeek-suricata.yml
 analyzers:
   - cmd: /usr/local/bin/zeek-wrapper.sh
+    name: zeek
   - cmd: /usr/local/bin/suricata-wrapper.sh
+    name: suricata
 ```
 
 To be invoked successfully by Brimcap, an analyzer process should have the
@@ -378,6 +380,7 @@ richer data types.
 $ cat nfdump.yml 
 analyzers:
   - cmd: /usr/local/bin/nfdump-wrapper.sh
+    name: nfdump
     globs: ["*.zng"]
     shaper: |
       type netflow = {
