@@ -1,3 +1,4 @@
+root: $HOME/.config/Brim/data/brimcap-root
 analyzers:
   - cmd: /usr/local/bin/zeek-wrapper.sh
     name: zeek
