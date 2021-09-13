@@ -300,7 +300,7 @@ func (m *migration) migratePcap(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	rootentry := m.config.RootPath
+	rootentry := brimcap.Root(m.config.RootPath).Filepath(hash)
 	info, _ := os.Stat(rootentry)
 	if info == nil {
 		// Only write if hash doesn't exist in brimcap root.
