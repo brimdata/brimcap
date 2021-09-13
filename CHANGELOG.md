@@ -1,3 +1,6 @@
+## v1.1.1
+* Fix an issue where pcap index entries for legacy Spaces were not being migrated (#156)
+
 ## v1.1.0
 * Allow expansion of environment variables in Brimcap config YAML (#153)
 
