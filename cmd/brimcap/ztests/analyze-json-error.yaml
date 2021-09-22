@@ -1,9 +1,7 @@
 script: |
-  # Undo -e since we expect all subsequent commands to fail.
-  set +e
-  brimcap -json analyze doesnotexist.pcap
+  ! brimcap -json analyze doesnotexist.pcap
   >&2 echo === 
-  brimcap analyze doesnotexist.pcap
+  ! brimcap analyze doesnotexist.pcap
 
 outputs:
   - name: stderr

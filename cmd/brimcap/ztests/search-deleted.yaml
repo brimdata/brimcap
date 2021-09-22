@@ -3,7 +3,7 @@ script: |
   brimcap index -root root -r non-overlap.pcapng
   rm non-overlap.pcapng
 
-  brimcap search -root root \
+  ! brimcap search -root root \
     -w result.pcap \
     -ts 2020-03-10T15:42:03.826851Z \
     -duration 428us \
