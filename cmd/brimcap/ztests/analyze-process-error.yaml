@@ -1,10 +1,8 @@
 script: |
-  # Undo -e since we expect all subsequent commands to fail.
-  set +e
   chmod +x errorproc.sh && mkdir wd && mv errorproc.sh wd
-  cat alerts.pcap | brimcap analyze -config=config1.yaml -o /dev/null -
+  ! cat alerts.pcap | brimcap analyze -config=config1.yaml -o /dev/null -
   >&2 echo === 
-  brimcap analyze -config=config2.yaml -o /dev/null alerts.pcap
+  ! brimcap analyze -config=config2.yaml -o /dev/null alerts.pcap
 
 inputs:
   - name: alerts.pcap

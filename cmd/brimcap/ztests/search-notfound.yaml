@@ -1,10 +1,8 @@
 script: |
-  # Undo -e since we expect all subsequent commands to fail.
-  set +e
   mkdir root
   brimcap index -root root -r non-overlap.pcapng
 
-  brimcap search -root root \
+  ! brimcap search -root root \
     -w result.pcap \
     -ts 2020-03-10T15:42:03.826851Z \
     -duration 428us \
@@ -15,7 +13,7 @@ script: |
     -dst.port 443
 
   >&2 echo === 
-  brimcap search -root root \
+  ! brimcap search -root root \
     -w result.pcap \
     -ts 2020-03-09T15:42:03.826851Z \
     -duration 428us \
@@ -24,7 +22,6 @@ script: |
     -src.port 62576 \
     -dst.ip 104.123.204.164 \
     -dst.port 443
-
 
 inputs:
   - name: non-overlap.pcapng

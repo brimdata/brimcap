@@ -1,5 +1,5 @@
 script: |
-  brimcap config -config=brimcap.config
+  ! brimcap config -config=brimcap.config
 
 inputs:
   - name: brimcap.config

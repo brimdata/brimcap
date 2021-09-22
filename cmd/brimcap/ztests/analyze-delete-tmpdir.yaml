@@ -1,6 +1,6 @@
 script: |
   mkdir d
-  TMPDIR=$PWD/d TMP=$PWD/d brimcap analyze -analyzer.suricata.disabled alerts.pcap >/dev/null 2>&1
+  ! TMPDIR=$PWD/d TMP=$PWD/d brimcap analyze -analyzer.suricata.disabled alerts.pcap >/dev/null 2>&1
   ls d
 
 inputs:
