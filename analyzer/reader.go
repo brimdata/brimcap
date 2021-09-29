@@ -6,12 +6,11 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/brimcap/ztail"
+	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/compiler"
 	"github.com/brimdata/zed/compiler/ast"
 	"github.com/brimdata/zed/driver"
 	"github.com/brimdata/zed/zio"
-	"github.com/brimdata/zed/zng"
-	"github.com/brimdata/zed/zson"
 	"go.uber.org/multierr"
 )
 
@@ -24,7 +23,7 @@ type reader struct {
 func newReader(ctx context.Context, warner zio.Warner, confs ...Config) (*reader, error) {
 	var tailers tailers
 	var readers []zio.Reader
-	zctx := zson.NewContext()
+	zctx := zed.NewContext()
 	for _, conf := range confs {
 		reader, tailer, err := tailOne(ctx, zctx, conf, warner)
 		if err != nil {
@@ -40,7 +39,7 @@ func newReader(ctx context.Context, warner zio.Warner, confs ...Config) (*reader
 	}, nil
 }
 
-func (h *reader) Read() (*zng.Record, error) {
+func (h *reader) Read() (*zed.Record, error) {
 	rec, err := h.reader.Read()
 	if rec != nil {
 		atomic.AddInt64(&h.records, 1)
@@ -51,7 +50,7 @@ func (h *reader) Read() (*zng.Record, error) {
 func (h *reader) stop() error        { return h.tailers.stop() }
 func (h *reader) close() (err error) { return h.tailers.close() }
 
-func tailOne(ctx context.Context, zctx *zson.Context, conf Config, warner zio.Warner) (zio.Reader, *ztail.Tailer, error) {
+func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner zio.Warner) (zio.Reader, *ztail.Tailer, error) {
 	var shaper ast.Proc
 	if conf.Shaper != "" {
 		var err error
@@ -85,7 +84,7 @@ func (w wrappedReader) Warn(msg string) error {
 	return w.warner.Warn(fmt.Sprintf("%s: %s", w.cmd, msg))
 }
 
-func (w wrappedReader) Read() (*zng.Record, error) {
+func (w wrappedReader) Read() (*zed.Record, error) {
 	rec, err := w.reader.Read()
 	if err != nil {
 		err = fmt.Errorf("%s: %w", w.cmd, err)
