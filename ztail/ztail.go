@@ -10,15 +10,14 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/brimcap/tail"
+	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/anyio"
-	"github.com/brimdata/zed/zng"
-	"github.com/brimdata/zed/zson"
 )
 
 // Tailer is a zio.Reader that watches a specified directory and starts
 // tailing existing and newly created files in the directory for new logs. Newly
-// written log data are transformed into *zng.Records and returned on a
+// written log data are transformed into *zed.Records and returned on a
 // first-come-first serve basis.
 type Tailer struct {
 	forceClose uint32
@@ -26,7 +25,7 @@ type Tailer struct {
 	readers    map[string]*tail.File
 	tailer     *tail.Dir
 	warner     zio.Warner
-	zctx       *zson.Context
+	zctx       *zed.Context
 
 	// synchronization primitives
 	results chan result
@@ -34,7 +33,7 @@ type Tailer struct {
 	watchWg sync.WaitGroup
 }
 
-func New(zctx *zson.Context, dir string, opts anyio.ReaderOpts, warner zio.Warner, globs ...string) (*Tailer, error) {
+func New(zctx *zed.Context, dir string, opts anyio.ReaderOpts, warner zio.Warner, globs ...string) (*Tailer, error) {
 	dir = filepath.Clean(dir)
 	tailer, err := tail.TailDir(dir, globs...)
 	if err != nil {
@@ -60,7 +59,7 @@ type nopWarner struct{}
 func (nopWarner) Warn(_ string) error { return nil }
 
 type result struct {
-	rec *zng.Record
+	rec *zed.Record
 	err error
 }
 
@@ -156,7 +155,7 @@ func (t *Tailer) tailFile(file string) error {
 	return nil
 }
 
-func (t *Tailer) Read() (*zng.Record, error) {
+func (t *Tailer) Read() (*zed.Record, error) {
 	res, ok := <-t.results
 	if !ok {
 		// already closed return EOS

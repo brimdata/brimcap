@@ -15,6 +15,7 @@ import (
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/brimcap/pcap"
+	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/field"
@@ -157,7 +158,7 @@ func unmarshal(r *client.Response, i interface{}) error {
 	if err != nil {
 		return err
 	}
-	zr, err := anyio.NewReaderWithOpts(r.Body, zson.NewContext(), anyio.ReaderOpts{Format: format})
+	zr, err := anyio.NewReaderWithOpts(r.Body, zed.NewContext(), anyio.ReaderOpts{Format: format})
 	if err != nil {
 		return nil
 	}
