@@ -95,7 +95,7 @@ Please browse the [wiki](https://github.com/brimdata/brimcap/wiki) to review com
 
 ## Join the Community
 
-Join our [Public Slack](https://www.brimsecurity.com/join-slack/) workspace for announcements, Q&A, and to trade tips!
+Join our [Public Slack](https://www.brimdata.io/join-slack/) workspace for announcements, Q&A, and to trade tips!
 
 [ci-img]: https://github.com/brimdata/brimcap/actions/workflows/ci.yaml/badge.svg
 [ci]: https://github.com/brimdata/brimcap/actions/workflows/ci.yaml
