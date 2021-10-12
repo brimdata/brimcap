@@ -322,7 +322,7 @@ via Brimcap, the **Packets** button in Brim is not currently wired to extract
 flows from a pcap via the 5-tuple and time details in NetFlow records. If this
 is functionality you're interested in pursuing, please
 [open an issue](https://github.com/brimdata/brimcap/wiki/Troubleshooting#opening-an-issue)
-or come talk to us on [public Slack](https://www.brimsecurity.com/join-slack/).
+or come talk to us on [public Slack](https://www.brimdata.io/join-slack/).
 
 ## Base nfdump Installation
 
@@ -519,6 +519,6 @@ total 97912
 If you're running custom Brimcap configurations, we'd like to hear from you!
 Whether you've perfected a custom combination of analyzers that you think other
 Brim users will find useful, or (especially) if you hit challenges and need
-help, please join our [public Slack](https://www.brimsecurity.com/join-slack/)
+help, please join our [public Slack](https://www.brimdata.io/join-slack/)
 and tell us about it, or [open an issue](https://github.com/brimdata/brimcap/wiki/Troubleshooting#opening-an-issue).
 Thanks!

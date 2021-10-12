@@ -65,7 +65,7 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
           ref: main
-      - run: git config --local user.email 'automation@brimsecurity.com'
+      - run: git config --local user.email 'automation@brimdata.io'
       - run: git config --local user.name 'Brim Automation'
       - name: Commit and push change
         run: |
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: git config --local user.email 'automation@brimsecurity.com'
+      - run: git config --local user.email 'automation@brimdata.io'
       - run: git config --local user.name 'Brim Automation'
       - name: Create Pull Request for Manual Inspection
         uses: peter-evans/create-pull-request@v3.8.2
