@@ -34,8 +34,8 @@ pcaps. The article then closes with some [Debug](#debug) tips.
 
 ## Background
 
-Brim release `v0.25.0` bundles Zeek and Suricata binaries differently than
-`v0.24.0`. A brief summary:
+Starting with Brim release `v0.25.0`, Zeek and Suricata binaries are bundled
+differently than they were in release `v0.24.0` and older. A brief summary:
 
 * **`v0.24.0` and older** - The "backend" `zqd` process that ran behind the
 Brim app handled the launching of Zeek and Suricata binaries each time a pcap
@@ -218,12 +218,12 @@ analyzers:
 ...
 ```
 
-What follows below the `globs:` setting is a Zed shaper configuration. Whereas
+What follows below the `globs:` setting is a Zed shaper script. Whereas
 the Zeek TSV logs contain Zed-compatible rich data types (timestamps, IP
 addresses, etc.), since Suricata's EVE logs are NDJSON, here we use this shaper
-config to assign better data types as the NDJSON is being converted for storage
+to assign better data types as the NDJSON is being converted for storage
 into the Zed Lake. Out-of-the-box, Brimcap automatically applies this same
-shaping configuration on the EVE output generated from its bundled Suricata.
+shaper script on the EVE output generated from its bundled Suricata.
 Here it's broken out and made part of the configuration YAML such that you can
 further modify it to suit your needs.
 ```
@@ -279,8 +279,8 @@ further modify it to suit your needs.
       filter event_type=="alert" | put this := shape(alert) | rename ts := timestamp
 ```
 
-A full description of all that's possible with shaping configurations is beyond
-the scope of this article. However, this configuration is quite simple and can
+A full description of all that's possible with shapers is beyond
+the scope of this article. However, this script is quite simple and can
 be described in brief.
 
 1. The `type alert` defines the names, [data types](https://github.com/brimdata/zed/blob/main/docs/formats/zson.md#33-primitive-values),
@@ -357,81 +357,43 @@ cat - > "$TMPFILE"
 rm "$TMPFILE"
 for file in nfcapd.*
 do
-  /usr/local/bin/nfdump -r $file -o csv | head -n -3 | /opt/Brim/resources/app.asar.unpacked/zdeps/zq -i csv - > ${file}.zng
+  /usr/local/bin/nfdump -r $file -o json > ${file}.json
 done
 ```
 
-> **Note:** The inclusion of `zq -i csv` in the pipeline works around a Brimcap
-> limitation that only log formats auto-detected by the Zed platform can
-> currently be read. Therefore this call to `zq` turns the CSV into
-> ZNG, then the minimally-typed records in the ZNG are still enhanced by the
-> shaper configuration shown below. When either Brimcap is enhanced to allow
-> the explicit specification of input formats
-> ([brimcap/80](https://github.com/brimdata/brimcap/issues/80))
-> or Zed is enhanced to auto-detect more formats such as CSV
-> ([zed/2517](https://github.com/brimdata/zed/issues/2517))
-> this workaround will no longer be necessary.
-
-This script is called from our Brimcap config YAML, which includes a
-`globs:` setting to target only the needed files and also a Zed shaper to apply
-richer data types.
+This script is called from our Brimcap config YAML, which includes a `globs:`
+setting to apply a Zed shaper to only the JSON files that were output from
+nfdump.
 
 ```
 $ cat nfdump.yml 
 analyzers:
   - cmd: /usr/local/bin/nfdump-wrapper.sh
     name: nfdump
-    globs: ["*.zng"]
+    globs: ["*.json"]
     shaper: |
       type netflow = {
-        ts: time,
-        te: time,
-        td: duration,
-        sa: ip,
-        da: ip,
-        sp: uint16,
-        dp: uint16,
-        pr: string,
-        flg: string,
-        fwd: bytes,
-        stos: bytes,
-        ipkt: uint64,
-        ibyt: uint64,
-        opkt: uint64,
-        obyt: uint64,
-        in: uint64,
-        out: uint64,
-        sas: uint64,
-        das: uint64,
-        smk: uint8,
-        dmk: uint8,
-        dtos: bytes,
-        dir: uint8,
-        nh: ip,
-        nhb: ip,
-        svln: uint16,
-        dvln: uint16,
-        ismc: string,
-        odmc: string,
-        idmc: string,
-        osmc: string,
-        mpls1: string,
-        mpls2: string,
-        mpls3: string,
-        mpls4: string,
-        mpls5: string,
-        mpls6: string,
-        mpls7: string,
-        mpls8: string,
-        mpls9: string,
-        mpls10: string,
-        cl: float64,
-        sl: float64,
-        al: float64,
-        ra: ip,
-        eng: string,
-        exid: bytes,
-        tr: time
+        type: string,
+        sampled: int64,
+        export_sysid: int64,
+        t_first: time,
+        t_last: time,
+        proto: int64,
+        src4_addr: ip,
+        dst4_addr: ip,
+        icmp_type: int64,
+        icmp_code: int64,
+        src_port: uint16,
+        dst_port: uint16,
+        fwd_status: int64,
+        tcp_flags: string,
+        src_tos: int64,
+        in_packets: int64,
+        in_bytes: int64,
+        cli_latency: float64,
+        srv_latency: float64,
+        app_latency: float64,
+        label: string
       }
       put this := shape(netflow)
 ```
