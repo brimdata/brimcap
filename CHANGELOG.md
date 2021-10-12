@@ -1,3 +1,6 @@
+## v1.1.2
+* Allow Brimcap analyzers to benefit from Zed JSON reader enhancements [zed/3124](https://github.com/brimdata/zed/pull/3124) and [zed/3123](https://github.com/brimdata/zed/pull/3123)
+
 ## v1.1.1
 * Fix an issue where pcap index entries for legacy Spaces were not being migrated (#156)
 
