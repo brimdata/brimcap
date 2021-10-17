@@ -11,8 +11,8 @@ import (
 )
 
 type Stats struct {
-	BytesRead      int64
-	RecordsWritten int64
+	BytesRead     int64
+	ValuesWritten int64
 }
 
 type Display interface {
@@ -21,7 +21,7 @@ type Display interface {
 }
 
 // Run executes the provided configs against the pcap stream, writing the
-// produced records to w. If interval is > 0, the d.Stats will be called
+// produced values to w. If interval is > 0, the d.Stats will be called
 // at that interval.
 func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval time.Duration, cs ...Config) error {
 	confs := Configs(cs).removeDisabled()
@@ -43,21 +43,21 @@ func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval 
 		r.close()
 		return err
 	}
-	var recordCount int64
+	var valueCount int64
 	group.Go(func() error {
 		defer r.stop()
 		return procs.wait()
 	})
 	group.Go(func() error {
 		for ctx.Err() == nil {
-			rec, err := r.Read()
-			if rec == nil || err != nil {
+			zv, err := r.Read()
+			if zv == nil || err != nil {
 				return err
 			}
-			if err := w.Write(rec); err != nil {
+			if err := w.Write(zv); err != nil {
 				return err
 			}
-			atomic.AddInt64(&recordCount, 1)
+			atomic.AddInt64(&valueCount, 1)
 		}
 		return nil
 	})
@@ -71,8 +71,8 @@ func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval 
 					return
 				case <-ticker.C:
 					d.Stats(Stats{
-						BytesRead:      procs.bytesRead(),
-						RecordsWritten: atomic.LoadInt64(&recordCount),
+						BytesRead:     procs.bytesRead(),
+						ValuesWritten: atomic.LoadInt64(&valueCount),
 					})
 				}
 			}
@@ -82,8 +82,8 @@ func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval 
 	if err == nil {
 		// Send final Stats upon completion.
 		d.Stats(Stats{
-			BytesRead:      procs.bytesRead(),
-			RecordsWritten: atomic.LoadInt64(&recordCount),
+			BytesRead:     procs.bytesRead(),
+			ValuesWritten: atomic.LoadInt64(&valueCount),
 		})
 	}
 	return err

@@ -20,7 +20,7 @@ import (
 var Analyze = &charm.Spec{
 	Name:  "analyze",
 	Usage: "analyze [options] pcap",
-	Short: "analyze a pcap and emit a stream of ZNG records",
+	Short: "analyze a pcap and emit a stream of ZNG values",
 	Long: `
 The analyze command runs a pcap file or stream through multiple analyzer 
 processes (for now this is Zeek and Suricata) and emits the generated logs from
@@ -33,7 +33,7 @@ written as ZNG or ZSON, then use zq to efficiently search through them.
 Additionally logs can also be written as NDJSON and then operated on using jq
 (https://stedolan.github.io/jq/).
 
-To analyze a pcap file and write the data as ZSON records to stdout, simply run:
+To analyze a pcap file and write the data as ZSON values to stdout, simply run:
 
 brimcap analyze -z sample.pcap
 `,
