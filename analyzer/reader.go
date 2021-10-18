@@ -16,8 +16,8 @@ import (
 
 type reader struct {
 	reader  zio.Reader
-	records int64
 	tailers tailers
+	values  int64
 }
 
 func newReader(ctx context.Context, warner zio.Warner, confs ...Config) (*reader, error) {
@@ -39,12 +39,12 @@ func newReader(ctx context.Context, warner zio.Warner, confs ...Config) (*reader
 	}, nil
 }
 
-func (h *reader) Read() (*zed.Record, error) {
-	rec, err := h.reader.Read()
-	if rec != nil {
-		atomic.AddInt64(&h.records, 1)
+func (h *reader) Read() (*zed.Value, error) {
+	zv, err := h.reader.Read()
+	if zv != nil {
+		atomic.AddInt64(&h.values, 1)
 	}
-	return rec, err
+	return zv, err
 }
 
 func (h *reader) stop() error        { return h.tailers.stop() }
@@ -84,12 +84,12 @@ func (w wrappedReader) Warn(msg string) error {
 	return w.warner.Warn(fmt.Sprintf("%s: %s", w.cmd, msg))
 }
 
-func (w wrappedReader) Read() (*zed.Record, error) {
-	rec, err := w.reader.Read()
+func (w wrappedReader) Read() (*zed.Value, error) {
+	zv, err := w.reader.Read()
 	if err != nil {
 		err = fmt.Errorf("%s: %w", w.cmd, err)
 	}
-	return rec, err
+	return zv, err
 }
 
 type tailers []*ztail.Tailer

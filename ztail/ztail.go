@@ -17,7 +17,7 @@ import (
 
 // Tailer is a zio.Reader that watches a specified directory and starts
 // tailing existing and newly created files in the directory for new logs. Newly
-// written log data are transformed into *zed.Records and returned on a
+// written log data are transformed into *zed.Values and returned on a
 // first-come-first serve basis.
 type Tailer struct {
 	forceClose uint32
@@ -59,7 +59,7 @@ type nopWarner struct{}
 func (nopWarner) Warn(_ string) error { return nil }
 
 type result struct {
-	rec *zed.Record
+	zv  *zed.Value
 	err error
 }
 
@@ -143,11 +143,11 @@ func (t *Tailer) tailFile(file string) error {
 
 		var res result
 		for {
-			res.rec, res.err = zr.Read()
-			if res.rec != nil || res.err != nil {
+			res.zv, res.err = zr.Read()
+			if res.zv != nil || res.err != nil {
 				t.results <- res
 			}
-			if res.rec == nil || res.err != nil {
+			if res.zv == nil || res.err != nil {
 				return
 			}
 		}
@@ -155,7 +155,7 @@ func (t *Tailer) tailFile(file string) error {
 	return nil
 }
 
-func (t *Tailer) Read() (*zed.Record, error) {
+func (t *Tailer) Read() (*zed.Value, error) {
 	res, ok := <-t.results
 	if !ok {
 		// already closed return EOS
@@ -167,7 +167,7 @@ func (t *Tailer) Read() (*zed.Record, error) {
 		for range t.results {
 		}
 	}
-	return res.rec, res.err
+	return res.zv, res.err
 }
 
 // Stop instructs the directory watcher and indiviual file watchers to stop

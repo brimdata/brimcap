@@ -55,7 +55,7 @@ func (d *statusLineDisplay) Stats(stats analyzer.Stats) error {
 	} else {
 		fmt.Fprintf(d.live, "%s ", units.Bytes(stats.BytesRead).Abbrev())
 	}
-	fmt.Fprintf(d.live, "records=%d ", stats.RecordsWritten)
+	fmt.Fprintf(d.live, "values=%d ", stats.ValuesWritten)
 	io.WriteString(d.live, "\n")
 	return d.live.Flush()
 }
@@ -98,12 +98,12 @@ func (j *jsonDisplay) Stats(stats analyzer.Stats) error {
 		return nil
 	}
 	return j.encoder.Encode(MsgStatus{
-		Type:           "status",
-		Ts:             nano.Now(),
-		PcapReadSize:   stats.BytesRead,
-		PcapTotalSize:  j.pcapsize,
-		RecordsWritten: stats.RecordsWritten,
-		Span:           j.span,
+		Type:          "status",
+		Ts:            nano.Now(),
+		PcapReadSize:  stats.BytesRead,
+		PcapTotalSize: j.pcapsize,
+		Span:          j.span,
+		ValuesWritten: stats.ValuesWritten,
 	})
 }
 
@@ -115,10 +115,10 @@ type MsgWarning struct {
 }
 
 type MsgStatus struct {
-	Type           string     `json:"type"`
-	Ts             nano.Ts    `json:"ts"`
-	PcapReadSize   int64      `json:"pcap_read_size"`
-	PcapTotalSize  int64      `json:"pcap_total_size"`
-	RecordsWritten int64      `json:"records_written"`
-	Span           *nano.Span `json:"span,omitempty"`
+	Type          string     `json:"type"`
+	Ts            nano.Ts    `json:"ts"`
+	PcapReadSize  int64      `json:"pcap_read_size"`
+	PcapTotalSize int64      `json:"pcap_total_size"`
+	Span          *nano.Span `json:"span,omitempty"`
+	ValuesWritten int64      `json:"values_written"`
 }
