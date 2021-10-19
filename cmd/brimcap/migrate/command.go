@@ -1,7 +1,6 @@
 package migrate
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -15,19 +14,13 @@ import (
 	"github.com/brimdata/brimcap/cli"
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/brimcap/pcap"
-	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/api"
 	"github.com/brimdata/zed/api/client"
 	"github.com/brimdata/zed/field"
-	"github.com/brimdata/zed/lake"
 	"github.com/brimdata/zed/order"
 	"github.com/brimdata/zed/pkg/charm"
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/storage"
-	"github.com/brimdata/zed/zio"
-	"github.com/brimdata/zed/zio/anyio"
-	"github.com/brimdata/zed/zio/zsonio"
-	"github.com/brimdata/zed/zson"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -153,26 +146,6 @@ func (c *Command) loadZqdConfig() (zqdConfig, error) {
 	return db, err
 }
 
-func unmarshal(r *client.Response, i interface{}) error {
-	format, err := api.MediaTypeToFormat(r.ContentType)
-	if err != nil {
-		return err
-	}
-	zr, err := anyio.NewReaderWithOpts(r.Body, zed.NewContext(), anyio.ReaderOpts{Format: format})
-	if err != nil {
-		return nil
-	}
-	var buf bytes.Buffer
-	zw := zsonio.NewWriter(zio.NopCloser(&buf), zsonio.WriterOpts{})
-	if err := zio.Copy(zw, zr); err != nil {
-		return err
-	}
-	if err := zw.Close(); err != nil {
-		return err
-	}
-	return zson.Unmarshal(buf.String(), i)
-}
-
 func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error {
 	space := db.SpaceRows[idx]
 	logger := c.logger.With(zap.String("space", space.Name))
@@ -180,7 +153,7 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 		logger.Warn("unsupported storage kind, skipping", zap.String("kind", space.Storage.Kind))
 		return errSkip
 	}
-	r, err := c.conn.PoolPost(ctx, api.PoolPostRequest{
+	branchMeta, err := c.conn.CreatePool(ctx, api.PoolPostRequest{
 		Name: space.Name,
 		Layout: order.Layout{
 			Order: order.Desc,
@@ -192,11 +165,6 @@ func (c *Command) migrateSpace(ctx context.Context, db zqdConfig, idx int) error
 			logger.Warn("pool already exists with same name, skipping")
 			return errSkip
 		}
-		return err
-	}
-	defer r.Body.Close()
-	var branchMeta lake.BranchMeta
-	if err := unmarshal(r, &branchMeta); err != nil {
 		return err
 	}
 	m := &migration{
@@ -258,15 +226,11 @@ func (m *migration) migrateData(ctx context.Context) error {
 		return err
 	}
 	defer f.Close()
-	resp, err := m.conn.Load(ctx, m.poolID, m.branch, f, api.CommitMessage{
+	_, err = m.conn.Load(ctx, m.poolID, m.branch, f, api.CommitMessage{
 		Author: "brimcap",
 		Body:   "automatic migration of " + zngpath,
 	})
-	if err != nil {
-		return err
-	}
-	resp.Body.Close()
-	return nil
+	return err
 }
 
 func (m *migration) migratePcap(ctx context.Context) error {
