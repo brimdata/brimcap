@@ -29,12 +29,6 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
-      - uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       - run: make fmt
       - run: make tidy
       - run: make vet
