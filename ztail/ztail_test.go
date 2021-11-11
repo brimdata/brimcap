@@ -3,9 +3,9 @@ package ztail
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/brimdata/zed"
@@ -13,33 +13,32 @@ import (
 	"github.com/brimdata/zed/driver"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/anyio"
-	"github.com/brimdata/zed/zio/tzngio"
+	"github.com/brimdata/zed/zio/zsonio"
 	"github.com/stretchr/testify/suite"
 )
 
 var sortTs = compiler.MustParseProc("sort ts")
 
-const expected = `#0:record[ts:time]
-0:[0;]
-0:[1;]
-0:[2;]
-0:[3;]
-0:[4;]
-0:[5;]
-0:[6;]
-0:[7;]
-0:[8;]
-0:[9;]
-0:[10;]
-0:[11;]
-0:[12;]
-0:[13;]
-0:[14;]
-0:[15;]
-0:[16;]
-0:[17;]
-0:[18;]
-0:[19;]
+const expected = `{ts:1970-01-01T00:00:00Z}
+{ts:1970-01-01T00:00:01Z}
+{ts:1970-01-01T00:00:02Z}
+{ts:1970-01-01T00:00:03Z}
+{ts:1970-01-01T00:00:04Z}
+{ts:1970-01-01T00:00:05Z}
+{ts:1970-01-01T00:00:06Z}
+{ts:1970-01-01T00:00:07Z}
+{ts:1970-01-01T00:00:08Z}
+{ts:1970-01-01T00:00:09Z}
+{ts:1970-01-01T00:00:10Z}
+{ts:1970-01-01T00:00:11Z}
+{ts:1970-01-01T00:00:12Z}
+{ts:1970-01-01T00:00:13Z}
+{ts:1970-01-01T00:00:14Z}
+{ts:1970-01-01T00:00:15Z}
+{ts:1970-01-01T00:00:16Z}
+{ts:1970-01-01T00:00:17Z}
+{ts:1970-01-01T00:00:18Z}
+{ts:1970-01-01T00:00:19Z}
 `
 
 type tailerTSuite struct {
@@ -57,14 +56,14 @@ func (s *tailerTSuite) SetupTest() {
 	s.dir = s.T().TempDir()
 	s.zctx = zed.NewContext()
 	var err error
-	s.dr, err = New(s.zctx, s.dir, anyio.ReaderOpts{Format: "tzng"}, nil)
+	s.dr, err = New(s.zctx, s.dir, anyio.ReaderOpts{Format: "zson"}, nil)
 	s.Require().NoError(err)
 }
 
 func (s *tailerTSuite) TestCreatedFiles() {
 	result, errCh := s.read()
-	f1 := s.createFile("test1.tzng")
-	f2 := s.createFile("test2.tzng")
+	f1 := s.createFile("test1.zson")
+	f2 := s.createFile("test2.zson")
 	s.write(f1, f2)
 	s.Require().NoError(<-errCh)
 	s.Equal(expected, <-result)
@@ -72,8 +71,8 @@ func (s *tailerTSuite) TestCreatedFiles() {
 
 func (s *tailerTSuite) TestIgnoreDir() {
 	result, errCh := s.read()
-	f1 := s.createFile("test1.tzng")
-	f2 := s.createFile("test2.tzng")
+	f1 := s.createFile("test1.zson")
+	f2 := s.createFile("test2.zson")
 	err := os.Mkdir(filepath.Join(s.dir, "testdir"), 0755)
 	s.Require().NoError(err)
 	s.write(f1, f2)
@@ -82,8 +81,8 @@ func (s *tailerTSuite) TestIgnoreDir() {
 }
 
 func (s *tailerTSuite) TestExistingFiles() {
-	f1 := s.createFile("test1.tzng")
-	f2 := s.createFile("test2.tzng")
+	f1 := s.createFile("test1.zson")
+	f2 := s.createFile("test2.zson")
 	result, errCh := s.read()
 	s.write(f1, f2)
 	s.Require().NoError(<-errCh)
@@ -92,8 +91,8 @@ func (s *tailerTSuite) TestExistingFiles() {
 
 func (s *tailerTSuite) TestEmptyFile() {
 	result, errCh := s.read()
-	f1 := s.createFile("test1.tzng")
-	_ = s.createFile("test2.tzng")
+	f1 := s.createFile("test1.zson")
+	_ = s.createFile("test2.zson")
 	s.write(f1)
 	s.Require().NoError(<-errCh)
 	s.Equal(expected, <-result)
@@ -112,7 +111,7 @@ func (s *tailerTSuite) read() (<-chan string, <-chan error) {
 	result := make(chan string)
 	errCh := make(chan error)
 	buf := bytes.NewBuffer(nil)
-	w := tzngio.NewWriter(zio.NopCloser(buf))
+	w := zsonio.NewWriter(zio.NopCloser(buf), zsonio.WriterOpts{})
 	go func() {
 		err := driver.Copy(context.Background(), w, sortTs, s.zctx, s.dr, nil)
 		if err != nil {
@@ -127,15 +126,15 @@ func (s *tailerTSuite) read() (<-chan string, <-chan error) {
 }
 
 func (s *tailerTSuite) write(files ...*os.File) {
-	for _, f := range files {
-		_, err := f.WriteString("#0:record[ts:time]\n")
-		s.Require().NoError(err)
-	}
-	for i := 0; i < 20; {
+	lines := strings.Split(strings.TrimSpace(expected), "\n")
+loop:
+	for i := 0; ; {
 		for _, f := range files {
-			_, err := f.WriteString(fmt.Sprintf("0:[%d;]\n", i))
+			_, err := f.WriteString(lines[i])
 			s.Require().NoError(err)
-			i++
+			if i += 1; i >= len(lines) {
+				break loop
+			}
 		}
 	}
 	// Need to sync here as on windows the fsnotify event is not triggered
