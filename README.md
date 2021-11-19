@@ -10,7 +10,7 @@ the [`zq` command line utility](https://github.com/brimdata/zed/tree/main/cmd/ze
 ## Quickstart
 
 1. [Install brimcap](#standalone-install)
-2. Have a pcap handy (or download a [sample pcap](https://wiki.wireshark.org/SampleCaptures))
+2. Have a pcap handy (or download a [sample pcap](https://gitlab.com/wireshark/wireshark/-/wikis/SampleCaptures))
 3. Run `brimcap analyze`
 
    ```

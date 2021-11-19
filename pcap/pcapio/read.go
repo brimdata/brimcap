@@ -22,7 +22,8 @@ import (
 )
 
 // PcapReader implements the Reader interface to read packet data in PCAP
-// format.  See http://wiki.wireshark.org/Development/LibpcapFileFormat
+// format.  See
+// https://gitlab.com/wireshark/wireshark/-/wikis/Development/LibpcapFileFormat
 // for information on the file format.
 //
 // We currenty read v2.4 file format with nanosecond and microsecond
