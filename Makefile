@@ -50,16 +50,16 @@ build/dist/suricata: build/$(SURICATAPATH).zip
 	@unzip -q $^ -d build/dist
 	@touch $@
 
-bin/zed-$(ZED_VERSION):
-	@rm -rf $@*
+bin/zq-$(ZED_VERSION):
+	@rm -rf bin
 	@mkdir -p $(@D)
 	@echo 'module deps' > $@.mod
 	@go get -d -modfile=$@.mod github.com/brimdata/zed@$(ZED_VERSION)
 	@go mod download -modfile=$@.mod
-	@go build -mod=mod -modfile=$@.mod -o $@ github.com/brimdata/zed/cmd/zed
+	@go build -mod=mod -modfile=$@.mod -o $@ github.com/brimdata/zed/cmd/zq
 
-.PHONY: bin/zed
-bin/zed: bin/zed-$(ZED_VERSION)
+.PHONY: bin/zq
+bin/zq: bin/zq-$(ZED_VERSION)
 	@ln -fs $(<F) $@
 
 .PHONY: build
@@ -87,9 +87,9 @@ test:
 	@go test -timeout 1m ./...
 
 .PHONY: ztest-run
-ztest-run: build bin/zed
+ztest-run: build bin/zq
 	@ZTEST_PATH="$(CURDIR)/build/dist:$(CURDIR)/bin:$(PATH)" go test . -run $(TEST)
 
 .PHONY: ztest
-ztest: build bin/zed
+ztest: build bin/zq
 	@ZTEST_PATH="$(CURDIR)/build/dist:$(CURDIR)/bin:$(PATH)" go test .
