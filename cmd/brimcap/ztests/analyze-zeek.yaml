@@ -1,4 +1,4 @@
-script: brimcap analyze -analyzers.suricata.disabled alerts.pcap | zed query -Z 'count()' -
+script: brimcap analyze -analyzers.suricata.disabled alerts.pcap | zq -Z 'count()' -
 
 inputs:
   - name: alerts.pcap
