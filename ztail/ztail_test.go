@@ -10,7 +10,7 @@ import (
 
 	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/compiler"
-	"github.com/brimdata/zed/driver"
+	"github.com/brimdata/zed/runtime"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/anyio"
 	"github.com/brimdata/zed/zio/zsonio"
@@ -113,8 +113,13 @@ func (s *tailerTSuite) read() (<-chan string, <-chan error) {
 	buf := bytes.NewBuffer(nil)
 	w := zsonio.NewWriter(zio.NopCloser(buf), zsonio.WriterOpts{})
 	go func() {
-		err := driver.Copy(context.Background(), w, sortTs, s.zctx, s.dr, nil)
+		query, err := runtime.NewQueryOnReader(context.Background(), s.zctx, sortTs, s.dr, nil)
 		if err != nil {
+			close(result)
+			errCh <- err
+			return
+		}
+		if err = zio.Copy(w, query.AsReader()); err != nil {
 			close(result)
 			errCh <- err
 		} else {

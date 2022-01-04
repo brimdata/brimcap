@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/compiler"
 	"github.com/brimdata/zed/compiler/ast"
-	"github.com/brimdata/zed/driver"
+	"github.com/brimdata/zed/runtime"
 	"github.com/brimdata/zed/zio"
 	"go.uber.org/multierr"
 )
@@ -65,11 +65,12 @@ func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner zio.War
 	}
 	wrapped.reader = tailer
 	if shaper != nil {
-		wrapped.reader, err = driver.NewReader(ctx, shaper, zctx, tailer)
+		query, err := runtime.NewQueryOnReader(ctx, zctx, shaper, tailer, nil)
 		if err != nil {
 			tailer.Close()
 			return nil, nil, err
 		}
+		wrapped.reader = query.AsReader()
 	}
 	return wrapped, tailer, nil
 }

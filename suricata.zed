@@ -1,4 +1,4 @@
-type port=uint16;
+type port=uint16
 type alert = {
 	timestamp: time,
 	event_type: bstring,
