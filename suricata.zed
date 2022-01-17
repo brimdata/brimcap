@@ -1,33 +1,33 @@
 type port=uint16
 type alert = {
 	timestamp: time,
-	event_type: bstring,
+	event_type: string,
 	src_ip: ip,
 	src_port: port,
 	dest_ip: ip,
 	dest_port: port,
 	vlan: [uint16],
-	proto: bstring,
-	app_proto: bstring,
+	proto: string,
+	app_proto: string,
 	alert: {
 		severity: uint16,
-		signature: bstring,
-		category: bstring,
-		action: bstring,
+		signature: string,
+		category: string,
+		action: string,
 		signature_id: uint64,
 		gid: uint64,
 		rev: uint64,
 		metadata: {
-			signature_severity: [bstring],
-			former_category: [bstring],
-			attack_target: [bstring],
-			deployment: [bstring],
-			affected_product: [bstring],
-			created_at: [bstring],
-			performance_impact: [bstring],
-			updated_at: [bstring],
-			malware_family: [bstring],
-			tag: [bstring]
+			signature_severity: [string],
+			former_category: [string],
+			attack_target: [string],
+			deployment: [string],
+			affected_product: [string],
+			created_at: [string],
+			performance_impact: [string],
+			updated_at: [string],
+			malware_family: [string],
+			tag: [string]
 		}
 	},
 	flow_id: uint64,
@@ -40,9 +40,9 @@ type alert = {
 		src_port: port,
 		dest_ip: ip,
 		dest_port: port,
-		proto: bstring,
+		proto: string,
 		depth: uint64
 	},
-	community_id: bstring
+	community_id: string
 }
 filter event_type=="alert" | yield shape(alert) | rename ts := timestamp

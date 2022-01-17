@@ -41,5 +41,5 @@ inputs:
 outputs:
   - name: stderr
     regexp: |
-      \{"type":"warning","warning":"\.\/badoutput.sh: .*bad\.json: parse error: parsing string literal"\}
+      \{"type":"warning","warning":"\.\/badoutput.sh: .*bad\.json: parse error: string literal: unescaped line break"\}
       \{"type":"status","ts":\{"sec":\d+,"ns":\d+\},"pcap_read_size":737694,"pcap_total_size":737694,"values_written":7\}
