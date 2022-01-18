@@ -5,7 +5,7 @@
     "build/dist"
   ],
   "scripts": {
-    "prepare": "make build"
+    "prepack": "make build"
   }
 }
 
