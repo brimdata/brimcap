@@ -6,6 +6,7 @@
   ],
   "publishConfig": {
     "executableFiles": [
+      "./build/dist/brimcap",
       "./build/dist/suricata/suricatarunner",
       "./build/dist/suricata/bin/suricata-update",
       "./build/dist/suricata/bin/suricata",
