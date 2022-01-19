@@ -2,49 +2,10 @@
   "name": "brimcap",
   "version": "1.1.2",
   "files": [
-    "./build/dist/**/*"
+    "build/dist/**"
   ],
-  "publishConfig": {
-    "executableFiles": [
-      "./build/dist/brimcap",
-      "./build/dist/suricata/suricatarunner",
-      "./build/dist/suricata/bin/suricata-update",
-      "./build/dist/suricata/bin/suricata",
-      "./build/dist/suricata/bin/suricatasc",
-      "./build/dist/suricata/bin/suricatactl",
-      "./build/dist/suricata/suricataupdater",
-      "./build/dist/zeek/bin/zeek",
-      "./build/dist/zeek/lib/zeek/plugins/Corelight_CommunityID/lib/Corelight-CommunityID.darwin-x86_64.so",
-      "./build/dist/zeek/zeekrunner",
-      "./build/dist/brimcap.exe",
-      "./build/dist/suricata/bin/suricata-update.exe",
-      "./build/dist/suricata/bin/suricata.exe",
-      "./build/dist/suricata/bin/suricatactl",
-      "./build/dist/suricata/bin/suricatasc",
-      "./build/dist/suricata/dlls/freebl3.dll",
-      "./build/dist/suricata/dlls/libnspr4.dll",
-      "./build/dist/suricata/dlls/libplc4.dll",
-      "./build/dist/suricata/dlls/libplds4.dll",
-      "./build/dist/suricata/dlls/libsqlite3-0.dll",
-      "./build/dist/suricata/dlls/libssp-0.dll",
-      "./build/dist/suricata/dlls/libwinpthread-1.dll",
-      "./build/dist/suricata/dlls/nss3.dll",
-      "./build/dist/suricata/dlls/nssutil3.dll",
-      "./build/dist/suricata/dlls/pcap.dll",
-      "./build/dist/suricata/dlls/softokn3.dll",
-      "./build/dist/suricata/dlls/zlib1.dll",
-      "./build/dist/suricata/suricatarunner.exe",
-      "./build/dist/suricata/suricataupdater.exe",
-      "./build/dist/zeek/bin/zeek.exe",
-      "./build/dist/zeek/lib/zeek/plugins/Corelight_CommunityID/lib/Corelight-CommunityID.windows-x86_64.dll",
-      "./build/dist/zeek/zeekrunner.exe"
-    ]
-  },
   "scripts": {
-    "prepack": "make build"
-  },
-  "directories": {
-    "bin": "build/dist"
-  },
-  "packageManager": "yarn@3.1.1"
+    "prepack": "make build",
+    "postinstall": "chmod -R +x build/dist"
+  }
 }
