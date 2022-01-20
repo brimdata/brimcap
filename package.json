@@ -2,19 +2,10 @@
   "name": "brimcap",
   "version": "1.1.2",
   "files": [
-    "./build/dist/*"
+    "build/dist/**"
   ],
-  "publishConfig": {
-    "executableFiles": [
-      "./build/dist/brimcap",
-      "./build/dist/brimcap.exe"
-    ]
-  },
   "scripts": {
-    "prepack": "make build"
-  },
-  "directories": {
-    "bin": "build/dist"
-  },
-  "packageManager": "yarn@3.1.1"
+    "prepack": "make build",
+    "postinstall": "chmod -R +x build/dist"
+  }
 }
