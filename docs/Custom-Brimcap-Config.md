@@ -283,7 +283,7 @@ A full description of all that's possible with shapers is beyond
 the scope of this article. However, this script is quite simple and can
 be described in brief.
 
-1. The `type alert` defines the names, [data types](https://github.com/brimdata/zed/blob/main/docs/data-model/zed.md#primitive-types),
+1. The `type alert` defines the names, [data types](https://github.com/brimdata/zed/blob/main/docs/formats/zed.md#1-primitive-types),
 and hierarchical locations of expected fields in the input records. Here we've
 defined a single "wide" shape for _all_ alerts we've known Suricata to
 generate, which is convenient because it allows Brim to easily display them in

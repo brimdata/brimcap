@@ -3,7 +3,7 @@
 ![Image of brimcap analyze](https://github.com/brimdata/brimcap/raw/main/brimcap.gif)
 
 A command line utility for converting [pcaps](https://en.wikipedia.org/wiki/Pcap#:~:text=In%20the%20field%20of%20computer,not%20the%20API's%20proper%20name.)
-into the flexible, searchable [Zed data formats](https://github.com/brimdata/zed/tree/main/docs/data-model/README.md)
+into the flexible, searchable [Zed data formats](https://github.com/brimdata/zed/tree/main/docs/formats/README.md)
 as seen in the [Brim desktop app](https://github.com/brimdata/brim) and
 the [`zq` command line utility](https://github.com/brimdata/zed/tree/main/cmd/zed#zq).
 
