@@ -45,4 +45,4 @@ type alert = {
 	},
 	community_id: string
 }
-filter event_type=="alert" | yield shape(alert) | rename ts := timestamp
+where event_type=="alert" | yield shape(alert) | rename ts := timestamp
