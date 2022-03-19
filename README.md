@@ -29,7 +29,7 @@ Whenever a pcap is imported into Brim, the app takes the following steps:
 1. `brimcap analyze` is invoked to generate logs from the pcap.
 
 2. The logs are imported into a newly-created
-   [Pool in the Zed Lake](https://github.com/brimdata/zed/blob/main/docs/lake/README.md)
+   [Pool in the Zed Lake](https://github.com/brimdata/zed/blob/main/docs/zed/README.md)
    behind Brim, similar to how `zapi create` and `zapi load` are used.
 
 3. `brimcap index` is invoked to populate a local pcap index that allows for
