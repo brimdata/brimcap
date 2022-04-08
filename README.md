@@ -3,20 +3,19 @@
 ![Image of brimcap analyze](https://github.com/brimdata/brimcap/raw/main/brimcap.gif)
 
 A command line utility for converting [pcaps](https://en.wikipedia.org/wiki/Pcap#:~:text=In%20the%20field%20of%20computer,not%20the%20API's%20proper%20name.)
-into the flexible, searchable [Zed data formats](https://github.com/brimdata/zed/tree/main/docs/formats/README.md)
+into the flexible, searchable [Zed data formats](https://zed.brimdata.io/docs/formats/)
 as seen in the [Brim desktop app](https://github.com/brimdata/brim) and
-the [`zq` command line utility](https://github.com/brimdata/zed/tree/main/cmd/zed#zq).
+[Zed commands](https://zed.brimdata.io/docs/commands/).
 
 ## Quickstart
 
 1. [Install brimcap](#standalone-install)
 2. Have a pcap handy (or download a [sample pcap](https://gitlab.com/wireshark/wireshark/-/wikis/SampleCaptures))
 3. Run `brimcap analyze`
-
    ```
    brimcap analyze sample.pcap > sample.zng
    ```
-4. Explore with [zq](https://github.com/brimdata/zed/tree/main/cmd/zed#zq)
+4. Explore with [`zq`](https://zed.brimdata.io/docs/commands/zq/)
    ```
    zq -z 'zeek:=count(has(_path)), alerts:=count(has(event_type=="alert"))' sample.zng
    ```
@@ -28,9 +27,8 @@ Whenever a pcap is imported into Brim, the app takes the following steps:
 
 1. `brimcap analyze` is invoked to generate logs from the pcap.
 
-2. The logs are imported into a newly-created
-   [Pool in the Zed Lake](https://github.com/brimdata/zed/tree/main/docs/zed)
-   behind Brim, similar to how `zed create` and `zed load` are used.
+2. The logs are imported into a newly-created pool in Brim's
+   [Zed lake](https://zed.brimdata.io/docs/commands/zed/#1-the-lake-model).
 
 3. `brimcap index` is invoked to populate a local pcap index that allows for
    quick extraction of flows via Brim's **Packets** button, which the app
@@ -38,7 +36,7 @@ Whenever a pcap is imported into Brim, the app takes the following steps:
 
 If Brim is running, you can perform these same  operations from your shell,
 which may prove useful for automation or batch import of many pcaps to the same
-Pool. The [Custom Brimcap Config](https://github.com/brimdata/brimcap/wiki/Custom-Brimcap-Config)
+pool. The [Custom Brimcap Config](https://github.com/brimdata/brimcap/wiki/Custom-Brimcap-Config)
 article shows example command lines along with other advanced configuration
 options. When used with Brim, you should typically use the `brimcap` binary
 found in Brim's `zdeps` directory (as described in the article), since this
