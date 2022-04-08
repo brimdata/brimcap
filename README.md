@@ -3,20 +3,19 @@
 ![Image of brimcap analyze](https://github.com/brimdata/brimcap/raw/main/brimcap.gif)
 
 A command line utility for converting [pcaps](https://en.wikipedia.org/wiki/Pcap#:~:text=In%20the%20field%20of%20computer,not%20the%20API's%20proper%20name.)
-into the flexible, searchable [Zed data formats](https://github.com/brimdata/zed/tree/main/docs/formats/README.md)
+into the flexible, searchable [Zed data formats](https://zed.brimdata.io/docs/formats/)
 as seen in the [Brim desktop app](https://github.com/brimdata/brim) and
-the [`zq` command line utility](https://github.com/brimdata/zed/tree/main/cmd/zed#zq).
+[Zed commands](https://zed.brimdata.io/docs/commands/).
 
 ## Quickstart
 
 1. [Install brimcap](#standalone-install)
 2. Have a pcap handy (or download a [sample pcap](https://gitlab.com/wireshark/wireshark/-/wikis/SampleCaptures))
 3. Run `brimcap analyze`
-
    ```
    brimcap analyze sample.pcap > sample.zng
    ```
-4. Explore with [zq](https://github.com/brimdata/zed/tree/main/cmd/zed#zq)
+4. Explore with [`zq`](https://zed.brimdata.io/docs/commands/zq/)
    ```
    zq -z 'zeek:=count(has(_path)), alerts:=count(has(event_type=="alert"))' sample.zng
    ```
