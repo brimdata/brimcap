@@ -1,13 +1,11 @@
 ARCH = amd64
 VERSION = $(shell git describe --tags --dirty --always)
 LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
-ZED_VERSION := $(shell go list -f {{.Version}} -m github.com/brimdata/zed)
 
 SURICATATAG = v5.0.3-brim2
 SURICATAPATH = suricata-$(SURICATATAG)
 ZEEKTAG = v3.2.1-brim10
 ZEEKPATH = zeek-$(ZEEKTAG)
-ZED_VERSION := $(shell go list -f '{{.Version}}' -m github.com/brimdata/zed)
 
 ZIP = zip -r
 ifeq ($(shell go env GOOS),windows)
@@ -50,17 +48,9 @@ build/dist/suricata: build/$(SURICATAPATH).zip
 	@unzip -q $^ -d build/dist
 	@touch $@
 
-bin/zq-$(ZED_VERSION):
-	@rm -rf bin
-	@mkdir -p $(@D)
-	@echo 'module deps' > $@.mod
-	@go get -d -modfile=$@.mod github.com/brimdata/zed@$(ZED_VERSION)
-	@go mod download -modfile=$@.mod
-	@go build -mod=mod -modfile=$@.mod -o $@ github.com/brimdata/zed/cmd/zq
-
-.PHONY: bin/zq
-bin/zq: bin/zq-$(ZED_VERSION)
-	@ln -fs $(<F) $@
+bin/zq: go.mod
+	@GOBIN="$(CURDIR)/bin" go install \
+		github.com/brimdata/zed/cmd/zq@$$(go list -f {{.Version}} -m github.com/brimdata/zed)
 
 .PHONY: build
 build: build/dist/zeek build/dist/suricata
