@@ -3,7 +3,6 @@ package pcap
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 
@@ -22,51 +21,37 @@ type PacketFilter func(gopacket.Packet) bool
 type Search struct {
 	span   nano.Span
 	filter PacketFilter
-	id     string
 }
 
 func NewTCPSearch(span nano.Span, flow Flow) Search {
-	id := fmt.Sprintf("%s_tcp_%s", span.Ts.StringFloat(), flow)
 	return Search{
 		span:   span,
 		filter: genTCPFilter(flow),
-		id:     id,
 	}
 }
 
 func NewUDPSearch(span nano.Span, flow Flow) Search {
-	id := fmt.Sprintf("%s_udp_%s", span.Ts.StringFloat(), flow)
 	return Search{
 		span:   span,
 		filter: genUDPFilter(flow),
-		id:     id,
 	}
 }
 
 func NewICMPSearch(span nano.Span, src, dst net.IP) Search {
-	id := fmt.Sprintf("icmp_%s_%s_%s", span.Ts.StringFloat(), src.String(), dst.String())
 	return Search{
 		span:   span,
 		filter: genICMPFilter(src, dst),
-		id:     id,
 	}
 }
 
 func NewRangeSearch(span nano.Span) Search {
-	id := fmt.Sprintf("%s_%s_%s", span.Ts.StringFloat(), "none", "no-filter")
 	return Search{
 		span: span,
-		id:   id,
 	}
 }
 
 func (s Search) Span() nano.Span {
 	return s.span
-}
-
-// ID returns an identifier for the search performed.
-func (s Search) ID() string {
-	return s.id
 }
 
 func matchIP(packet gopacket.Packet) (net.IP, net.IP, bool) {
