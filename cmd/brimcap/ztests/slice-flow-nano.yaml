@@ -1,7 +1,7 @@
 # test nano version
 script: |
   brimcap index -r pings.pcapnano -x pings.index
-  brimcap slice -r pings.pcapnano -x pings.index -from 1599787801.385053844 -to 1599787801.385053844 -p icmp 10.138.0.44:8 192.168.1.2:0 | brimcap ts -w nano-timestamp
+  brimcap slice -r pings.pcapnano -x pings.index -from 2020-09-11T01:30:01.385053844Z -to 2020-09-11T01:30:01.385053844Z -p icmp 10.138.0.44:8 192.168.1.2:0 | brimcap ts -w nano-timestamp
 
 inputs:
   - name: pings.pcapnano
@@ -9,4 +9,4 @@ inputs:
 outputs:
   - name: nano-timestamp
     data: |
-      1599787801.385053844
+      2020-09-11T01:30:01.385053844Z

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/brimdata/brimcap/cmd/brimcap/root"
 	"github.com/brimdata/brimcap/pcap/pcapio"
@@ -90,7 +91,7 @@ func (c *Command) Run(args []string) error {
 			if err != nil {
 				return err
 			}
-			fmt.Fprintln(out, ts.StringFloat())
+			fmt.Fprintln(out, ts.Time().Format(time.RFC3339Nano))
 		}
 	}
 	return nil
