@@ -79,7 +79,7 @@ func parseTime(s string, def nano.Ts) (nano.Ts, error) {
 	if s == "" {
 		return def, nil
 	}
-	return nano.Parse([]byte(s))
+	return nano.ParseRFC3339Nano([]byte(s))
 }
 
 func parseSpan(sfrom, sto string) (nano.Span, error) {

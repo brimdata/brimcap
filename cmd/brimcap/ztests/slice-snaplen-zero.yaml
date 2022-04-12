@@ -1,6 +1,6 @@
 # same as Test1 but with zero.pcap which has snaplen=0
 script: |
-  brimcap slice -r zero.pcap -from 1425567047.804914 -to 1425567432.792482 | brimcap ts -w out1
+  brimcap slice -r zero.pcap -from 2015-03-05T14:50:47.804914Z -to 2015-03-05T14:57:12.792482Z | brimcap ts -w out1
 
 inputs:
   - name: zero.pcap
@@ -8,5 +8,5 @@ inputs:
 outputs:
   - name: out1
     data: |
-      1425567432.792481
-      1425567047.804914
+      2015-03-05T14:57:12.792481Z
+      2015-03-05T14:50:47.804914Z
