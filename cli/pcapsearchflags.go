@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/brimdata/brimcap"
+	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/pkg/nano"
+	"github.com/brimdata/zed/zson"
 	"go.uber.org/multierr"
 )
 
@@ -27,7 +29,21 @@ type PcapSearchFlags struct {
 func (f *PcapSearchFlags) SetFlags(fs *flag.FlagSet) {
 	f.ts = new(tsArg)
 	fs.Var(f.ts, "ts", "the starting time stamp of the connection")
-	fs.DurationVar(&f.duration, "duration", 0, "the duration of the connection")
+	fs.Func("duration", "the duration of the connection (default 1ns)", func(s string) error {
+		if s == "" {
+			f.duration = 1
+			return nil
+		}
+		val, err := zson.ParseValue(zed.NewContext(), s)
+		if err != nil {
+			return err
+		}
+		if val.Type != zed.TypeDuration {
+			return fmt.Errorf("expected type %s got type %s", zson.FormatType(zed.TypeDuration), zson.FormatType(val.Type))
+		}
+		f.duration = time.Duration(zed.DecodeDuration(val.Bytes))
+		return nil
+	})
 	fs.StringVar(&f.proto, "proto", "", "protocol of the connection (either tcp, udp or icmp)")
 	fs.Var(&f.srcip, "src.ip", "ip address of the connection source")
 	fs.Var(&f.srcport, "src.port", "port of the connection source")
