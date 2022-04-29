@@ -2,7 +2,6 @@
 
 - [Summary](#summary)
 - [Custom Zeek/Suricata Analyzers](#custom-zeeksuricata-analyzers)
-  * [Background](#background)
   * [Base Zeek/Suricata Installation](#base-zeeksuricata-installation)
   * [Example Configuration](#example-configuration)
 - [Custom NetFlow Analyzer](#custom-netflow-analyzer)
@@ -20,45 +19,10 @@ richly-typed summary logs from pcap files. However, one of Brimcap's strengths
 is its ability to invoke any arbitrary combination of such "analyzers" that
 generate logs from pcaps. These analyzers could be alternate Zeek or Suricata
 installations that you've customized or other pcap-processing tools of your
-choosing.
-
-This article describes such example custom configurations. The section on
-[Custom Zeek/Suricata Analyzers](#custom-zeeksuricata-analyzers) focuses on
-recreating Brimcap configurations equivalent to those created with the
-customization options in Brim app release `v0.24.0` and older. The
-[Custom NetFlow Analyzer](#custom-netflow-analyzer) section builds on the
-approach to create a Brimcap configuration that generates NetFlow records from
-pcaps. The article then closes with some [Debug](#debug) tips.
+choosing. This article includes examples of both configurations along with
+[debug](#debug) tips.
 
 # Custom Zeek/Suricata Analyzers
-
-## Background
-
-Starting with Brim release `v0.25.0`, Zeek and Suricata binaries are bundled
-differently than they were in release `v0.24.0` and older. A brief summary:
-
-* **`v0.24.0` and older** - The "backend" `zqd` process that ran behind the
-Brim app handled the launching of Zeek and Suricata binaries each time a pcap
-was imported. The launch of these processes was done via "runner" scripts that
-ensured appropriate pathnames and environment variables were set for them to
-run successfully. A [Zeek Customization](https://github.com/brimdata/brim/wiki/Zeek-Customization)
-article described how an alternate "Zeek Runner" script could be
-created/invoked such that Brim would launch Zeek from an install different than
-the one bundled with Brim. A similar option existed to invoke an alternate
-"Suricata Runner" (as well as a "Suricata Updater" for updating
-[rules](https://suricata.readthedocs.io/en/latest/rules/)) however
-these were never fully documented.
-
-* **`v0.25.0` and newer** - Brimcap is now bundled as part of Brim. Brimcap
-includes Zeek and Suricata binaries equivalent to those that were bundled with
-Brim `v0.24.0` and older, however they are no longer launched by the Zed
-backend. Instead Brim now runs `brimcap analyze` for each pcap imported into the
-app. In a default configuration, `brimcap analyze` invokes runner scripts
-that point to the Zeek/Suricata binaries that are bundled with Brimcap,
-effectively providing an out-of-the-box experience equivalent to what is
-possible in Brim `v0.24.0`. However, for custom configurations, Brimcap
-provides a YAML-based configuration that allows for flexibly invoking alternate
-Zeek/Suricata installations and/or alternate pcap processing tools.
 
 ## Base Zeek/Suricata Installation
 
@@ -121,9 +85,9 @@ outside the app to import a `sample.pcap` like so:
 
 ```
 $ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
-$ zed api create testpool
-$ zed api use -p testpool
-$ brimcap analyze -config zeek-suricata.yml sample.pcap | zed api load -
+$ zed create testpool
+$ zed use testpool
+$ brimcap analyze -config zeek-suricata.yml sample.pcap | zed load -
 $ brimcap index -root "$HOME/.config/Brim/data/brimcap-root" -r sample.pcap
 ```
 
