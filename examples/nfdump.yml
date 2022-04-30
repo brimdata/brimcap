@@ -26,4 +26,4 @@ analyzers:
         app_latency: float64,
         label: string
       }
-      put this := shape(netflow)
+      yield shape(netflow)

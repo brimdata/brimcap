@@ -20,7 +20,7 @@ is its ability to invoke any arbitrary combination of such "analyzers" that
 generate logs from pcaps. These analyzers could be alternate Zeek or Suricata
 installations that you've customized or other pcap-processing tools of your
 choosing. This article includes examples of both configurations along with
-[debug](#debug) tips.
+[Debug](#debug) tips.
 
 # Custom Zeek/Suricata Analyzers
 
@@ -100,12 +100,12 @@ logs and open flows from the pcap via the **Packets** button.
 
 ![NetFlow Pool](media/Custom-Zeek-Suricata-Pool.png)
 
-The same combination of `brimcap` and `zed api` commands can be used to
-incrementally add more logs to the same pool and index for additional pcaps,
-which was not possible pre-Brimcap. The setting in the Brim **Preferences** for
-the **Brimcap YAML Config File** can also be pointed at the path to this
-configuration file, which will cause it to be invoked when you open or drag
-pcap files into Brim.
+The same combination of `brimcap` and `zed` commands can be used to
+incrementally add more logs to the same pool and index for additional pcaps.
+
+The setting in the Brim **Preferences** for the **Brimcap YAML Config File**
+can also be pointed at the path to this configuration file, which will cause it
+to be invoked when you open or drag pcap files into Brim.
 
 ![Brim YAML Config File Preference](media/Brim-Pref-YAML-Config-File.png)
 
@@ -138,8 +138,7 @@ performed on them.
 In our example configuration, the first analyzer invoked by Brimcap is a wrapper
 script as referenced in the YAML. In addition to reading from its standard input, it also
 tells Zeek to ignore checksums (since these are often set incorrectly on pcaps)
-and disables a couple of the excess log outputs. This is very similar to
-the Zeek Runner script that was included with Brim `v0.24.0`.
+and disables a couple of the excess log outputs.
 
 ```
 $ cat zeek-wrapper.sh
@@ -182,47 +181,48 @@ analyzers:
 ...
 ```
 
-What follows below the `globs:` setting is a Zed shaper script. Whereas
-the Zeek TSV logs contain Zed-compatible rich data types (timestamps, IP
+What follows below the `globs:` setting is a Zed shaper script. Whereas the
+Zeek TSV logs contain Zed-compatible rich data types (timestamps, IP
 addresses, etc.), since Suricata's EVE logs are NDJSON, here we use this shaper
 to assign better data types as the NDJSON is being converted for storage
-into the Zed Lake. Out-of-the-box, Brimcap automatically applies this same
-shaper script on the EVE output generated from its bundled Suricata.
+into the Zed lake. Out-of-the-box, Brimcap automatically applies this same
+[shaper script](https://github.com/brimdata/brimcap/blob/main/suricata.zed)
+ on the EVE output generated from its bundled Suricata.
 Here it's broken out and made part of the configuration YAML such that you can
 further modify it to suit your needs.
 ```
 ...
     shaper: |
-      type port=uint16;
+      type port=uint16
       type alert = {
         timestamp: time,
-        event_type: bstring,
+        event_type: string,
         src_ip: ip,
         src_port: port,
         dest_ip: ip,
         dest_port: port,
         vlan: [uint16],
-        proto: bstring,
-        app_proto: bstring,
+        proto: string,
+        app_proto: string,
         alert: {
           severity: uint16,
-          signature: bstring,
-          category: bstring,
-          action: bstring,
+          signature: string,
+          category: string,
+          action: string,
           signature_id: uint64,
           gid: uint64,
           rev: uint64,
           metadata: {
-            signature_severity: [bstring],
-            former_category: [bstring],
-            attack_target: [bstring],
-            deployment: [bstring],
-            affected_product: [bstring],
-            created_at: [bstring],
-            performance_impact: [bstring],
-            updated_at: [bstring],
-            malware_family: [bstring],
-            tag: [bstring]
+            signature_severity: [string],
+            former_category: [string],
+            attack_target: [string],
+            deployment: [string],
+            affected_product: [string],
+            created_at: [string],
+            performance_impact: [string],
+            updated_at: [string],
+            malware_family: [string],
+            tag: [string]
           }
         },
         flow_id: uint64,
@@ -235,12 +235,12 @@ further modify it to suit your needs.
           src_port: port,
           dest_ip: ip,
           dest_port: port,
-          proto: bstring,
+          proto: string,
           depth: uint64
         },
-        community_id: bstring
+        community_id: string
       }
-      filter event_type=="alert" | put this := shape(alert) | rename ts := timestamp
+      where event_type=="alert" | yield shape(alert) | rename ts := timestamp
 ```
 
 A full description of all that's possible with shapers is beyond
@@ -253,20 +253,20 @@ defined a single "wide" shape for _all_ alerts we've known Suricata to
 generate, which is convenient because it allows Brim to easily display them in
 columnar format.
 
-2. The `filter event_type=="alert"` trims the processed EVE events to only
+2. The `where event_type=="alert"` trims the processed EVE events to only
 alerts. If you want to let through more Suricata data besides just alerts, you
 could remove this part of the pipeline. If so, you'll likely want to explore
 the additional data and create shapers to apply proper data types to them,
 since this will be a prerequisite for doing certain Zed queries with the data
-(e.g.  a successful CIDR match requires IP addresses to be stored as `ip` type,
-not the string type in which they'd appear in unshaped NDJSON).
+(e.g., a successful CIDR match requires IP addresses to be stored as `ip` type,
+not the `string` type in which they'd appear in unshaped NDJSON).
 
-3. The `put this := shape(alert)` applies the shape of the `alert` type to each
+3. The `yield shape(alert)` applies the shape of the `alert` type to each
 input record. With what's shown here, additional fields that appear beyond
 those specified in the shaper (e.g. as the result of new Suricata features or
 your own customizations) will still be let through this pipeline and stored in
-the Zed Lake. If this is undesirable, add `| put this := crop(alert)` downstream
-of the first `put`, which will trim these additional fields.
+the Zed lake. If this is undesirable, add `| yield crop(alert)` downstream
+of the first `yield`, which will trim these additional fields.
 
 4. The `rename ts := timestamp` changes the name of Suricata's `timestamp`
 field to match the `ts` one used by Zeek, which allows the data from both
@@ -306,10 +306,9 @@ export LD_LIBRARY_PATH="/usr/local/lib"
 
 As we did with Zeek and Suricata, we create a [wrapper script](https://github.com/brimdata/brimcap/blob/main/examples/nfdump-wrapper.sh) to act as our
 Brimcap analyzer. It works in two phases, first creating binary NetFlow records
-and then converting them to CSV. `nfpcapd` only accepts a true pcap file input
+and then converting them to JSON. `nfpcapd` only accepts a true pcap file input
 (not a device like `/dev/stdin`), so we first store the incoming pcap in a
-temporary file. We also use GNU `head` to trim out some trailing summary lines
-that `nfdump` appends by default which would trip up the Zed CSV reader.
+temporary file.
 
 ```
 $ cat nfdump-wrapper.sh 
@@ -367,8 +366,8 @@ create a new pool and import the data for a sample pcap.
 
 ```
 $ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
-$ zed api create testpool2
-$ zed api use -p testpool2
+$ zed create testpool2
+$ zed use testpool2
 $ brimcap analyze -config nfdump.yml sample.pcap | zed api load -
 ```
 
