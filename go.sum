@@ -17,8 +17,8 @@ github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f/go.mod h1:2stg
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/brimdata/zed v1.0.1-0.20220502161106-66b088ec38a0 h1:hNkTYiVN3DnbEfzmKgs7+7POWJcjDohIR+J6/mx3ryk=
-github.com/brimdata/zed v1.0.1-0.20220502161106-66b088ec38a0/go.mod h1:JvC43yUsjxIJ9/hetxNXJzPRC9XkLro4T9UVB7bBxHw=
+github.com/brimdata/zed v1.0.1-0.20220502162129-ed65f282bd5b h1:Y9znW+sMa8LuaD9xppPFv/5lUThFK9omiagmpnOOvuU=
+github.com/brimdata/zed v1.0.1-0.20220502162129-ed65f282bd5b/go.mod h1:JvC43yUsjxIJ9/hetxNXJzPRC9XkLro4T9UVB7bBxHw=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
