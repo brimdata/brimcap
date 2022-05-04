@@ -51,10 +51,10 @@ func (h *reader) stop() error        { return h.tailers.stop() }
 func (h *reader) close() (err error) { return h.tailers.close() }
 
 func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner zio.Warner) (zio.Reader, *ztail.Tailer, error) {
-	var shaper ast.Proc
+	var shaper ast.Op
 	if conf.Shaper != "" {
 		var err error
-		if shaper, err = compiler.ParseProc(conf.Shaper); err != nil {
+		if shaper, err = compiler.ParseOp(conf.Shaper); err != nil {
 			return nil, nil, err
 		}
 	}
