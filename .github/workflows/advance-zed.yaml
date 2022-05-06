@@ -84,19 +84,7 @@ jobs:
           branch="upgrade-zed-${{ steps.zed_pr.outputs.number }}"
           echo "::set-output name=branch::$branch"
           git branch -m $branch
-          git add .
-          git diff
-          cat << 'EOF' | git commit -a -F-
-          Zed update through "${{ steps.zed_pr.outputs.title }}" by ${{ steps.zed_pr.outputs.user }}
-
-          This is an auto-generated commit with a Zed dependency update. The Zed PR
-          ${{ steps.zed_pr.outputs.url }}, authored by @${{ steps.zed_pr.outputs.user }},
-          has been merged.
-
-          ${{ steps.zed_pr.outputs.title }}
-
-          ${{ steps.zed_pr.outputs.body }}
-          EOF
+          git commit -a -m 'upgrade Zed to ${{ github.event.client_payload.merge_commit_sha }}'
           git push -f -u origin $branch
 
       - name: Dispatch CI workflow
