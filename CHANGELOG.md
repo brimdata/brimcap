@@ -1,3 +1,9 @@
+## v1.2.0
+* `brimcap search`: parse `-duration` argument as a ZSON duration (#244)
+* `brimcap slice`: parse `-to` and `-from` arguments as an RFC 3339 timestamp (#243)
+* `brimcap ts`: print timestamps in RFC 3339 format (#243)
+* Remove `brimcap migrate` (#234)
+
 ## v1.1.2
 * Allow Brimcap analyzers to benefit from Zed JSON reader enhancements [zed/3124](https://github.com/brimdata/zed/pull/3124) and [zed/3123](https://github.com/brimdata/zed/pull/3123)
 

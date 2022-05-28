@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-var sortTs = compiler.MustParseProc("sort ts")
+var sortTs = compiler.MustParseOp("sort ts")
 
 const expected = `{ts:1970-01-01T00:00:00Z}
 {ts:1970-01-01T00:00:01Z}

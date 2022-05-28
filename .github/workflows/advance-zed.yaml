@@ -44,9 +44,6 @@ jobs:
         # Variables for other steps get set as described here:
         # https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-output-parameter
         #
-        # body can be multiline and must be escaped as described here:
-        # https://github.community/t5/GitHub-Actions/set-output-Truncates-Multiline-Strings/m-p/37870
-        #
         # Rewrite bare PR numbers as Zed PRs (https://github.com/brimdata/brim/issues/797)
         run: |
           sha="$(jq -r '.client_payload.merge_commit_sha' "${GITHUB_EVENT_PATH}")"
@@ -58,12 +55,6 @@ jobs:
           title="$(jq -r '.client_payload.title' "${GITHUB_EVENT_PATH}")"
           title="$(perl -pe 's,(\W+)(#\d+)(\W+),$1brimdata/zed$2$3,g; s,^(#\d+)(\W+),brimdata/zed$1$2,g; s,(\W+)(#\d+),$1brimdata/zed$2,g; s,^(#\d+)$,brimdata/zed$1,g;' <<< "${title}")"
           echo "::set-output name=title::$title"
-          body="$(jq -r '.client_payload.body' "${GITHUB_EVENT_PATH}")"
-          body="$(perl -pe 's,(\W+)(#\d+)(\W+),$1brimdata/zed$2$3,g; s,^(#\d+)(\W+),brimdata/zed$1$2,g; s,(\W+)(#\d+),$1brimdata/zed$2,g; s,^(#\d+)$,brimdata/zed$1,g;' <<< "${body}")"
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}"
-          echo "::set-output name=body::$body"
           url="$(jq -r '.client_payload.url' "${GITHUB_EVENT_PATH}")"
           echo "::set-output name=url::$url"
           user="$(jq -r '.client_payload.user' "${GITHUB_EVENT_PATH}")"
@@ -71,7 +62,7 @@ jobs:
 
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: '1.18'
 
       - name: Update Zed
         run: |
@@ -84,19 +75,7 @@ jobs:
           branch="upgrade-zed-${{ steps.zed_pr.outputs.number }}"
           echo "::set-output name=branch::$branch"
           git branch -m $branch
-          git add .
-          git diff
-          cat << 'EOF' | git commit -a -F-
-          Zed update through "${{ steps.zed_pr.outputs.title }}" by ${{ steps.zed_pr.outputs.user }}
-
-          This is an auto-generated commit with a Zed dependency update. The Zed PR
-          ${{ steps.zed_pr.outputs.url }}, authored by @${{ steps.zed_pr.outputs.user }},
-          has been merged.
-
-          ${{ steps.zed_pr.outputs.title }}
-
-          ${{ steps.zed_pr.outputs.body }}
-          EOF
+          git commit -a -m 'upgrade Zed to ${{ github.event.client_payload.merge_commit_sha }}'
           git push -f -u origin $branch
 
       - name: Dispatch CI workflow
