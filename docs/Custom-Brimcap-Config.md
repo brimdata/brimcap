@@ -5,7 +5,7 @@
   * [Base Zeek/Suricata Installation](#base-zeeksuricata-installation)
   * [Example Configuration](#example-configuration)
 - [Custom NetFlow Analyzer](#custom-netflow-analyzer)
-  * [Background](#background-1)
+  * [Background](#background)
   * [Base nfdump Installation](#base-nfdump-installation)
   * [Example Configuration](#example-configuration-1)
 - [Debug](#debug)
@@ -243,7 +243,8 @@ further modify it to suit your needs.
       where event_type=="alert" | yield shape(alert) | rename ts := timestamp
 ```
 
-A full description of all that's possible with shapers is beyond
+A full description of all that's possible with
+[shapers](https://zed.brimdata.io/docs/language/overview/#9-shaping) is beyond
 the scope of this article. However, this script is quite simple and can
 be described in brief.
 
@@ -306,7 +307,7 @@ export LD_LIBRARY_PATH="/usr/local/lib"
 
 As we did with Zeek and Suricata, we create a [wrapper script](https://github.com/brimdata/brimcap/blob/main/examples/nfdump-wrapper.sh) to act as our
 Brimcap analyzer. It works in two phases, first creating binary NetFlow records
-and then converting them to JSON. `nfpcapd` only accepts a true pcap file input
+and then converting them to CSV. `nfpcapd` only accepts a true pcap file input
 (not a device like `/dev/stdin`), so we first store the incoming pcap in a
 temporary file.
 
@@ -320,12 +321,12 @@ cat - > "$TMPFILE"
 rm "$TMPFILE"
 for file in nfcapd.*
 do
-  /usr/local/bin/nfdump -r $file -o json > ${file}.json
+  /usr/local/bin/nfdump -r $file -o csv | head -n -3 > ${file}.csv
 done
 ```
 
 This script is called from our Brimcap config YAML, which includes a `globs:`
-setting to apply a Zed shaper to only the JSON files that were output from
+setting to apply a Zed shaper to only the CSV files that were output from
 nfdump.
 
 ```
@@ -333,32 +334,59 @@ $ cat nfdump.yml
 analyzers:
   - cmd: /usr/local/bin/nfdump-wrapper.sh
     name: nfdump
-    globs: ["*.json"]
+    globs: ["*.csv"]
     shaper: |
       type netflow = {
-        type: string,
-        sampled: int64,
-        export_sysid: int64,
-        t_first: time,
-        t_last: time,
-        proto: int64,
-        src4_addr: ip,
-        dst4_addr: ip,
-        icmp_type: int64,
-        icmp_code: int64,
-        src_port: uint16,
-        dst_port: uint16,
-        fwd_status: int64,
-        tcp_flags: string,
-        src_tos: int64,
-        in_packets: int64,
-        in_bytes: int64,
-        cli_latency: float64,
-        srv_latency: float64,
-        app_latency: float64,
-        label: string
+        ts: time,
+        te: time,
+        td: duration,
+        sa: ip,
+        da: ip,
+        sp: uint16,
+        dp: uint16,
+        pr: string,
+        flg: string,
+        fwd: bytes,
+        stos: bytes,
+        ipkt: uint64,
+        ibyt: uint64,
+        opkt: uint64,
+        obyt: uint64,
+        in: uint64,
+        out: uint64,
+        sas: uint64,
+        das: uint64,
+        smk: uint8,
+        dmk: uint8,
+        dtos: bytes,
+        dir: uint8,
+        nh: ip,
+        nhb: ip,
+        svln: uint16,
+        dvln: uint16,
+        ismc: string,
+        odmc: string,
+        idmc: string,
+        osmc: string,
+        mpls1: string,
+        mpls2: string,
+        mpls3: string,
+        mpls4: string,
+        mpls5: string,
+        mpls6: string,
+        mpls7: string,
+        mpls8: string,
+        mpls9: string,
+        mpls10: string,
+        cl: float64,
+        sl: float64,
+        al: float64,
+        ra: ip,
+        eng: string,
+        exid: bytes,
+        tr: time
       }
-      put this := shape(netflow)
+      yield shape(netflow)
 ```
 
 Putting it all together, we can test it by using our command combination to
@@ -368,7 +396,7 @@ create a new pool and import the data for a sample pcap.
 $ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
 $ zed create testpool2
 $ zed use testpool2
-$ brimcap analyze -config nfdump.yml sample.pcap | zed api load -
+$ brimcap analyze -config nfdump.yml sample.pcap | zed load -
 ```
 
 Our pool is now ready to be queried in Brim.
