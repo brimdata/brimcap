@@ -42,6 +42,7 @@ currently being held open to gather interest:
 | [brim/936](https://github.com/brimdata/brim/issues/936) | Geolocation map visualization                  |
 | [brim/954](https://github.com/brimdata/brim/issues/954) | Look up Geolocation data on-demand             |
 | [brim/955](https://github.com/brimdata/brim/issues/955) | Allow user to replace the Geolocation database |
+| [geoip-conn/39](https://github.com/brimdata/geoip-conn/issues/39) | Include autonomous system info       |
 
 If you're interested in additional geolocation features, please follow the
 links to review these issues and click :+1: below the description on any of
