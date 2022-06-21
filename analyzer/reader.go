@@ -54,7 +54,7 @@ func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner zio.War
 	var shaper ast.Op
 	if conf.Shaper != "" {
 		var err error
-		if shaper, err = compiler.ParseOp(conf.Shaper); err != nil {
+		if shaper, err = compiler.Parse(conf.Shaper); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -65,7 +65,7 @@ func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner zio.War
 	}
 	wrapped.reader = tailer
 	if shaper != nil {
-		query, err := runtime.NewQueryOnReader(ctx, zctx, shaper, tailer, nil)
+		query, err := runtime.CompileQuery(ctx, zctx, compiler.NewCompiler(), shaper, []zio.Reader{tailer})
 		if err != nil {
 			tailer.Close()
 			return nil, nil, err

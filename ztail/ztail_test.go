@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-var sortTs = compiler.MustParseOp("sort ts")
+var sortTs = compiler.MustParse("sort ts")
 
 const expected = `{ts:1970-01-01T00:00:00Z}
 {ts:1970-01-01T00:00:01Z}
@@ -113,7 +113,8 @@ func (s *tailerTSuite) read() (<-chan string, <-chan error) {
 	buf := bytes.NewBuffer(nil)
 	w := zsonio.NewWriter(zio.NopCloser(buf), zsonio.WriterOpts{})
 	go func() {
-		query, err := runtime.NewQueryOnReader(context.Background(), s.zctx, sortTs, s.dr, nil)
+		comp := compiler.NewCompiler()
+		query, err := runtime.CompileQuery(context.Background(), s.zctx, comp, sortTs, []zio.Reader{s.dr})
 		if err != nil {
 			close(result)
 			errCh <- err
