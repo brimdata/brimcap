@@ -6,5 +6,5 @@ cat - > "$TMPFILE"
 rm "$TMPFILE"
 for file in nfcapd.*
 do
-  /usr/local/bin/nfdump -r $file -o json > ${file}.json
+  /usr/local/bin/nfdump -r $file -o csv | head -n -3 > ${file}.csv
 done
