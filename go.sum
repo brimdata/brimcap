@@ -11,8 +11,8 @@ github.com/aws/aws-sdk-go v1.36.17 h1:8zTvseyGhgs3uQAzkgnFy7dvTo+ZnZLYmrhnopFxYM
 github.com/aws/aws-sdk-go v1.36.17/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f h1:y06x6vGnFYfXUoVMbrcP1Uzpj4JG01eB5vRps9G8agM=
 github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f/go.mod h1:2stgcRjl6QmW+gU2h5E7BQXg4HU0gzxKWDuT5HviN9s=
-github.com/brimdata/zed v1.1.1-0.20220701213110-28029f0660bb h1:kD6PpxeYLm3c7t+iAjR2WZsQt5r2krMsuSNiu+BaUzA=
-github.com/brimdata/zed v1.1.1-0.20220701213110-28029f0660bb/go.mod h1:HAAkiXG5honjnAPkVow2FtZW9w6Jbz60nyj22I3n+fA=
+github.com/brimdata/zed v1.1.1-0.20220706135211-392ec46d1254 h1:07qCu2EQDXoKDQnTAaS45oCyYjDC306qiVuIF+6LUXg=
+github.com/brimdata/zed v1.1.1-0.20220706135211-392ec46d1254/go.mod h1:HAAkiXG5honjnAPkVow2FtZW9w6Jbz60nyj22I3n+fA=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
 github.com/coreos/go-etcd v2.0.0+incompatible/go.mod h1:Jez6KQU2B/sWsbdaef3ED8NzMklzPG4d5KIOhIy30Tk=
