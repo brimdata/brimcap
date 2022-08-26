@@ -44,7 +44,7 @@ version should be API-compatible with that version of Brim and its Zed backend.
 
 ## Brimcap Queries
 
-Included in this repo is a `queries.json` file with some helpful queries for getting
+Included in this repo is a [`queries.json`](./queries.json?raw=1) file with some helpful queries for getting
 started and exploring Zeek and Suricata analyzed data within the Brim app.
 
 To import these queries, open the Brim app and select the "QUERIES" tab in the left
