@@ -42,6 +42,15 @@ options. When used with Brim, you should typically use the `brimcap` binary
 found in Brim's `zdeps` directory (as described in the article), since this
 version should be API-compatible with that version of Brim and its Zed backend.
 
+## Brimcap Queries
+
+Included in this repo is a [`queries.json`](./queries.json?raw=1) file with some helpful queries for getting
+started and exploring Zeek and Suricata analyzed data within the Brim app.
+
+To import these queries, open the Brim app and select the "QUERIES" tab in the left
+sidebar. Then just drag the `queries.json` file into that sidebar section. It will
+appear as a new query folder named `Brimcap`.
+
 ## Standalone Install
 
 If you're working with brimcap separate from the Brim app, prebuilt packages
