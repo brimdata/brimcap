@@ -2,7 +2,7 @@ ARCH = amd64
 VERSION = $(shell git describe --tags --dirty --always)
 LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
 
-SURICATATAG = v5.0.3-brim3
+SURICATATAG = v5.0.3-brim-macos-11-runner-test
 SURICATAPATH = suricata-$(SURICATATAG)
 ZEEKTAG = v3.2.1-brim10
 ZEEKPATH = zeek-$(ZEEKTAG)
