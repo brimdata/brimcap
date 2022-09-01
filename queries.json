@@ -12,6 +12,11 @@
       "description": "Shows all unique DNS queries in the data set with count"
     },
     {
+      "name": "Top Queried Domains",
+      "value": "_path==\"dns\" | count() by domain:=join(split(query,\".\")[-2:],\".\") | sort -r",
+      "description": "Displays the domains appearing most frequently in DNS queries"
+    },
+    {
       "name": "Windows Networking Activity",
       "value": "grep(smb*,_path) OR _path==\"dce_rpc\"",
       "description": "Filters and displays smb_files, smb_mapping and DCE_RPC activity"
