@@ -52,19 +52,34 @@
       "description": "Enumerates the classful networks for all destination IP addresses including count of connections"
     },
     {
-      "name": "Suricata Alerts by Category",
+      "name": "Suricata Alerts by Severity and Category",
       "value": "event_type==\"alert\" | count() by alert.severity,alert.category | sort count",
-      "description": "Shows all Suricata alert counts by category and severity"
+      "description": "Shows all Suricata alert counts, grouped by category and severity"
     },
     {
-      "name": "Suricata Alerts by Source and Destination",
+      "name": "Suricata Alerts by Signature",
+      "value": "event_type==\"alert\" | count() by alert.signature | sort count",
+      "description": "Shows all Suricata alert counts, grouped by signature"
+    },
+    {
+      "name": "Suricata Alert Categories by Source and Destination",
       "value": "event_type==\"alert\" | alerts := union(alert.category) by src_ip, dest_ip",
-      "description": "Shows all Suricata alerts in a list by unique source and destination IP addresses"
+      "description": "Shows a list of Suricata alert categories, grouped by unique source and destination IP addresses"
     },
     {
-      "name": "Suricata Alerts by Subnet",
+      "name": "Suricata Alert Signatures by Source and Destination",
+      "value": "event_type==\"alert\" | alerts := union(alert.signature) by src_ip, dest_ip",
+      "description": "Shows a list of Suricata alert signatures, grouped by unique source and destination IP addresses"
+    },
+    {
+      "name": "Suricata Alert Categories by Subnet",
       "value": "event_type==\"alert\" | alerts := union(alert.category) by network_of(dest_ip)",
-      "description": "Displays a list of Suricata alerts by CIDR network"
+      "description": "Shows a list of Suricata alert categories, grouped by CIDR network"
+    },
+    {
+      "name": "Suricata Alert Signatures by Subnet",
+      "value": "event_type==\"alert\" | alerts := union(alert.signature) by network_of(dest_ip)",
+      "description": "Shows a list of Suricata alert signatures, grouped by CIDR network"
     }
   ]
 }
