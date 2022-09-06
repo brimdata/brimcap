@@ -64,7 +64,7 @@
     {
       "name": "Suricata Alert Signatures by Source and Destination",
       "value": "event_type==\"alert\" | alerts := union(alert.signature) by src_ip, dest_ip",
-      "description": "Shows signatures of all Suricata alerts in a list, grouped by unique source and destination IP addresses"
+      "description": "Shows a list of Suricata alert signatures, grouped by unique source and destination IP addresses"
     },
     {
       "name": "Suricata Alert Categories by Subnet",
