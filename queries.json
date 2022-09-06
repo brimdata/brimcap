@@ -47,7 +47,7 @@
       "description": "Enumerates the classful networks for all destination IP addresses including count of connections"
     },
     {
-      "name": "Suricata Alerts by Severity & Category",
+      "name": "Suricata Alerts by Severity and Category",
       "value": "event_type==\"alert\" | count() by alert.severity,alert.category | sort count",
       "description": "Shows all Suricata alert counts, grouped by category and severity"
     },
