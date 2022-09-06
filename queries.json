@@ -12,7 +12,7 @@
       "description": "Shows all unique DNS queries in the data set with count"
     },
     {
-      "name": "Top Queried Domains",
+      "name": "Top Domains",
       "value": "_path==\"dns\" | count() by domain:=join(split(query,\".\")[-2:],\".\") | sort -r",
       "description": "Displays the domains appearing most frequently in DNS queries"
     },
