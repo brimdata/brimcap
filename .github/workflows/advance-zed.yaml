@@ -47,18 +47,18 @@ jobs:
         # Rewrite bare PR numbers as Zed PRs (https://github.com/brimdata/brim/issues/797)
         run: |
           sha="$(jq -r '.client_payload.merge_commit_sha' "${GITHUB_EVENT_PATH}")"
-          echo "::set-output name=sha::$sha"
+          echo "sha=$sha" >> $GITHUB_OUTPUT
           branch="$(jq -r '.client_payload.branch' "${GITHUB_EVENT_PATH}")"
-          echo "::set-output name=branch::$branch"
+          echo "branch=$branch" >> $GITHUB_OUTPUT
           number="$(jq -r '.client_payload.number' "${GITHUB_EVENT_PATH}")"
-          echo "::set-output name=number::$number"
+          echo "number=$number" >> $GITHUB_OUTPUT
           title="$(jq -r '.client_payload.title' "${GITHUB_EVENT_PATH}")"
           title="$(perl -pe 's,(\W+)(#\d+)(\W+),$1brimdata/zed$2$3,g; s,^(#\d+)(\W+),brimdata/zed$1$2,g; s,(\W+)(#\d+),$1brimdata/zed$2,g; s,^(#\d+)$,brimdata/zed$1,g;' <<< "${title}")"
-          echo "::set-output name=title::$title"
+          echo "title=$title" >> $GITHUB_OUTPUT
           url="$(jq -r '.client_payload.url' "${GITHUB_EVENT_PATH}")"
-          echo "::set-output name=url::$url"
+          echo "url=$url" >> $GITHUB_OUTPUT
           user="$(jq -r '.client_payload.user' "${GITHUB_EVENT_PATH}")"
-          echo "::set-output name=user::$user"
+          echo "user=$user" >> $GITHUB_OUTPUT
 
       - uses: actions/setup-go@v3
         with:
@@ -73,7 +73,7 @@ jobs:
         id: createBranch
         run: |
           branch="upgrade-zed-${{ steps.zed_pr.outputs.number }}"
-          echo "::set-output name=branch::$branch"
+          echo "branch=$branch" >> $GITHUB_OUTPUT
           git branch -m $branch
           git commit -a -m 'upgrade Zed to ${{ github.event.client_payload.merge_commit_sha }}'
           git push -f -u origin $branch
