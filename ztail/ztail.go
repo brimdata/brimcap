@@ -141,15 +141,18 @@ func (t *Tailer) tailFile(file string) error {
 			zr = zio.NewWarningReader(zr, t.warner)
 		}
 
-		var res result
 		for {
-			res.zv, res.err = zr.Read()
-			if res.zv != nil || res.err != nil {
-				t.results <- res
-			}
-			if res.zv == nil || res.err != nil {
+			val, err := zr.Read()
+			if err != nil {
+				t.results <- result{err: err}
 				return
 			}
+			if val == nil {
+				return
+			}
+			// Copy because we may read the next value before
+			// Tailer.Read's caller has finished with this one.
+			t.results <- result{zv: val.Copy()}
 		}
 	}()
 	return nil
