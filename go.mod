@@ -1,6 +1,6 @@
 module github.com/brimdata/brimcap
 
-go 1.18
+go 1.19
 
 require (
 	github.com/brimdata/zed v1.2.1-0.20221118153920-2e01a07961b6
