@@ -46,7 +46,7 @@ type PcapReader struct {
 	header       []byte
 }
 
-//XXX from ngwrite
+// XXX from ngwrite
 const magicMicroseconds = 0xA1B2C3D4
 const versionMajor = 2
 const versionMinor = 4
@@ -68,11 +68,11 @@ const (
 // read from it at this point.
 // If the file format is not supported an error is returned.
 //
-//  // Create new reader:
-//  f, _ := fs.Open("/tmp/file.pcap")
-//  defer f.Close()
-//  r, err := NewReader(f)
-//  data, info, err := r.Read()
+//	// Create new reader:
+//	f, _ := fs.Open("/tmp/file.pcap")
+//	defer f.Close()
+//	r, err := NewReader(f)
+//	data, info, err := r.Read()
 func NewPcapReader(r io.Reader) (*PcapReader, error) {
 	reader := &PcapReader{
 		Reader: peeker.NewReader(r, 32*1024, 1024*1024),
@@ -202,14 +202,14 @@ func (r *PcapReader) Version() string {
 // and uses it (https://github.com/the-tcpdump-group/tcpdump/blob/66384fa15b04b47ad08c063d4728df3b9c1c0677/print.c#L343-L358).
 //
 // For further reading:
-//  - https://github.com/the-tcpdump-group/tcpdump/issues/389
-//  - https://bugs.wireshark.org/bugzilla/show_bug.cgi?id=8808
-//  - https://www.wireshark.org/lists/wireshark-dev/201307/msg00061.html
-//  - https://github.com/wireshark/wireshark/blob/bfd51199e707c1d5c28732be34b44a9ee8a91cd8/wiretap/pcap-common.c#L723-L742
-//    - https://github.com/wireshark/wireshark/blob/f07fb6cdfc0904905627707b88450054e921f092/wiretap/libpcap.c#L592-L598
-//    - https://github.com/wireshark/wireshark/blob/f07fb6cdfc0904905627707b88450054e921f092/wiretap/libpcap.c#L714-L727
-//  - https://github.com/the-tcpdump-group/tcpdump/commit/d033c1bc381c76d13e4aface97a4f4ec8c3beca2
-//  - https://github.com/the-tcpdump-group/tcpdump/blob/88e87cb2cb74c5f939792171379acd9e0efd8b9a/netdissect.h#L263-L290
+//   - https://github.com/the-tcpdump-group/tcpdump/issues/389
+//   - https://bugs.wireshark.org/bugzilla/show_bug.cgi?id=8808
+//   - https://www.wireshark.org/lists/wireshark-dev/201307/msg00061.html
+//   - https://github.com/wireshark/wireshark/blob/bfd51199e707c1d5c28732be34b44a9ee8a91cd8/wiretap/pcap-common.c#L723-L742
+//   - https://github.com/wireshark/wireshark/blob/f07fb6cdfc0904905627707b88450054e921f092/wiretap/libpcap.c#L592-L598
+//   - https://github.com/wireshark/wireshark/blob/f07fb6cdfc0904905627707b88450054e921f092/wiretap/libpcap.c#L714-L727
+//   - https://github.com/the-tcpdump-group/tcpdump/commit/d033c1bc381c76d13e4aface97a4f4ec8c3beca2
+//   - https://github.com/the-tcpdump-group/tcpdump/blob/88e87cb2cb74c5f939792171379acd9e0efd8b9a/netdissect.h#L263-L290
 func (r *PcapReader) SetSnaplen(newSnaplen uint32) {
 	r.snaplen = newSnaplen
 }
