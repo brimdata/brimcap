@@ -3,12 +3,12 @@ module github.com/brimdata/brimcap
 go 1.18
 
 require (
-	github.com/brimdata/zed v1.2.1-0.20221118153920-2e01a07961b6
+	github.com/brimdata/zed v1.2.1-0.20221118162240-161adbc31a2b
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/google/gopacket v1.1.19
 	github.com/gosuri/uilive v0.0.4
-	github.com/stretchr/testify v1.7.0
-	go.uber.org/multierr v1.6.0
+	github.com/stretchr/testify v1.8.0
+	go.uber.org/multierr v1.8.0
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	gopkg.in/yaml.v3 v3.0.1
@@ -32,8 +32,8 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/segmentio/ksuid v1.0.2 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/zap v1.17.0 // indirect
+	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/exp v0.0.0-20220916125017-b168a2c6b86b // indirect
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
 	golang.org/x/text v0.3.7 // indirect
