@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/brimdata/brimcap/ztail"
 	"github.com/brimdata/zed/zio"
 	"golang.org/x/sync/errgroup"
 )
@@ -16,7 +17,7 @@ type Stats struct {
 }
 
 type Display interface {
-	zio.Warner
+	ztail.Warner
 	Stats(Stats) error
 }
 

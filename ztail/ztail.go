@@ -24,7 +24,7 @@ type Tailer struct {
 	opts       anyio.ReaderOpts
 	readers    map[string]*tail.File
 	tailer     *tail.Dir
-	warner     zio.Warner
+	warner     Warner
 	zctx       *zed.Context
 
 	// synchronization primitives
@@ -33,7 +33,7 @@ type Tailer struct {
 	watchWg sync.WaitGroup
 }
 
-func New(zctx *zed.Context, dir string, opts anyio.ReaderOpts, warner zio.Warner, globs ...string) (*Tailer, error) {
+func New(zctx *zed.Context, dir string, opts anyio.ReaderOpts, warner Warner, globs ...string) (*Tailer, error) {
 	dir = filepath.Clean(dir)
 	tailer, err := tail.TailDir(dir, globs...)
 	if err != nil {
@@ -138,7 +138,7 @@ func (t *Tailer) tailFile(file string) error {
 
 		var zr zio.Reader = zf
 		if t.warner != nil {
-			zr = zio.NewWarningReader(zr, t.warner)
+			zr = NewWarningReader(zr, t.warner)
 		}
 
 		for {
