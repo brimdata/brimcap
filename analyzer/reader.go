@@ -20,7 +20,7 @@ type reader struct {
 	values  int64
 }
 
-func newReader(ctx context.Context, warner zio.Warner, confs ...Config) (*reader, error) {
+func newReader(ctx context.Context, warner ztail.Warner, confs ...Config) (*reader, error) {
 	var tailers tailers
 	var readers []zio.Reader
 	zctx := zed.NewContext()
@@ -50,7 +50,7 @@ func (h *reader) Read() (*zed.Value, error) {
 func (h *reader) stop() error        { return h.tailers.stop() }
 func (h *reader) close() (err error) { return h.tailers.close() }
 
-func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner zio.Warner) (zio.Reader, *ztail.Tailer, error) {
+func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner ztail.Warner) (zio.Reader, *ztail.Tailer, error) {
 	var shaper ast.Op
 	if conf.Shaper != "" {
 		var err error
@@ -77,7 +77,7 @@ func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner zio.War
 
 type wrappedReader struct {
 	cmd    string
-	warner zio.Warner
+	warner ztail.Warner
 	reader zio.Reader
 }
 
