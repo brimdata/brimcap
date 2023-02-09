@@ -1,100 +1,55 @@
 name: Advance Zed
 
+concurrency: ${{ github.workflow }}
+
 # This type must match the event type from Zed.
 # https://help.github.com/en/actions/reference/events-that-trigger-workflows#external-events-repository_dispatch
 # These events only trigger on the GitHub default branch.
 on:
   repository_dispatch:
     types: [zed-pr-merged]
-jobs:
-  advance-zed:
-    name: Advance Zed
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      # Only one of these should run at a time, and the checkout of brimcap
-      # has to be in the "protected section". This will poll every 60s
-      # forever. It will be timed out based on any change to
-      # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idtimeout-minutes
-      # It is not possible to time out this step and fail. It's only
-      # possible to time out this step and continue.
-      - name: Turnstyle
-        uses: softprops/turnstyle@v0.1.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  workflow_dispatch:
+    inputs:
+      zed_ref:
+        required: true
+        type: string
 
-      # Since we intend to push, we must have a a writable token and
-      # minimal git config settings to create commits.
+env:
+  branch: advance-zed-${{ github.event.client_payload.merge_commit_sha || inputs.zed_ref }}
+  zed_ref: ${{ github.event.client_payload.merge_commit_sha || inputs.zed_ref }}
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v3
         with:
-          # ref defaults to github.sha, which is fixed at the time a run
-          # is triggered. Using github.ref ensures a run that waits in
-          # the turnstyle action will see any commits pushed by the runs
-          # that caused it to wait, reducing push failures down below.
+          # ref defaults to github.sha, which is fixed at the time a workflow is
+          # triggered. Using github.ref ensures that a run that waits for the
+          # concurrency group will see any commits pushed by the runs that
+          # caused it to wait, reducing push failures down below.
           ref: ${{ github.ref }}
-          token: ${{ secrets.PAT_TOKEN }}
-      - run: git config --local user.email 'automation@brimdata.io'
-      - run: git config --local user.name 'Brim Automation'
-
-      # This section gets event information.
-      - run: jq '.' "${GITHUB_EVENT_PATH}"
-      - name: process pull request event
-        id: zed_pr
-        # $GITHUB_EVENT_PATH is the JSON we posted from Zed.
-        # Variables for other steps get set as described here:
-        # https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-output-parameter
-        #
-        # Rewrite bare PR numbers as Zed PRs (https://github.com/brimdata/brim/issues/797)
-        run: |
-          sha="$(jq -r '.client_payload.merge_commit_sha' "${GITHUB_EVENT_PATH}")"
-          echo "sha=$sha" >> $GITHUB_OUTPUT
-          branch="$(jq -r '.client_payload.branch' "${GITHUB_EVENT_PATH}")"
-          echo "branch=$branch" >> $GITHUB_OUTPUT
-          number="$(jq -r '.client_payload.number' "${GITHUB_EVENT_PATH}")"
-          echo "number=$number" >> $GITHUB_OUTPUT
-          title="$(jq -r '.client_payload.title' "${GITHUB_EVENT_PATH}")"
-          title="$(perl -pe 's,(\W+)(#\d+)(\W+),$1brimdata/zed$2$3,g; s,^(#\d+)(\W+),brimdata/zed$1$2,g; s,(\W+)(#\d+),$1brimdata/zed$2,g; s,^(#\d+)$,brimdata/zed$1,g;' <<< "${title}")"
-          echo "title=$title" >> $GITHUB_OUTPUT
-          url="$(jq -r '.client_payload.url' "${GITHUB_EVENT_PATH}")"
-          echo "url=$url" >> $GITHUB_OUTPUT
-          user="$(jq -r '.client_payload.user' "${GITHUB_EVENT_PATH}")"
-          echo "user=$user" >> $GITHUB_OUTPUT
-
       - uses: actions/setup-go@v3
         with:
           go-version-file: go.mod
-
-      - name: Update Zed
-        run: |
-          go get -d github.com/brimdata/zed@${{ steps.zed_pr.outputs.sha }}
-          go mod tidy
-
-      - name: Create branch
-        id: createBranch
-        run: |
-          branch="upgrade-zed-${{ steps.zed_pr.outputs.number }}"
-          echo "branch=$branch" >> $GITHUB_OUTPUT
-          git branch -m $branch
-          git commit -a -m 'upgrade Zed to ${{ github.event.client_payload.merge_commit_sha }}'
-          git push -f -u origin $branch
-
-      - name: Dispatch CI workflow
-        run: |
-          cat <<EOF > payload.json
-          {
-            "ref": "${{ steps.createBranch.outputs.branch }}",
-            "inputs": {
-              "title": "${{ steps.zed_pr.outputs.title }}",
-              "user": "${{ steps.zed_pr.outputs.user }}",
-              "url": "${{ steps.zed_pr.outputs.url }}",
-              "number": "${{ steps.zed_pr.outputs.number }}"
-            }
-          }
-          EOF
-          curl -XPOST \
-            -u "${{ secrets.PAT_USERNAME }}:${{ secrets.PAT_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Content-Type: application/json" \
-            --data @payload.json \
-            https://api.github.com/repos/brimdata/brimcap/actions/workflows/ci.yaml/dispatches 
-
+      - run: go get github.com/brimdata/zed@${{ env.zed_ref }}
+      - run: go mod tidy
+      - run: git -c user.name='Brim Automation' -c user.email=automation@brimdata.io commit -a -m 'upgrade Zed to ${{ env.zed_ref }}'
+      - run: git push origin HEAD:${{ env.branch }}
+  ci:
+    needs: create-branch
+    uses: ./.github/workflows/ci.yaml
+    with:
+      # This value must match env.branch.  (Can't use that here because the env
+      # context isn't available).
+      ref: advance-zed-${{ github.event.client_payload.merge_commit_sha || inputs.zed_ref }}
+  push:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.branch }}
+      - run: git push origin HEAD:${{ github.ref }}
+        if: github.event_name != 'workflow_dispatch'
+      - run: git push --delete origin ${{ env.branch }}
