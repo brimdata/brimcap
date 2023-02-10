@@ -1,3 +1,6 @@
+## v1.3.0
+* Update bundled Suricata to allow [use of local rules](https://github.com/brimdata/brimcap/issues/259) (#272, #274)
+
 ## v1.2.0
 * `brimcap search`: parse `-duration` argument as a ZSON duration (#244)
 * `brimcap slice`: parse `-to` and `-from` arguments as an RFC 3339 timestamp (#243)
