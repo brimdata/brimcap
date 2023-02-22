@@ -33,15 +33,13 @@ jobs:
       - run: make test
       - run: make ztest
       - run: make release
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }}
           path: build/brimcap-*.zip
       - if: startsWith(github.event.ref, 'refs/tags/')
-        uses: svenstaro/upload-release-action@1.1.0
+        uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
           file: build/brimcap-*.zip
           file_glob: true
           overwrite: true
