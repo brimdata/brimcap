@@ -1,3 +1,6 @@
+## v1.4.0
+* Advance Zed dependency to include recent fixes/enhancements
+
 ## v1.3.0
 * Update bundled Suricata to allow [use of local rules](https://github.com/brimdata/brimcap/issues/259) (#272, #274)
 
