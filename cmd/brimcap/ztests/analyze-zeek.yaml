@@ -6,6 +6,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {
-          count: 379 (uint64)
-      }
+      379 (uint64)
