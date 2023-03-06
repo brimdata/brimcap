@@ -26,7 +26,7 @@ choosing. This article includes examples of both configurations along with
 
 ## Base Zeek/Suricata Installation
 
-The goal in our first example customization will be to run Brim with the latest
+The goal in our first example customization will be to run Zui with the latest
 GA binary releases of [Zeek](https://github.com/zeek/zeek/wiki/Binary-Packages)
 and [Suricata](https://suricata.readthedocs.io/en/latest/install.html#install-binary-packages),
 as these are newer than the versions that currently ship with Brimcap. We'll
@@ -68,7 +68,7 @@ configuration by setting
 for the `eve-log` output.
 
 3. To ensure [rules](https://suricata.readthedocs.io/en/latest/rules/)
-are kept current, the Brim app invokes the bundled "Suricata Updater" once
+are kept current, the Zui app invokes the bundled "Suricata Updater" once
 each time it is opened. However, in a custom configuration, no attempt is made
 to trigger updates on your behalf. You may choose to periodically run your
 `suricata-update` manually or consider a scheduled mechanism such as `cron`.
@@ -79,23 +79,23 @@ For use with the Zeek/Suricata we just installed, a sample
 [Brimcap YAML configuration](https://github.com/brimdata/brimcap/blob/main/examples/zeek-suricata.yml)
 and accompanying wrapper scripts for [Zeek](https://github.com/brimdata/brimcap/blob/main/examples/zeek-wrapper.sh)
 and [Suricata](https://github.com/brimdata/brimcap/blob/main/examples/suricata-wrapper.sh)
-are available in the Brimcap repo. If Brim is currently running and the
+are available in the Brimcap repo. If Zui is currently running and the
 wrapper scripts are copied to `/usr/local/bin`, the configuration can be tested
 outside the app to import a `sample.pcap` like so:
 
 ```
-$ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
+$ export PATH="/opt/Zui/resources/app.asar.unpacked/zdeps:$PATH"
 $ zed create testpool
 $ zed use testpool
 $ brimcap analyze -config zeek-suricata.yml sample.pcap | zed load -
-$ brimcap index -root "$HOME/.config/Brim/data/brimcap-root" -r sample.pcap
+$ brimcap index -root "$HOME/.config/Zui/data/brimcap-root" -r sample.pcap
 ```
 
 > **Note**: The `zdeps` directory that contains the `zed` and `brimcap`
-> binaries varies per platform. See the Brim [Filesystem Paths](https://github.com/brimdata/brim/wiki/Filesystem-Paths#application-binaries-v0250)
+> binaries varies per platform. See the Zui [Filesystem Paths](https://zui.brimdata.io/docs/support/Filesystem-Paths)
 > article for details.
 
-If successful, the new pool will appear in Brim, allowing you to browse the
+If successful, the new pool will appear in Zui, allowing you to browse the
 logs and open flows from the pcap via the **Packets** button.
 
 ![NetFlow Pool](media/Custom-Zeek-Suricata-Pool.png)
@@ -103,11 +103,11 @@ logs and open flows from the pcap via the **Packets** button.
 The same combination of `brimcap` and `zed` commands can be used to
 incrementally add more logs to the same pool and index for additional pcaps.
 
-The setting in the Brim **Preferences** for the **Brimcap YAML Config File**
+The setting in the Zui **Preferences** for the **Brimcap YAML Config File**
 can also be pointed at the path to this configuration file, which will cause it
-to be invoked when you open or drag pcap files into Brim.
+to be invoked when you open or drag pcap files into Zui.
 
-![Brim YAML Config File Preference](media/Brim-Pref-YAML-Config-File.png)
+![Zui YAML Config File Preference](media/Zui-Pref-YAML-Config-File.png)
 
 In examining the example Brimcap YAML, we see at the top that we've defined two
 `analyzers`.
@@ -147,9 +147,9 @@ exec /opt/zeek/bin/zeek -C -r - --exec "event zeek_init() { Log::disable_stream(
 ```
 
 > **Note:** If you intend to point to your custom Brimcap YAML config from
-> Brim **Preferences**, it's important to use full pathnames to the wrapper
+> Zui **Preferences**, it's important to use full pathnames to the wrapper
 > scripts referenced in your YAML (e.g. `/usr/local/bin/zeek-wrapper.sh`) and
-> in your wrapper scripts (e.g. `/opt/zeek/bin`) since Brim may not have the
+> in your wrapper scripts (e.g. `/opt/zeek/bin`) since Zui may not have the
 > benefit of the same `$PATH` setting as your interactive shell when it invokes
 > `brimcap analyze` with your custom configuration.
 
@@ -251,7 +251,7 @@ be described in brief.
 1. The `type alert` defines the names, [data types](https://zed.brimdata.io/docs/formats/zed/#1-primitive-types),
 and hierarchical locations of expected fields in the input records. Here we've
 defined a single "wide" shape for _all_ alerts we've known Suricata to
-generate, which is convenient because it allows Brim to easily display them in
+generate, which is convenient because it allows Zui to easily display them in
 columnar format.
 
 2. The `where event_type=="alert"` trims the processed EVE events to only
@@ -271,7 +271,7 @@ of the first `yield`, which will trim these additional fields.
 
 4. The `rename ts := timestamp` changes the name of Suricata's `timestamp`
 field to match the `ts` one used by Zeek, which allows the data from both
-sources to be more seamlessly presented together in Brim.
+sources to be more seamlessly presented together in Zui.
 
 # Custom NetFlow Analyzer
 
@@ -283,7 +283,7 @@ we'll use NetFlow records generated using the open source
 [nfdump](https://github.com/phaag/nfdump) toolset.
 
 > **Note:** While the example shows how shaped NetFlow records can be loaded
-via Brimcap, the **Packets** button in Brim is not currently wired to extract
+via Brimcap, the **Packets** button in Zui is not currently wired to extract
 flows from a pcap via the 5-tuple and time details in NetFlow records. If this
 is functionality you're interested in pursuing, please
 [open an issue](https://github.com/brimdata/brimcap/wiki/Troubleshooting#opening-an-issue)
@@ -393,13 +393,13 @@ Putting it all together, we can test it by using our command combination to
 create a new pool and import the data for a sample pcap.
 
 ```
-$ export PATH="/opt/Brim/resources/app.asar.unpacked/zdeps:$PATH"
+$ export PATH="/opt/Zui/resources/app.asar.unpacked/zdeps:$PATH"
 $ zed create testpool2
 $ zed use testpool2
 $ brimcap analyze -config nfdump.yml sample.pcap | zed load -
 ```
 
-Our pool is now ready to be queried in Brim.
+Our pool is now ready to be queried in Zui.
 
 ![NetFlow Pool](media/NetFlow-Pool.png)
 
@@ -471,7 +471,7 @@ total 97912
 
 If you're running custom Brimcap configurations, we'd like to hear from you!
 Whether you've perfected a custom combination of analyzers that you think other
-Brim users will find useful, or (especially) if you hit challenges and need
+Zui users will find useful, or (especially) if you hit challenges and need
 help, please join our [public Slack](https://www.brimdata.io/join-slack/)
 and tell us about it, or [open an issue](https://github.com/brimdata/brimcap/wiki/Troubleshooting#opening-an-issue).
 Thanks!

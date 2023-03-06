@@ -9,7 +9,7 @@
 
 Brimcap provides limited [geolocation](https://en.wikipedia.org/wiki/Geolocation)
 support by adding fields to the `conn` records of Zeek logs that are generated
-from imported pcaps. As Brim uses a bundled Brimcap to create Zeek logs from
+from imported pcaps. As Zui uses a bundled Brimcap to create Zeek logs from
 pcaps, this geolocation data is available in the app for your imported
 captures.
 
@@ -33,15 +33,15 @@ details on the origin and accuracy of the geolocation data, see the
 
 # Future Functionality
 
-There are additional geolocation features in Brim that may be added in the
+There are additional geolocation features in Zui that may be added in the
 future, depending on demand from the community. The following issues are
 currently being held open to gather interest:
 
 | **Issue**                                               |**Description**                                 |
 |---------------------------------------------------------|------------------------------------------------|
-| [brim/936](https://github.com/brimdata/brim/issues/936) | Geolocation map visualization                  |
-| [brim/954](https://github.com/brimdata/brim/issues/954) | Look up Geolocation data on-demand             |
-| [brim/955](https://github.com/brimdata/brim/issues/955) | Allow user to replace the Geolocation database |
+| [zui/936](https://github.com/brimdata/zui/issues/936)   | Geolocation map visualization                  |
+| [zui/954](https://github.com/brimdata/zui/issues/954)   | Look up Geolocation data on-demand             |
+| [zui/955](https://github.com/brimdata/zui/issues/955)   | Allow user to replace the Geolocation database |
 | [geoip-conn/39](https://github.com/brimdata/geoip-conn/issues/39) | Include autonomous system info       |
 
 If you're interested in additional geolocation features, please follow the

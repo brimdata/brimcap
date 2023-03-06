@@ -4,8 +4,8 @@ If you're having a problem with Brimcap, please browse the following sections
 before you [open an issue](#opening-an-issue).
 
 - [Common Problems](#common-problems)
-  * [I've clicked to open a packet capture in Brim, but it failed to open](#ive-clicked-to-open-a-packet-capture-in-brim-but-it-failed-to-open)
-  * [I've clicked in Brim to extract a flow from my pcap into Wireshark, but the flow looks different than when I isolate it in the original pcap file in Wireshark](#ive-clicked-in-brim-to-extract-a-flow-from-my-pcap-into-wireshark-but-the-flow-looks-different-than-when-i-isolate-it-in-the-original-pcap-file-in-wireshark)
+  * [I've clicked to open a packet capture in Zui, but it failed to open](#ive-clicked-to-open-a-packet-capture-in-zui-but-it-failed-to-open)
+  * [I've clicked in Zui to extract a flow from my pcap into Wireshark, but the flow looks different than when I isolate it in the original pcap file in Wireshark](#ive-clicked-in-zui-to-extract-a-flow-from-my-pcap-into-wireshark-but-the-flow-looks-different-than-when-i-isolate-it-in-the-original-pcap-file-in-wireshark)
 - [Gathering Info](#gathering-info)
   * [Sensitive Information (important!)](#sensitive-information-important)
   * [Screenshots/Videos](#screenshotsvideos)
@@ -17,7 +17,7 @@ before you [open an issue](#opening-an-issue).
 
 # Common Problems
 
-## I've clicked to open a packet capture in Brim, but it failed to open
+## I've clicked to open a packet capture in Zui, but it failed to open
 
 There are two different broad categories of such problems, one involving the
 application configured to open packet capture files and the other involving
@@ -26,9 +26,9 @@ detail.
 
 ### Application problems
 
-To start debugging such problems, it helps to understand how Brim opens flows
+To start debugging such problems, it helps to understand how Zui opens flows
 extracted from pcaps. Once the [5-tuple](https://www.napatech.com/what-is-a-flow/), connection start time, and connection
-duration are isolated from the Zeek `conn` record for the flow, Brim
+duration are isolated from the Zeek `conn` record for the flow, Zui
 invokes `brimcap search` to extract the packets for the target flow
 into a temporary file. Once this temporary file has been written to the local
 filesystem, the application on your operating system that's configured to
@@ -36,26 +36,26 @@ automatically open files ending in `.pcap` will be launched to open this file.
 
 In typical environments, that application will be Wireshark. However, if no
 such application is installed or configured to open `.pcap` files, clicking the
-**Packets** button in Brim will have no effect. Windows presents a helpful
+**Packets** button in Zui will have no effect. Windows presents a helpful
 pop-up in this case to notify about the lack of an appropriate installed
 program to handle the file. However, due to an open issue
-([brim/1379](https://github.com/brimdata/brim/issues/1379)) this failure is
+([zui/1379](https://github.com/brimdata/zui/issues/1379)) this failure is
 currently "silent" on macOS and Linux, such that you will see a "Preparation
-Complete" pop-up in Brim that indicates the extraction to the temporary file
+Complete" pop-up in Zui that indicates the extraction to the temporary file
 was successful, but no application will open.
 
 To fix this problem, ensure Wireshark or a similar utility is installed
-and that you can open `.pcap` files outside of Brim by double-clicking them
+and that you can open `.pcap` files outside of Zui by double-clicking them
 in the general "files" utility for your operating system.
 
-Note that it would be a misconfiguration to set Brim itself as your operating
+Note that it would be a misconfiguration to set Zui itself as your operating
 system's default application for opening `.pcap` files, as this would make
-Brim's **Packets** button "point at itself".
+Zui's **Packets** button "point at itself".
 
 ### Packet capture problems
 
 If you are able to open a pcap file in Wireshark but not extract flows from it
-in Brim, it's likely a problem unique to the packet capture itself.
+in Zui, it's likely a problem unique to the packet capture itself.
 
 Unfortunately, not all packet captures are created equal. The library that
 Brimcap invokes to extract flows from your pcap handles the most common
@@ -79,9 +79,9 @@ If you're able to reliably reproduce the problem, please
 provide, attaching your original capture file, a special debug capture that
 reproduces the problem, or at minimum just a
 [screenshot](#screenshotsvideos) or cut & paste of any error message you saw
-in Brim.
+in Zui.
 
-## I've clicked in Brim to extract a flow from my pcap into Wireshark, but the flow looks different than when I isolate it in the original pcap file in Wireshark
+## I've clicked in Zui to extract a flow from my pcap into Wireshark, but the flow looks different than when I isolate it in the original pcap file in Wireshark
 
 Brimcap uses [Zeek](https://zeek.org/) to create summary logs from pcaps.
 Zeek and Wireshark for the most part treat flows similarly. But we're aware
@@ -96,10 +96,10 @@ Wireshark appears to treat all packets as part of the same flow if they
 share the same [5-tuple](https://www.napatech.com/what-is-a-flow/),
 regardless of how long the flow lasts.
 
-To similarly attempt to isolate flows, Brim relies on Zeek's `conn` event,
+To similarly attempt to isolate flows, Zui relies on Zeek's `conn` event,
 which includes the `id` and `proto` fields that capture the 5-tuple for a
 flow, along with the fields for `ts` (time of first packet) and `duration`
-(how long the connection lasted). Brim uses these values to construct a
+(how long the connection lasted). Zui uses these values to construct a
 `brimcap search` command line to extract the flow from the indexed pcap file.
 However, this is where Zeek's occasionally different perception of flows may
 come into play.
@@ -113,7 +113,7 @@ one minute. This means that UDP flows that don't send or receive traffic for
 60 seconds will have their flow state "flushed" from Zeek into a completed
 `conn` event. If the flow is actually still active in the capture such that
 more packets for the 5-tuple reappear after the 60 second timeout, a new `conn`
-record would be created by Zeek (and hence would appear separately in Brim, and
+record would be created by Zeek (and hence would appear separately in Zui, and
 therefore be extracted from the original pcap as if it were a separate flow).
 
 These represent what we expect may be the majority of observed differences in
@@ -151,7 +151,7 @@ and we can arrange to receive it from you in a private 1-on-1 chat.
 ## Screenshots/Videos
 
 If you think you've encountered a bug that's specific to how Brimcap interacts
-with the Brim app, a screenshot or recorded desktop video of your Brim app
+with the Zui app, a screenshot or recorded desktop video of your Zui app
 that includes the error message or unexpected behavior may help us a lot. If
 you can annotate your media with arrows, text, or other detail, even better.
 The same is true if you're submitting a detailed feature request.
@@ -179,4 +179,4 @@ you can help us out by doing the following:
 * Feel free to chat with the team on the [public Slack](https://www.brimdata.io/join-slack/) before/after opening an issue.
 * When you open a new issue, its initial text will include a template with standard info that will almost always be needed. Please include detail for all areas of the template.
 
-Thanks for helping us support the Brim community!
+Thanks for helping us support the community!
