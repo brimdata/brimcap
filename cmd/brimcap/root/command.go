@@ -32,7 +32,7 @@ Logs written as ZNG or ZSON can be searched with
 zq (https://github.com/brimdata/zed/tree/main/cmd/zed#zq) or loaded into a
 Zed lake (https://github.com/brimdata/zed/blob/main/docs/lake/README.md)
 using zapi (https://github.com/brimdata/zed/tree/main/cmd/zed#zapi) for
-viewing in the Brim desktop app (https://github.com/brimdata/brim).
+viewing in the Zui desktop app (https://github.com/brimdata/zui).
 
 Additionally logs can also be written as ndjson and then operated on using jq
 (https://stedolan.github.io/jq/).

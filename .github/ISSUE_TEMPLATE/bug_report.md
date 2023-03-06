@@ -26,4 +26,4 @@ https://github.com/brimdata/brimcap/wiki/Troubleshooting
 [Please complete the following information]
  - OS: [e.g. Windows, Linux, macOS]
  - Brimcap Version: [output of "brimcap -version"]
- - Brim Version (if applicable): [copy from **Help > About Brim** on Windows and Linux, or **Brim > About Brim** on macOS]
+ - Zui Version (if applicable): [copy from **Help > About Zui** on Windows and Linux, or **Zui > About Zui** on macOS]
