@@ -4,6 +4,9 @@
   "files": [
     "build/dist/**"
   ],
+  "bin": {
+    "brimcap": "build/dist/brimcap"
+  },
   "scripts": {
     "prepack": "make build",
     "postinstall": "chmod -R +x build/dist"
