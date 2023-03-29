@@ -1,3 +1,6 @@
+## v1.4.1
+* Update bundled Suricata to [v5.0.3-brim5](https://github.com/brimdata/build-suricata/releases/tag/v5.0.3-brim5), which fixes [zui/2715](https://github.com/brimdata/zui/issues/2715) (#305)
+
 ## v1.4.0
 * Advance Zed dependency to include recent fixes/enhancements
 
