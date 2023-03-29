@@ -1,6 +1,9 @@
 {
   "name": "brimcap",
   "version": "1.1.2",
+  "bin": {
+    "brimcap": "build/dist/brimcap"
+  },
   "files": [
     "build/dist/**"
   ],
