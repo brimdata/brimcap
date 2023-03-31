@@ -195,8 +195,8 @@ further modify it to suit your needs.
     shaper: |
       type port=uint16
       type alert = {
-        timestamp: time,
         event_type: string,
+        timestamp: time,
         src_ip: ip,
         src_port: port,
         dest_ip: ip,
