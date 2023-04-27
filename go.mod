@@ -3,7 +3,7 @@ module github.com/brimdata/brimcap
 go 1.19
 
 require (
-	github.com/brimdata/zed v1.7.1-0.20230427221551-5485b0720447
+	github.com/brimdata/zed v1.7.1-0.20230427223051-deea4a478cae
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/google/gopacket v1.1.19
 	github.com/gosuri/uilive v0.0.4
@@ -26,7 +26,6 @@ require (
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
-	github.com/fraugster/parquet-go v0.10.1-0.20220222153523-e6b70a8a7212 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
