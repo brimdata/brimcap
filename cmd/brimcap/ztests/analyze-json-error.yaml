@@ -5,7 +5,7 @@ script: |
 
 outputs:
   - name: stderr
-    data: |
-      {"type":"error","error":"error loading pcap file: open doesnotexist.pcap: no such file or directory"}
+    regexp: |
+      {"type":"error","error":"error loading pcap file: open doesnotexist.pcap: (no such file or directory|The system cannot find the file specified.)"}
       ===
-      {"type":"error","error":"error loading pcap file: open doesnotexist.pcap: no such file or directory"}
+      {"type":"error","error":"error loading pcap file: open doesnotexist.pcap: (no such file or directory|The system cannot find the file specified.)"}

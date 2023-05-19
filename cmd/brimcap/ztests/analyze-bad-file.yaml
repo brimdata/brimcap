@@ -1,5 +1,4 @@
 script: |
-  chmod +x proc.sh
   mkdir wd; mv proc.sh wd
   brimcap analyze -config=config.yaml -nostats alerts.pcap > out.zng
 
@@ -7,12 +6,12 @@ inputs:
   - name: config.yaml
     data: |
       analyzers:
-        - cmd: ./proc.sh
+        - cmd: bash
+          args: [proc.sh]
           name: proc
           workdir: wd
   - name: proc.sh
     data: |
-      #!/bin/bash
       cat << EOF > out.json
       {"msg":1}
       {"msg":2}
@@ -25,4 +24,4 @@ inputs:
 outputs:
   - name: stderr
     regexp: |
-      {"type":"warning","warning":"./proc.sh: proc.sh: format detection error\\n\\t.*"}
+      {"type":"warning","warning":"bash: proc.sh: format detection error\\n\\t.*"}
