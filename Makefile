@@ -12,6 +12,10 @@ ifeq ($(shell go env GOOS),windows)
 	ZIP=7z a
 endif
 
+# CURDIR holds an absolute path that begins with "/" except on Windows, where it
+# begins with a drive letter.
+pathlistsep = $(if $(filter /%,$(CURDIR)),:,;)
+
 # This enables a shortcut to run a single ztest e.g.:
 #  make TEST=TestBrimpcap/cmd/brimcap/ztests/analyze-all
 ifneq "$(TEST)" ""
@@ -70,7 +74,7 @@ vet:
 .PHONY: generate
 generate:
 	@GOBIN="$(CURDIR)/bin" go install github.com/golang/mock/mockgen
-	@PATH="$(CURDIR)/bin:$(PATH)" go generate ./...
+	@PATH="$(CURDIR)/bin$(pathlistsep)$(PATH)" go generate ./...
 
 .PHONY: test
 test:
@@ -78,8 +82,8 @@ test:
 
 .PHONY: ztest-run
 ztest-run: build bin/zq
-	@ZTEST_PATH="$(CURDIR)/build/dist:$(CURDIR)/bin:$(PATH)" go test . -run $(TEST)
+	@ZTEST_PATH="$(CURDIR)/build/dist$(pathlistsep)$(CURDIR)/bin" go test . -run $(TEST)
 
 .PHONY: ztest
 ztest: build bin/zq
-	@ZTEST_PATH="$(CURDIR)/build/dist:$(CURDIR)/bin:$(PATH)" go test .
+	@ZTEST_PATH="$(CURDIR)/build/dist$(pathlistsep)$(CURDIR)/bin" go test .

@@ -1,5 +1,4 @@
 script: |
-  chmod +x badoutput.sh success.sh
   mkdir wd1; mv badoutput.sh wd1
   mkdir wd2; mv success.sh wd2
   brimcap analyze -config=config.yaml alerts.pcap > out.zng
@@ -8,17 +7,18 @@ inputs:
   - name: config.yaml
     data: |
       analyzers:
-        - cmd: ./badoutput.sh
+        - cmd: bash
+          args: [badoutput.sh]
           name: bad
           globs: ["*.json"] # so ztail will not try to read *.sh
           workdir: wd1
-        - cmd: ./success.sh
+        - cmd: bash
+          args: [success.sh]
           name: success
           globs: ["*.json"] # so ztail will not try to read *.sh
           workdir: wd2
   - name: badoutput.sh
     data: |
-      #!/bin/bash
       cat << EOF > bad.json
       {"msg":1}
       {"msg":2}
@@ -28,7 +28,6 @@ inputs:
       cat > /dev/null
   - name: success.sh
     data: |
-      #!/bin/bash
       cat << EOF > success.json
       {"msg":1}
       {"msg":2}
@@ -41,5 +40,5 @@ inputs:
 outputs:
   - name: stderr
     regexp: |
-      \{"type":"warning","warning":"\.\/badoutput.sh: .*bad\.json: parse error: string literal: unescaped line break"\}
+      \{"type":"warning","warning":"bash: .*bad\.json: parse error: string literal: unescaped line break"\}
       \{"type":"status","ts":\{"sec":\d+,"ns":\d+\},"pcap_read_size":737694,"pcap_total_size":737694,"values_written":7\}

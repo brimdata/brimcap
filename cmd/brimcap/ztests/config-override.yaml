@@ -1,9 +1,9 @@
 script: |
   brimcap config \
     -config=brimcap.config \
-    -root=/path/to/root \
+    -root=path/to/root \
     -analyzers.test.cmd=test123 \
-    -analyzers.test.stderr=/my/special/path
+    -analyzers.test.stderr=my/special/path
 
 inputs:
   - name: brimcap.config
@@ -17,8 +17,8 @@ outputs:
     data: ""
   - name: stdout
     data: |
-      root: /path/to/root
+      root: path/to/root
       analyzers:
         - cmd: test123
           name: test
-          stderr: /my/special/path
+          stderr: my/special/path

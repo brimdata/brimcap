@@ -13,7 +13,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"syscall"
 
 	"github.com/brimdata/zed/zio"
 	"golang.org/x/sync/errgroup"
@@ -49,7 +48,7 @@ func runProcesses(ctx context.Context, r io.Reader, confs ...Config) (*operation
 		}
 		// Broken pipe error is a result of a process shutting down. Return nil
 		// here since the process errors are more interesting.
-		if errors.Is(err, syscall.EPIPE) {
+		if errors.Is(err, errPipe) {
 			err = nil
 		}
 		return err

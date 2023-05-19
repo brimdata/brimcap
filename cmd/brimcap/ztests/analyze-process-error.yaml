@@ -1,5 +1,5 @@
 script: |
-  chmod +x errorproc.sh && mkdir wd && mv errorproc.sh wd
+  mkdir wd && mv errorproc.sh wd
   ! cat alerts.pcap | brimcap analyze -config=config1.yaml -o /dev/null -
   >&2 echo === 
   ! brimcap analyze -config=config2.yaml -o /dev/null alerts.pcap
@@ -9,30 +9,31 @@ inputs:
   - name: config1.yaml
     data: |
       analyzers:
-        - cmd: ./errorproc.sh
+        - cmd: bash
+          args: [errorproc.sh]
           name: error
           globs: ["*.zson"] # so ztail will not try to read errorproc.sh
           workdir: wd
   - name: config2.yaml
     data: |
       analyzers:
-        - cmd: ./errorproc.sh
+        - cmd: bash
+          args: [errorproc.sh]
           name: error
           globs: ["*.zson"] # so ztail will not try to read errorproc.sh
           stderr: stderr.out
           workdir: wd
   - name: errorproc.sh
     data: |
-      #!/bin/bash
       >&2 echo "some error information in stderr"
       exit 1
 
 outputs:
   - name: stderr
-    data: |
-      {"type":"error","error":"errorproc.sh exited with code 1\nstdout: (no output)\nstderr:\nsome error information in stderr\n"}
+    regexp: |
+      {"type":"error","error":"bash(.exe)? exited with code 1\\nstdout: \(no output\)\\nstderr:\\nsome error information in stderr\\n"}
       ===
-      {"type":"error","error":"errorproc.sh exited with code 1\nstdout: (no output)\nstderr:\nsome error information in stderr\n"}
+      {"type":"error","error":"bash(.exe)? exited with code 1\\nstdout: \(no output\)\\nstderr:\\nsome error information in stderr\\n"}
   - name: stderr.out 
     data: |
       some error information in stderr
