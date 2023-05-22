@@ -3,7 +3,10 @@
 package analyzer
 
 import (
+	"errors"
 	"syscall"
 )
 
-var errPipe = syscall.EPIPE
+func isPipe(err error) bool {
+	return errors.Is(err, syscall.EPIPE)
+}
