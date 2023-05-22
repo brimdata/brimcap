@@ -48,7 +48,7 @@ func runProcesses(ctx context.Context, r io.Reader, confs ...Config) (*operation
 		}
 		// Broken pipe error is a result of a process shutting down. Return nil
 		// here since the process errors are more interesting.
-		if errors.Is(err, errPipe) {
+		if isPipe(err) {
 			err = nil
 		}
 		return err
