@@ -41,7 +41,7 @@ func (f *PcapSearchFlags) SetFlags(fs *flag.FlagSet) {
 		if val.Type != zed.TypeDuration {
 			return fmt.Errorf("expected type %s got type %s", zson.FormatType(zed.TypeDuration), zson.FormatType(val.Type))
 		}
-		f.duration = time.Duration(zed.DecodeDuration(val.Bytes))
+		f.duration = time.Duration(zed.DecodeDuration(val.Bytes()))
 		return nil
 	})
 	fs.StringVar(&f.proto, "proto", "", "protocol of the connection (either tcp, udp or icmp)")
