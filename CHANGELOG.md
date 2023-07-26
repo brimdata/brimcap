@@ -1,3 +1,6 @@
+## v1.5.1
+* Advance Zed dependency to include recent fixes/enhancements
+
 ## v1.5.0
 * The Suricata shaper now places the `event_type` to the left of `ts` to improve tile placement in Zui (#308)
 * Advance Zed dependency to include recent fixes/enhancements
