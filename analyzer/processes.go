@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -46,9 +47,10 @@ func runProcesses(ctx context.Context, r io.Reader, confs ...Config) (*operation
 				closer.Close()
 			}
 		}
-		// Broken pipe error is a result of a process shutting down. Return nil
-		// here since the process errors are more interesting.
-		if isPipe(err) {
+		// Broken pipe errors and ErrClose are a result of a process
+		// shutting down. Return nil here since the process errors are
+		// more interesting.
+		if isPipe(err) || errors.Is(err, fs.ErrClosed) {
 			err = nil
 		}
 		return err
