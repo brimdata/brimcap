@@ -20,7 +20,7 @@ is its ability to invoke any arbitrary combination of such "analyzers" that
 generate logs from pcaps. These analyzers could be alternate Zeek or Suricata
 installations that you've customized or other pcap-processing tools of your
 choosing. This article includes examples of both configurations along with
-[Debug](#debug) tips.
+[debug](#debug) tips.
 
 # Custom Zeek/Suricata Analyzers
 
@@ -30,13 +30,13 @@ The goal in our first example customization will be to run Zui with the latest
 GA binary releases of [Zeek](https://github.com/zeek/zeek/wiki/Binary-Packages)
 and [Suricata](https://suricata.readthedocs.io/en/latest/install.html#install-binary-packages),
 as these are newer than the versions that currently ship with Brimcap. We'll
-use Linux Ubuntu 18.04 as our OS platform. On such a host, the following
+use Linux Ubuntu 20.04 as our OS platform. On such a host, the following
 commands install these from common repositories.
 
 ```
 sudo add-apt-repository -y ppa:oisf/suricata-stable
-echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_18.04/ /' | sudo tee /etc/apt/sources.list.d/security:zeek.list
-curl -fsSL https://download.opensuse.org/repositories/security:zeek/xUbuntu_18.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
+echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_20.04/ /' | sudo tee /etc/apt/sources.list.d/security:zeek.list
+curl -fsSL https://download.opensuse.org/repositories/security:zeek/xUbuntu_20.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
 sudo apt -y update
 sudo apt -y --no-install-recommends install suricata zeek
 sudo suricata-update
@@ -69,7 +69,7 @@ for the `eve-log` output.
 
 3. To ensure [rules](https://suricata.readthedocs.io/en/latest/rules/)
 are kept current, the Zui app invokes the bundled "Suricata Updater" once
-each time it is opened. However, in a custom configuration, no attempt is made
+each time it is launched. However, in a custom configuration, no attempt is made
 to trigger updates on your behalf. You may choose to periodically run your
 `suricata-update` manually or consider a scheduled mechanism such as `cron`.
 
@@ -85,10 +85,9 @@ outside the app to import a `sample.pcap` like so:
 
 ```
 $ export PATH="/opt/Zui/resources/app.asar.unpacked/zdeps:$PATH"
-$ zed create testpool
-$ zed use testpool
+$ zed create -use testpool
 $ brimcap analyze -config zeek-suricata.yml sample.pcap | zed load -
-$ brimcap index -root "$HOME/.config/Zui/data/brimcap-root" -r sample.pcap
+$ brimcap index -root "$HOME/.config/Zui/plugins/brimcap/storage/root" -r sample.pcap
 ```
 
 > **Note**: The `zdeps` directory that contains the `zed` and `brimcap`
@@ -98,7 +97,7 @@ $ brimcap index -root "$HOME/.config/Zui/data/brimcap-root" -r sample.pcap
 If successful, the new pool will appear in Zui, allowing you to browse the
 logs and open flows from the pcap via the **Packets** button.
 
-![NetFlow Pool](media/Custom-Zeek-Suricata-Pool.png)
+![Zeek/Suricata Pool](media/Custom-Zeek-Suricata-Pool.png)
 
 The same combination of `brimcap` and `zed` commands can be used to
 incrementally add more logs to the same pool and index for additional pcaps.
@@ -130,7 +129,7 @@ following characteristics:
 4. It writes to log outputs only by appending.
 
 By default, an analyzer's log outputs accumulate in a temporary directory
-that's automatically deleted when Brimcap exits (see the [Debug](#debug)
+that's automatically deleted when Brimcap exits (see the [debug](#debug)
 section for more details). Additional per-analyzer options can be used to
 specify which output logs are loaded and what additional processing is
 performed on them.
@@ -244,7 +243,7 @@ further modify it to suit your needs.
 ```
 
 A full description of all that's possible with
-[shapers](https://zed.brimdata.io/docs/language/overview/#9-shaping) is beyond
+[shapers](https://zed.brimdata.io/docs/language/shaping) is beyond
 the scope of this article. However, this script is quite simple and can
 be described in brief.
 
@@ -295,7 +294,7 @@ To build and install the nfdump toolset with the commands we'll need to
 generate NetFlow, we execute the following on our Linux host:
 
 ```
-sudo apt -y install automake libtool pkg-config flex bison libbz2-dev
+sudo apt -y install make automake libtool pkg-config flex bison libbz2-dev
 git clone https://github.com/phaag/nfdump.git && cd nfdump
 ./autogen.sh
 ./configure --enable-nfpcapd
@@ -394,8 +393,7 @@ create a new pool and import the data for a sample pcap.
 
 ```
 $ export PATH="/opt/Zui/resources/app.asar.unpacked/zdeps:$PATH"
-$ zed create testpool2
-$ zed use testpool2
+$ zed create -use testpool2
 $ brimcap analyze -config nfdump.yml sample.pcap | zed load -
 ```
 
