@@ -26,8 +26,8 @@ github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f/go.mod h1:2stg
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/bits-and-blooms/bitset v1.2.0 h1:Kn4yilvwNtMACtf1eYDlG8H77R07mZSPbMjLyS07ChA=
 github.com/bits-and-blooms/bitset v1.2.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
-github.com/brimdata/zed v1.10.1-0.20231102202251-3d8125a12698 h1:I+F+C/SbSz1pdNK8636oTmllDwvoovBTWwpStvgJDDw=
-github.com/brimdata/zed v1.10.1-0.20231102202251-3d8125a12698/go.mod h1:q4s80yaFN2oCqHB6dIMHewTqO657NNybqdwX+LBaS9o=
+github.com/brimdata/zed v1.10.1-0.20231103142040-c492183b08b6 h1:4Xwo7bI0S/MmeBmJVI1pfndt1i7xYjMrXouezWEIOXo=
+github.com/brimdata/zed v1.10.1-0.20231103142040-c492183b08b6/go.mod h1:q4s80yaFN2oCqHB6dIMHewTqO657NNybqdwX+LBaS9o=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
