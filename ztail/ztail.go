@@ -128,7 +128,7 @@ func (t *Tailer) tailFile(file string) error {
 	go func() {
 		defer t.readWg.Done()
 
-		zf, err := anyio.NewFile(t.zctx, f, file, t.opts)
+		zf, err := anyio.NewFile(t.zctx, f, file, nil, t.opts)
 		if err != nil {
 			f.Close()
 			t.warner.Warn(fmt.Sprintf("%s: %v", filepath.Base(file), err))
