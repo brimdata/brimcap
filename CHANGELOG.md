@@ -1,5 +1,4 @@
 ## v1.5.3
-* Update the [Custom Brimcap Configuration](https://github.com/brimdata/brimcap/wiki/Custom-Brimcap-Config) wiki article to reflect Zui's new "plugin" directory for pcap index (#319)
 * Advance Zed dependency to include recent fixes/enhancements
 
 ## v1.5.2
