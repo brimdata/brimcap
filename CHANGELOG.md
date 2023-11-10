@@ -1,3 +1,6 @@
+## v1.5.3
+* Advance Zed dependency to include recent fixes/enhancements
+
 ## v1.5.2
 * Fix an issue where `brimcap -version` output was showing `-dirty` (#316)
 * Advance Zed dependency to include recent fixes/enhancements
