@@ -44,12 +44,16 @@ version should be API-compatible with that version of Zui and its Zed backend.
 
 ## Brimcap Queries
 
-Included in this repo is a [`queries.json`](./queries.json?raw=1) file with some helpful queries for getting
+Included in this repo is a `queries.json` file with some helpful queries for getting
 started and exploring Zeek and Suricata analyzed data within the Zui app.
 
-To import these queries, open the Zui app and select the "QUERIES" tab in the left
-sidebar. Then just drag the `queries.json` file into that sidebar section. It will
-appear as a new query folder named `Brimcap`.
+To import these queries:
+
+1. Download the [`queries.json`](./queries.json?raw=1) file to your local system
+2. In Zui, click the **+** menu in the upper-left corner of the app window and select **Import Queries...**
+3. Open the downloaded file in the file picker utility
+
+The loaded queries will appear in the "QUERIES" tab of Zui's left sidebar as a new folder named `Brimcap`.
 
 ## Standalone Install
 
