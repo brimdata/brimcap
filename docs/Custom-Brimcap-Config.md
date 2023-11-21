@@ -102,7 +102,7 @@ logs and open flows from the pcap via the **Packets** button.
 The same combination of `brimcap` and `zed` commands can be used to
 incrementally add more logs to the same pool and index for additional pcaps.
 
-The setting in the Zui **Preferences** for the **Brimcap YAML Config File**
+The setting in the Zui **Settings** for the **Brimcap YAML Config File**
 can also be pointed at the path to this configuration file, which will cause it
 to be invoked when you open or drag pcap files into Zui.
 
@@ -146,7 +146,7 @@ exec /opt/zeek/bin/zeek -C -r - --exec "event zeek_init() { Log::disable_stream(
 ```
 
 > **Note:** If you intend to point to your custom Brimcap YAML config from
-> Zui **Preferences**, it's important to use full pathnames to the wrapper
+> Zui **Settings**, it's important to use full pathnames to the wrapper
 > scripts referenced in your YAML (e.g. `/usr/local/bin/zeek-wrapper.sh`) and
 > in your wrapper scripts (e.g. `/opt/zeek/bin`) since Zui may not have the
 > benefit of the same `$PATH` setting as your interactive shell when it invokes
