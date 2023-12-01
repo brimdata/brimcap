@@ -3,7 +3,7 @@ module github.com/brimdata/brimcap
 go 1.21
 
 require (
-	github.com/brimdata/zed v1.11.2-0.20231130184903-40739bdc09fe
+	github.com/brimdata/zed v1.11.2-0.20231201175827-4ae15b0302cf
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/google/gopacket v1.1.19
 	github.com/gosuri/uilive v0.0.4
