@@ -1,3 +1,6 @@
+## v1.5.5
+* Advance Zed dependency to include recent fixes/enhancements
+
 ## v1.5.4
 * Advance Zed dependency to include a recent fix
 
