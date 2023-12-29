@@ -38,8 +38,8 @@ func (f *PcapSearchFlags) SetFlags(fs *flag.FlagSet) {
 		if err != nil {
 			return err
 		}
-		if val.Type != zed.TypeDuration {
-			return fmt.Errorf("expected type %s got type %s", zson.FormatType(zed.TypeDuration), zson.FormatType(val.Type))
+		if val.Type() != zed.TypeDuration {
+			return fmt.Errorf("expected type %s got type %s", zson.FormatType(zed.TypeDuration), zson.FormatType(val.Type()))
 		}
 		f.duration = time.Duration(zed.DecodeDuration(val.Bytes()))
 		return nil
