@@ -4,7 +4,7 @@ LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
 
 SURICATATAG = v5.0.3-brim5
 SURICATAPATH = suricata-$(SURICATATAG)
-ZEEKTAG = v3.2.1-brim10
+ZEEKTAG = v6.0.2-brim1
 ZEEKPATH = zeek-$(ZEEKTAG)
 
 ZIP = zip -r
@@ -35,7 +35,7 @@ tidy:
 build/$(ZEEKPATH).zip:
 	@mkdir -p build
 	@curl -L -o $@ \
-		https://github.com/brimdata/zeek/releases/download/$(ZEEKTAG)/zeek-$(ZEEKTAG).$$(go env GOOS)-$(ARCH).zip
+		https://github.com/brimdata/build-zeek/releases/download/$(ZEEKTAG)/zeek-$(ZEEKTAG).$$(go env GOOS)-$(ARCH).zip
 
 build/$(SURICATAPATH).zip:
 	@mkdir -p build
