@@ -55,7 +55,7 @@ func Run(ctx context.Context, pcap io.Reader, w zio.Writer, d Display, interval 
 			if zv == nil || err != nil {
 				return err
 			}
-			if err := w.Write(zv); err != nil {
+			if err := w.Write(*zv); err != nil {
 				return err
 			}
 			atomic.AddInt64(&valueCount, 1)
