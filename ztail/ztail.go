@@ -152,7 +152,7 @@ func (t *Tailer) tailFile(file string) error {
 			}
 			// Copy because we may read the next value before
 			// Tailer.Read's caller has finished with this one.
-			t.results <- result{zv: val.Copy()}
+			t.results <- result{zv: val.Copy().Ptr()}
 		}
 	}()
 	return nil
