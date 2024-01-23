@@ -70,7 +70,7 @@ func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner ztail.W
 			tailer.Close()
 			return nil, nil, err
 		}
-		wrapped.reader = query.AsReader()
+		wrapped.reader = runtime.AsReader(query)
 	}
 	return wrapped, tailer, nil
 }
