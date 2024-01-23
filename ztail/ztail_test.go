@@ -120,7 +120,7 @@ func (s *tailerTSuite) read() (<-chan string, <-chan error) {
 			errCh <- err
 			return
 		}
-		if err = zio.Copy(w, query.AsReader()); err != nil {
+		if err = zio.Copy(w, runtime.AsReader(query)); err != nil {
 			close(result)
 			errCh <- err
 		} else {
