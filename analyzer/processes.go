@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 
 	"github.com/brimdata/zed/zio"
@@ -31,12 +30,12 @@ func runProcesses(ctx context.Context, r io.Reader, confs ...Config) (*operation
 	var writers []io.Writer
 	group, ctx := errgroup.WithContext(ctx)
 	for _, conf := range confs {
-		cmd, writer, err := command(conf)
+		cmd, err := command(conf)
 		if err != nil {
 			return nil, err
 		}
 		group.Go(cmd.Run)
-		writers = append(writers, writer)
+		writers = append(writers, cmd)
 	}
 	writeCounter := new(writeCounter)
 	writers = append(writers, writeCounter)
@@ -47,12 +46,6 @@ func runProcesses(ctx context.Context, r io.Reader, confs ...Config) (*operation
 				closer.Close()
 			}
 		}
-		// Broken pipe errors and ErrClose are a result of a process
-		// shutting down. Return nil here since the process errors are
-		// more interesting.
-		if isPipe(err) || errors.Is(err, fs.ErrClosed) {
-			err = nil
-		}
 		return err
 	})
 	return &operation{
@@ -61,29 +54,46 @@ func runProcesses(ctx context.Context, r io.Reader, confs ...Config) (*operation
 	}, nil
 }
 
-func command(conf Config) (*wrappedCmd, io.WriteCloser, error) {
+func command(conf Config) (*wrappedCmd, error) {
 	cmd := exec.Command(conf.Cmd, conf.Args...)
 	cmd.Dir = conf.WorkDir
 	pw, err := cmd.StdinPipe()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	return &wrappedCmd{
 		Cmd:         cmd,
 		stderrPath:  conf.StderrPath,
 		stderrSaver: &prefixSuffixSaver{N: 32 << 10},
+		stdinWriter: pw,
 		stdoutPath:  conf.StdoutPath,
 		stdoutSaver: &prefixSuffixSaver{N: 32 << 10},
-	}, pw, nil
+	}, nil
 }
 
 type wrappedCmd struct {
 	*exec.Cmd
-	stdoutPath  string
-	stdoutSaver *prefixSuffixSaver
 	stderrPath  string
 	stderrSaver *prefixSuffixSaver
-	wg          sync.WaitGroup
+	stdinWriter io.WriteCloser
+	stdoutPath  string
+	stdoutSaver *prefixSuffixSaver
+}
+
+func (c *wrappedCmd) Write(b []byte) (int, error) {
+	n, err := c.stdinWriter.Write(b)
+	// Broken pipe errors and ErrClose are a result of a process shutting down.
+	// Since this may be a case of the process legitimately exiting without
+	// reading all data, we ignore these errors and pretend the write was
+	// successful so as not to hold up data getting sent to other processes.
+	if isPipe(err) || errors.Is(err, fs.ErrClosed) {
+		return len(b), nil
+	}
+	return n, err
+}
+
+func (c *wrappedCmd) Close() error {
+	return c.stdinWriter.Close()
 }
 
 func (c *wrappedCmd) Run() error {

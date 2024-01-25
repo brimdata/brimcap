@@ -1,0 +1,36 @@
+script: |
+  mkdir wd1; mv noread.sh wd1
+  mkdir wd2; mv readall.sh wd2
+  bash gen.sh | brimcap analyze -config=config.yaml - | zq -z 'count()' -
+
+inputs:
+  - name: alerts.pcap
+  - name: config.yaml
+    data: |
+      analyzers:
+        - cmd: bash
+          args: [noread.sh]
+          name: noread
+          globs: ["*.json"] # so ztail will not try to read noread.sh
+          workdir: wd1
+        - cmd: bash
+          args: [readall.sh]
+          name: readall
+          globs: ["*.zson"]
+          workdir: wd2
+  - name: gen.sh
+    data: |
+      for i in {1..10000}; do
+        echo "{x: $i}"
+      done
+  - name: noread.sh
+    data: |
+      exit 0
+  - name: readall.sh
+    data: |
+      cat - > readall.zson
+
+outputs:
+  - name: stdout
+    data: |
+      10000(uint64)
