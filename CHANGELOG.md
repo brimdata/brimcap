@@ -1,3 +1,8 @@
+## v1.6.0
+* Advance Zed dependency to include recent fixes/enhancements
+* Update bundled Zeek to [v6.0.3-brim1](https://github.com/brimdata/build-zeek/releases/tag/v6.0.3-brim1) from new [build-zeek repository](https://github.com/brimdata/build-zeek) (#333)
+* Fix an issue where errors were incorrectly returned when pcap analyzers successfully exited without having read all input data (#332)
+
 ## v1.5.5
 * Advance Zed dependency to include recent fixes/enhancements
 
