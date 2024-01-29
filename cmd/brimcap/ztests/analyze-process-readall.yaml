@@ -1,0 +1,15 @@
+script: |
+  seq 10000 | brimcap analyze -config=config.yaml - | zq -z 'count()' -
+inputs:
+  - name: config.yaml
+    data: |
+      analyzers:
+        - cmd: 'true'
+          name: noread
+        - cmd: bash
+          args: [-c, 'cat > readall.zson']
+          name: readall
+outputs:
+  - name: stdout
+    data: |
+      10000(uint64)
