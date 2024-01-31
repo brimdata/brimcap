@@ -34,7 +34,7 @@ func newReader(ctx context.Context, warner ztail.Warner, confs ...Config) (*read
 		readers = append(readers, reader)
 	}
 	return &reader{
-		reader:  zio.NewCombiner(ctx, readers),
+		reader:  NewCombiner(ctx, readers),
 		tailers: tailers,
 	}, nil
 }
