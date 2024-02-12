@@ -17,8 +17,8 @@ import (
 
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/peeker"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
+	"github.com/gopacket/gopacket"
+	"github.com/gopacket/gopacket/layers"
 )
 
 // PcapReader implements the Reader interface to read packet data in PCAP
