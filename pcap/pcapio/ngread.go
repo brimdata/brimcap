@@ -19,7 +19,7 @@ import (
 
 	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/peeker"
-	"github.com/google/gopacket/layers"
+	"github.com/gopacket/gopacket/layers"
 )
 
 const PacketBlockHeaderLen = 28

@@ -8,8 +8,8 @@ import (
 
 	"github.com/brimdata/brimcap/pcap/pcapio"
 	"github.com/brimdata/zed/pkg/nano"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
+	"github.com/gopacket/gopacket"
+	"github.com/gopacket/gopacket/layers"
 )
 
 // ErrNoPcapsFound is an error indicating no packets have been found.

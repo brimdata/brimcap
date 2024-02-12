@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/brimdata/zed v1.13.1-0.20240208220202-31ff54288144
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/google/gopacket v1.1.19
+	github.com/gopacket/gopacket v1.2.0
 	github.com/gosuri/uilive v0.0.4
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/multierr v1.8.0

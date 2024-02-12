@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/brimcap/recorder"
 	"github.com/brimdata/zed/pkg/nano"
-	"github.com/google/gopacket/layers"
+	"github.com/gopacket/gopacket/layers"
 	"go.uber.org/multierr"
 )
 
