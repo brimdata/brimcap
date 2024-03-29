@@ -1,3 +1,8 @@
+## v1.7.0
+* Advance Zed dependency to include recent fixes/enhancements
+* Update bundled Zeek to [v6.2.0-brim1](https://github.com/brimdata/build-zeek/releases/tag/v6.2.0-brim1) (#338)
+* Switch the `gopacket` dependency to an implementation that supports [cooked-mode/SLL link layer protocol](https://wiki.wireshark.org/SLL) (#336)
+
 ## v1.6.0
 * Advance Zed dependency to include recent fixes/enhancements
 * Update bundled Zeek to [v6.0.3-brim1](https://github.com/brimdata/build-zeek/releases/tag/v6.0.3-brim1) from new [build-zeek repository](https://github.com/brimdata/build-zeek) (#333)
