@@ -28,9 +28,8 @@ choosing. This article includes examples of both configurations along with
 
 The goal in our first example customization will be to run Zui with the latest
 GA binary releases of [Zeek](https://github.com/zeek/zeek/wiki/Binary-Packages)
-and [Suricata](https://suricata.readthedocs.io/en/latest/install.html#install-binary-packages),
-as these are newer than the versions that currently ship with Brimcap. We'll
-use Linux Ubuntu 20.04 as our OS platform. On such a host, the following
+and [Suricata](https://suricata.readthedocs.io/en/latest/install.html#install-binary-packages).
+We'll use Linux Ubuntu 20.04 as our OS platform. On such a host, the following
 commands install these from common repositories.
 
 ```
@@ -53,12 +52,17 @@ additional customizations.
 
 1. The Brimcap-bundled Zeek includes the additional packages
 [geoip-conn](https://github.com/brimdata/geoip-conn),
-[zeek-community-id](https://github.com/corelight/zeek-community-id),
 [HASSH](https://github.com/salesforce/hassh),
 and [JA3](https://github.com/salesforce/ja3). These would typically be
 installed via [Zeek Package Manager](https://docs.zeek.org/projects/package-manager/en/stable/quickstart.html).
 
-2. The Brimcap-bundled Suricata includes a
+2. Other changes are made to the default configuration of the Brimcap-bundled
+Zeek, such as enabling
+[Community ID Flow Hashing](https://docs.zeek.org/en/master/customizations.html#community-id).
+See the [build-zeek release automation](https://github.com/brimdata/build-zeek/blob/main/.github/workflows/release.yml)
+for details on how this and other customizations are handled.
+
+3. The Brimcap-bundled Suricata includes a
 [YAML configuration](https://github.com/brimdata/build-suricata/blob/master/brim-conf.yaml)
 that (among other things) enables the `community_id` field, which is essential
 for joining to the `community_id` field in Zeek events to give context
@@ -67,7 +71,7 @@ configuration by setting
 [`community-id: yes`](https://github.com/brimdata/build-suricata/blob/853fab6d7c21325f57e113645004b1107b78d840/brim-conf.yaml#L51-L52)
 for the `eve-log` output.
 
-3. To ensure [rules](https://suricata.readthedocs.io/en/latest/rules/)
+4. To ensure [rules](https://suricata.readthedocs.io/en/latest/rules/)
 are kept current, the Zui app invokes the bundled "Suricata Updater" once
 each time it is launched. However, in a custom configuration, no attempt is made
 to trigger updates on your behalf. You may choose to periodically run your
@@ -102,11 +106,11 @@ logs and open flows from the pcap via the **Packets** button.
 The same combination of `brimcap` and `zed` commands can be used to
 incrementally add more logs to the same pool and index for additional pcaps.
 
-The setting in the Zui **Settings** for the **Brimcap YAML Config File**
+The Zui **Settings** for the **Brimcap YAML Config File**
 can also be pointed at the path to this configuration file, which will cause it
 to be invoked when you open or drag pcap files into Zui.
 
-![Zui YAML Config File Preference](media/Zui-Pref-YAML-Config-File.png)
+![Zui YAML Config File Setting](media/Zui-Settings-YAML-Config-File.png)
 
 In examining the example Brimcap YAML, we see at the top that we've defined two
 `analyzers`.
@@ -137,12 +141,12 @@ performed on them.
 In our example configuration, the first analyzer invoked by Brimcap is a wrapper
 script as referenced in the YAML. In addition to reading from its standard input, it also
 tells Zeek to ignore checksums (since these are often set incorrectly on pcaps)
-and disables a couple of the excess log outputs.
+and disables a few of the excess log outputs.
 
 ```
-$ cat zeek-wrapper.sh
+$ cat zeek-wrapper.sh 
 #!/bin/bash
-exec /opt/zeek/bin/zeek -C -r - --exec "event zeek_init() { Log::disable_stream(PacketFilter::LOG); Log::disable_stream(LoadedScripts::LOG); }" local
+exec /opt/zeek/bin/zeek -C -r - --exec "event zeek_init() { Log::disable_stream(PacketFilter::LOG); Log::disable_stream(LoadedScripts::LOG); Log::disable_stream(Telemetry::LOG); }" local
 ```
 
 > **Note:** If you intend to point to your custom Brimcap YAML config from
@@ -180,10 +184,10 @@ analyzers:
 ...
 ```
 
-What follows below the `globs:` setting is a Zed shaper script. Whereas the
+What follows below the `globs:` setting is a Zed [shaper](https://zed.brimdata.io/docs/language/shaping) script. Whereas the
 Zeek TSV logs contain Zed-compatible rich data types (timestamps, IP
 addresses, etc.), since Suricata's EVE logs are NDJSON, here we use this shaper
-to assign better data types as the NDJSON is being converted for storage
+to assign richer data types as the NDJSON is being converted for storage
 into the Zed lake. Out-of-the-box, Brimcap automatically applies this same
 [shaper script](https://github.com/brimdata/brimcap/blob/main/suricata.zed)
  on the EVE output generated from its bundled Suricata.
@@ -242,8 +246,7 @@ further modify it to suit your needs.
       where event_type=="alert" | yield shape(alert) | rename ts := timestamp
 ```
 
-A full description of all that's possible with
-[shapers](https://zed.brimdata.io/docs/language/shaping) is beyond
+A full description of all that's possible with shapers is beyond
 the scope of this article. However, this script is quite simple and can
 be described in brief.
 
@@ -258,14 +261,14 @@ alerts. If you want to let through more Suricata data besides just alerts, you
 could remove this part of the pipeline. If so, you'll likely want to explore
 the additional data and create shapers to apply proper data types to them,
 since this will be a prerequisite for doing certain Zed queries with the data
-(e.g., a successful CIDR match requires IP addresses to be stored as `ip` type,
+(e.g., a successful [CIDR match](https://zed.brimdata.io/docs/language/functions/cidr_match) requires IP addresses to be stored as `ip` type,
 not the `string` type in which they'd appear in unshaped NDJSON).
 
 3. The `yield shape(alert)` applies the shape of the `alert` type to each
 input record. With what's shown here, additional fields that appear beyond
 those specified in the shaper (e.g. as the result of new Suricata features or
 your own customizations) will still be let through this pipeline and stored in
-the Zed lake. If this is undesirable, add `| yield crop(alert)` downstream
+the Zed lake with an inferred data type. If this is undesirable, add `| yield crop(alert)` downstream
 of the first `yield`, which will trim these additional fields.
 
 4. The `rename ts := timestamp` changes the name of Suricata's `timestamp`
@@ -306,12 +309,12 @@ export LD_LIBRARY_PATH="/usr/local/lib"
 
 As we did with Zeek and Suricata, we create a [wrapper script](https://github.com/brimdata/brimcap/blob/main/examples/nfdump-wrapper.sh) to act as our
 Brimcap analyzer. It works in two phases, first creating binary NetFlow records
-and then converting them to CSV. `nfpcapd` only accepts a true pcap file input
+and then converting them to NDJSON. `nfpcapd` only accepts a true pcap file input
 (not a device like `/dev/stdin`), so we first store the incoming pcap in a
 temporary file.
 
 ```
-$ cat nfdump-wrapper.sh 
+$ cat nfdump-wrapper.sh
 #!/bin/bash
 export LD_LIBRARY_PATH="/usr/local/lib"
 TMPFILE=$(mktemp)
@@ -320,12 +323,12 @@ cat - > "$TMPFILE"
 rm "$TMPFILE"
 for file in nfcapd.*
 do
-  /usr/local/bin/nfdump -r $file -o csv | head -n -3 > ${file}.csv
+  /usr/local/bin/nfdump -r $file -o json-log > ${file}.ndjson
 done
 ```
 
 This script is called from our Brimcap config YAML, which includes a `globs:`
-setting to apply a Zed shaper to only the CSV files that were output from
+setting to apply a Zed shaper to only the NDJSON files that were output from
 nfdump.
 
 ```
@@ -333,57 +336,27 @@ $ cat nfdump.yml
 analyzers:
   - cmd: /usr/local/bin/nfdump-wrapper.sh
     name: nfdump
-    globs: ["*.csv"]
+    globs: ["*.ndjson"]
     shaper: |
       type netflow = {
-        ts: time,
-        te: time,
-        td: duration,
-        sa: ip,
-        da: ip,
-        sp: uint16,
-        dp: uint16,
-        pr: string,
-        flg: string,
-        fwd: bytes,
-        stos: bytes,
-        ipkt: uint64,
-        ibyt: uint64,
-        opkt: uint64,
-        obyt: uint64,
-        in: uint64,
-        out: uint64,
-        sas: uint64,
-        das: uint64,
-        smk: uint8,
-        dmk: uint8,
-        dtos: bytes,
-        dir: uint8,
-        nh: ip,
-        nhb: ip,
-        svln: uint16,
-        dvln: uint16,
-        ismc: string,
-        odmc: string,
-        idmc: string,
-        osmc: string,
-        mpls1: string,
-        mpls2: string,
-        mpls3: string,
-        mpls4: string,
-        mpls5: string,
-        mpls6: string,
-        mpls7: string,
-        mpls8: string,
-        mpls9: string,
-        mpls10: string,
-        cl: float64,
-        sl: float64,
-        al: float64,
-        ra: ip,
-        eng: string,
-        exid: bytes,
-        tr: time
+        type: string,
+        export_sysid: int64,
+        first: time,
+        last: time,
+        received: time,
+        in_packets: int64,
+        in_bytes: int64,
+        proto: int64,
+        tcp_flags: string,
+        src_port: uint16,
+        dst_port: uint16,
+        fwd_status: int64,
+        src_tos: int64,
+        src4_addr: ip,
+        dst4_addr: ip,
+        src4_geo: string,
+        dst4_geo: string,
+        sampled: int64
       }
       yield shape(netflow)
 ```
