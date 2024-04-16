@@ -29,7 +29,7 @@ choosing. This article includes examples of both configurations along with
 The goal in our first example customization will be to run Zui with the latest
 GA binary releases of [Zeek](https://github.com/zeek/zeek/wiki/Binary-Packages)
 and [Suricata](https://suricata.readthedocs.io/en/latest/install.html#install-binary-packages).
-We'll use Linux Ubuntu 20.04 as our OS platform. On such a host, the following
+We'll use Ubuntu Linux 20.04 as our OS platform. On such a host, the following
 commands install these from common repositories.
 
 ```
