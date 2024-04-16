@@ -56,8 +56,7 @@ additional customizations.
 and [JA3](https://github.com/salesforce/ja3). These would typically be
 installed via [Zeek Package Manager](https://docs.zeek.org/projects/package-manager/en/stable/quickstart.html).
 
-2. Other changes are made to the default configuration of the Brimcap-bundled
-Zeek, such as enabling
+2. The Brimcap-bundled Zeek includes other changes to the default Zeek configuration, such as enabling
 [Community ID Flow Hashing](https://docs.zeek.org/en/master/customizations.html#community-id).
 See the [build-zeek release automation](https://github.com/brimdata/build-zeek/blob/main/.github/workflows/release.yml)
 for details on how this and other customizations are handled.
