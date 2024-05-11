@@ -4,7 +4,7 @@ LDFLAGS = -s -X github.com/brimdata/brimcap/cli.Version=$(VERSION)
 
 SURICATATAG = v5.0.3-brim5
 SURICATAPATH = suricata-$(SURICATATAG)
-ZEEKTAG = v6.2.0-brim1
+ZEEKTAG = v6.2.0-brim2
 ZEEKPATH = zeek-$(ZEEKTAG)
 
 ZIP = zip -r
