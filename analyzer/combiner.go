@@ -11,6 +11,7 @@ import (
 
 // A Combiner is a zio.Reader that returns records by reading from multiple Readers.
 type Combiner struct {
+	arena   *zed.Arena // Owns the zed.Value returned by Read
 	cancel  context.CancelFunc
 	ctx     context.Context
 	done    []bool
@@ -31,9 +32,10 @@ func NewCombiner(ctx context.Context, readers []zio.Reader) *Combiner {
 }
 
 type combinerResult struct {
-	err error
-	idx int
-	val *zed.Value
+	err   error
+	idx   int
+	val   *zed.Value
+	arena *zed.Arena
 }
 
 func (c *Combiner) run() {
@@ -42,14 +44,16 @@ func (c *Combiner) run() {
 		go func() {
 			for {
 				rec, err := c.readers[idx].Read()
+				var arena *zed.Arena
 				if rec != nil {
+					arena = zed.NewArena()
 					// Make a copy since we don't wait for
 					// Combiner.Read's caller to finish with
 					// this value before we read the next.
-					rec = rec.Copy().Ptr()
+					rec = rec.Copy(arena).Ptr()
 				}
 				select {
-				case c.results <- combinerResult{err, idx, rec}:
+				case c.results <- combinerResult{err, idx, rec, arena}:
 					if rec == nil || err != nil {
 						return
 					}
@@ -75,6 +79,10 @@ func (c *Combiner) Read() (*zed.Value, error) {
 				return nil, r.err
 			}
 			if r.val != nil {
+				if c.arena != nil {
+					c.arena.Unref()
+				}
+				c.arena = r.arena
 				return r.val, nil
 			}
 			c.done[r.idx] = true

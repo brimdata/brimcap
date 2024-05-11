@@ -20,6 +20,7 @@ import (
 // written log data are transformed into *zed.Values and returned on a
 // first-come-first serve basis.
 type Tailer struct {
+	arena      *zed.Arena // Owns the zed.Value returned by Read
 	forceClose uint32
 	opts       anyio.ReaderOpts
 	readers    map[string]*tail.File
@@ -59,8 +60,9 @@ type nopWarner struct{}
 func (nopWarner) Warn(_ string) error { return nil }
 
 type result struct {
-	zv  *zed.Value
-	err error
+	zv    *zed.Value
+	arena *zed.Arena
+	err   error
 }
 
 func (t *Tailer) start() {
@@ -150,9 +152,10 @@ func (t *Tailer) tailFile(file string) error {
 			if val == nil {
 				return
 			}
+			arena := zed.NewArena()
 			// Copy because we may read the next value before
 			// Tailer.Read's caller has finished with this one.
-			t.results <- result{zv: val.Copy().Ptr()}
+			t.results <- result{val.Copy(arena).Ptr(), arena, nil}
 		}
 	}()
 	return nil
@@ -170,6 +173,10 @@ func (t *Tailer) Read() (*zed.Value, error) {
 		for range t.results {
 		}
 	}
+	if t.arena != nil {
+		t.arena.Unref()
+	}
+	t.arena = res.arena
 	return res.zv, res.err
 }
 
