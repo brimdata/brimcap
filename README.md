@@ -70,7 +70,7 @@ export PATH="$PATH:/Path/To/brimcap"
 
 ## Included Analyzers
 
-brimcap includes special builds of [Zeek](https://github.com/brimdata/zeek)
+brimcap includes special builds of [Zeek](https://github.com/brimdata/build-zeek)
 and [Suricata](https://github.com/brimdata/build-suricata) that were created by
 the core development team at Brim Data. These builds are preconfigured to
 provide a good experience out-of-the-box for generating logs from pcaps using
