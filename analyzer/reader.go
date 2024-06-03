@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/compiler"
 	"github.com/brimdata/zed/compiler/ast"
+	"github.com/brimdata/zed/compiler/parser"
 	"github.com/brimdata/zed/runtime"
 	"github.com/brimdata/zed/zio"
 	"go.uber.org/multierr"
@@ -52,9 +53,10 @@ func (h *reader) close() (err error) { return h.tailers.close() }
 
 func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner ztail.Warner) (zio.Reader, *ztail.Tailer, error) {
 	var shaper ast.Seq
+	var sset *parser.SourceSet
 	if conf.Shaper != "" {
 		var err error
-		if shaper, err = compiler.Parse(conf.Shaper); err != nil {
+		if shaper, sset, err = compiler.Parse(conf.Shaper); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -65,7 +67,7 @@ func tailOne(ctx context.Context, zctx *zed.Context, conf Config, warner ztail.W
 	}
 	wrapped.reader = tailer
 	if shaper != nil {
-		query, err := runtime.CompileQuery(ctx, zctx, compiler.NewCompiler(), shaper, []zio.Reader{tailer})
+		query, err := runtime.CompileQuery(ctx, zctx, compiler.NewCompiler(), shaper, sset, []zio.Reader{tailer})
 		if err != nil {
 			tailer.Close()
 			return nil, nil, err
