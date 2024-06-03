@@ -114,7 +114,7 @@ func (s *tailerTSuite) read() (<-chan string, <-chan error) {
 	w := zsonio.NewWriter(zio.NopCloser(buf), zsonio.WriterOpts{})
 	go func() {
 		comp := compiler.NewCompiler()
-		query, err := runtime.CompileQuery(context.Background(), s.zctx, comp, sortTs, []zio.Reader{s.dr})
+		query, err := runtime.CompileQuery(context.Background(), s.zctx, comp, sortTs, nil, []zio.Reader{s.dr})
 		if err != nil {
 			close(result)
 			errCh <- err
