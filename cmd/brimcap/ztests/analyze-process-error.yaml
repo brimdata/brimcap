@@ -1,8 +1,8 @@
 script: |
   mkdir wd && mv errorproc.sh wd
-  ! cat alerts.pcap | brimcap analyze -config=config1.yaml -
+  ! cat alerts.pcap | brimcap analyze -nostats -config=config1.yaml -
   >&2 echo === 
-  ! brimcap analyze -config=config2.yaml alerts.pcap
+  ! brimcap analyze -nostats -config=config2.yaml alerts.pcap
 
 inputs:
   - name: alerts.pcap
