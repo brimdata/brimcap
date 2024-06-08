@@ -22,14 +22,14 @@ jobs:
   create-branch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # ref defaults to github.sha, which is fixed at the time a workflow is
           # triggered. Using github.ref ensures that a run that waits for the
           # concurrency group will see any commits pushed by the runs that
           # caused it to wait, reducing push failures down below.
           ref: ${{ github.ref }}
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
       - run: go get github.com/brimdata/zed@${{ env.zed_ref }}
@@ -47,7 +47,7 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           # Need an admin token to bypass branch protection on main.
