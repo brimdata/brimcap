@@ -21,8 +21,8 @@ github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f h1:y06x6vGnFYf
 github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f/go.mod h1:2stgcRjl6QmW+gU2h5E7BQXg4HU0gzxKWDuT5HviN9s=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
-github.com/brimdata/zed v1.15.1-0.20240617202548-d217ed8d317e h1:75zewkKDfrb4Q332zMxzJEP/wyUN3PrF7aeH12vdcR8=
-github.com/brimdata/zed v1.15.1-0.20240617202548-d217ed8d317e/go.mod h1:9smcaLcYijRnXDGEmDnZcVykTAYAqrRmK9uUtUrSHuI=
+github.com/brimdata/zed v1.15.1-0.20240619181207-9c3f5fdcb1b0 h1:L8jnNqbnKgMRg6GuYgzDyRShfojNHFEfsQyfVdJECBA=
+github.com/brimdata/zed v1.15.1-0.20240619181207-9c3f5fdcb1b0/go.mod h1:9smcaLcYijRnXDGEmDnZcVykTAYAqrRmK9uUtUrSHuI=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
