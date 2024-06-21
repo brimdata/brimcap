@@ -1,3 +1,8 @@
+## v1.8.0
+* Advance Zed dependency to include recent fixes/enhancements
+* Update bundled Zeek to [v6.2.0-brim2](https://github.com/brimdata/build-zeek/releases/tag/v6.2.0-brim2) (#342)
+* Update the [Custom Brimcap Configuration](https://github.com/brimdata/brimcap/wiki/Custom-Brimcap-Config) wiki article to reflect recent changes in Zed, Zui, Zeek, and `nfdump` (#340)
+
 ## v1.7.0
 * Advance Zed dependency to include recent fixes/enhancements
 * Update bundled Zeek to [v6.2.0-brim1](https://github.com/brimdata/build-zeek/releases/tag/v6.2.0-brim1) (#338)
