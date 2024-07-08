@@ -35,18 +35,11 @@ filesystem, the application on your operating system that's configured to
 automatically open files ending in `.pcap` will be launched to open this file.
 
 In typical environments, that application will be Wireshark. However, if no
-such application is installed or configured to open `.pcap` files, clicking the
-**Packets** button in Zui will have no effect. Windows presents a helpful
-pop-up in this case to notify about the lack of an appropriate installed
-program to handle the file. However, due to an open issue
-([zui/1379](https://github.com/brimdata/zui/issues/1379)) this failure is
-currently "silent" on macOS and Linux, such that you will see a "Preparation
-Complete" pop-up in Zui that indicates the extraction to the temporary file
-was successful, but no application will open.
-
-To fix this problem, ensure Wireshark or a similar utility is installed
-and that you can open `.pcap` files outside of Zui by double-clicking them
-in the general "files" utility for your operating system.
+such application is installed or configured to open `.pcap` files, an error
+will pop up when clicking the **Packets** button in Zui. To fix this problem,
+ensure Wireshark or a similar utility is installed and that you can open
+`.pcap` files outside of Zui by double-clicking them in the general "files"
+utility for your operating system.
 
 Note that it would be a misconfiguration to set Zui itself as your operating
 system's default application for opening `.pcap` files, as this would make
