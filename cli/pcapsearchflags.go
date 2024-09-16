@@ -34,9 +34,7 @@ func (f *PcapSearchFlags) SetFlags(fs *flag.FlagSet) {
 			f.duration = 1
 			return nil
 		}
-		arena := zed.NewArena()
-		defer arena.Unref()
-		val, err := zson.ParseValue(zed.NewContext(), arena, s)
+		val, err := zson.ParseValue(zed.NewContext(), s)
 		if err != nil {
 			return err
 		}
