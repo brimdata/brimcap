@@ -1,3 +1,7 @@
+## v1.18.0
+* Advance Zed dependency to include recent fixes/enhancements
+* Update bundled Zeek to [v7.0.0-brim1](https://github.com/brimdata/build-zeek/releases/tag/v7.0.0-brim1) (#353)
+
 ## v1.17.0
 * Because Brimcap is dependent on the [Zed project](https://zed.brimdata.io/), GA Brimcap release major/minor version numbers are now synchronized to the corresponding [Zed release](https://github.com/brimdata/zed/releases)
 * Advance Zed dependency to include recent fixes/enhancements
