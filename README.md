@@ -80,7 +80,7 @@ Config](https://github.com/brimdata/brimcap/wiki/Custom-Brimcap-Config) article.
 
 ## Build From Source
 
-To build from source, Go 1.21 or later is required.
+To build from source, Go 1.23 or later is required.
 
 To build the brimcap package, clone this repo and run `make build`:
 
