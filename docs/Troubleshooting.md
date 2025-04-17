@@ -27,7 +27,7 @@ detail.
 ### Application problems
 
 To start debugging such problems, it helps to understand how Zui opens flows
-extracted from pcaps. Once the [5-tuple](https://www.napatech.com/what-is-a-flow/), connection start time, and connection
+extracted from pcaps. Once the [5-tuple](https://nordvpn.com/cybersecurity/glossary/5-tuple/), connection start time, and connection
 duration are isolated from the Zeek `conn` record for the flow, Zui
 invokes `brimcap search` to extract the packets for the target flow
 into a temporary file. Once this temporary file has been written to the local
@@ -86,7 +86,7 @@ Stream_ or _Follow UDP Stream_, which will apply a filter of the format
 `tcp.stream eq N` or `udp.stream eq N`, where `N` is a number `0`, `1`, etc.
 based on which flow within the pcap is being isolated. When this is done,
 Wireshark appears to treat all packets as part of the same flow if they
-share the same [5-tuple](https://www.napatech.com/what-is-a-flow/),
+share the same [5-tuple](https://nordvpn.com/cybersecurity/glossary/5-tuple/),
 regardless of how long the flow lasts.
 
 To similarly attempt to isolate flows, Zui relies on Zeek's `conn` event,
